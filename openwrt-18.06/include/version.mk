@@ -94,7 +94,7 @@ endef
 #'
 
 # add siwifi software version
-include $(TOPDIR)/include/siwifi_version.mk
+# include $(TOPDIR)/include/siwifi_version.mk
 
 VERSION_SED_SCRIPT:=$(SED) 's,%U,$(call sed_escape,$(VERSION_REPO)),g' \
 	-e 's,%V,$(call sed_escape,$(VERSION_NUMBER)),g' \

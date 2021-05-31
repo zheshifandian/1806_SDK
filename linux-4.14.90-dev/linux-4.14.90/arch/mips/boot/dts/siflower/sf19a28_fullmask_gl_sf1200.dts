@@ -1,0 +1,146 @@
+/dts-v1/;
+
+#include "sf19a28_fullmask.dtsi"
+#include "sf19a28-thermal_common.dtsi"
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "glinet,gl-sf1200", "siflower,sf19a28-soc";
+	model = "GL-SF1200";
+	aliases {
+		led-boot = &power_led;
+		led-failsafe = &power_led;
+		led-running = &power_led;
+		//led-upgrade = &power_led;
+	};
+};
+
+&gmac {
+	status = "okay";
+	delay = <0x24 0x21>;
+	esw-rst-gpio = <11>;
+};
+
+&spi2 {
+	status = "okay";
+	//use-dma;
+	dmas = <&gdma 10
+	&gdma 11>;
+	dma-names = "tx", "rx";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	w25q128@0 {
+		compatible = "w25q128";
+		reg = <0>;	/* chip select */
+		spi-max-frequency = <33000000>;
+
+		bank-width = <2>;
+		device-width = <2>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partition@0 {
+			label = "spl-loader";
+			reg = <0x0 0x20000>; /* 128k */
+			read-only;
+		};
+
+		partition@20000 {
+			label = "u-boot";
+			reg = <0x20000 0x50000>; /* 320k */
+			read-only;
+		};
+
+		partition@70000 {
+			label = "u-boot-env";
+			reg = <0x70000 0x10000>; /* 64k */
+		};
+
+		factory:partition@80000 {
+			label = "factory";
+			reg = <0x80000 0x10000>; /* 64k */
+			read-only;
+		};
+
+		partition@90000 {
+			label = "firmware";
+			reg = <0x90000 0xf70000>; /* 576k-16M */
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&watchdog {
+	status = "okay";
+};
+
+&timer0 {
+	status = "okay";
+};
+
+&usb_phy {
+       status = "okay";
+};
+
+&usb {
+       status = "okay";
+};
+
+&wifi_rf {
+	status = "okay";
+    /*only support ext pa for 5G*/
+	force_expa = <1>;
+};
+
+&gpio_keys {
+	status = "okay";
+	restart@27 {
+		label = "Key Restart";
+		linux,code = <0x198>;
+		gpios = <&gpio 27 1>;
+		poll-interval = <10>;
+		debounce-interval = <20>;
+	};
+};
+
+&leds {
+	status = "okay";
+	wlan5g {
+		label = "gl-sf1200:blue:wlan5g";
+		gpios = <&gpio 0 1>;
+	};
+
+	wlan2g {
+		label = "gl-sf1200:blue:wlan2g";
+		gpios = <&gpio 12 1>;
+	};
+
+	power_led: power{
+		label = "gl-sf1200:blue:power";
+		gpios = <&gpio 1 1>;
+	};
+};
+
+&wifi_lb {
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	//gpio-leds = <&gpio 12 0>;
+	smp-affinity = <2>;
+};
+
+&wifi_hb {
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	//gpio-leds = <&gpio 12 0>;
+	smp-affinity = <3>;
+};

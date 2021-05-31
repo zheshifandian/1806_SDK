@@ -50,6 +50,7 @@ fwtool_check_image() {
 	for k in $dev_keys; do
 		json_get_var dev "$k"
 		[ "$dev" = "$device" ] && return 0
+		[ "$dev" = "unknown" ] && return 0
 	done
 
 	echo "Device $device not supported by this image"

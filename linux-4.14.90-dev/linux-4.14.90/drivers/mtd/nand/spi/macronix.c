@@ -80,7 +80,7 @@ static int mx35lf1ge4ab_ecc_get_status(struct spinand_device *spinand,
 		if (mx35lf1ge4ab_get_eccsr(spinand, &eccsr))
 			return nand->eccreq.strength;
 
-		if (WARN_ON(eccsr > nand->eccreq.strength || !eccsr))
+		if (WARN_ON((eccsr&0xf) > nand->eccreq.strength || !eccsr))
 			return nand->eccreq.strength;
 
 		return eccsr;

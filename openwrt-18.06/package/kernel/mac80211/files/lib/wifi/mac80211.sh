@@ -67,7 +67,8 @@ detect_mac80211() {
 		devidx=$(($devidx + 1))
 	done
 
-	for _dev in /sys/class/ieee80211/*; do
+	for _dev in `ls /sys/class/ieee80211/ -r`; do
+		_dev="/sys/class/ieee80211/$_dev"
 		[ -e "$_dev" ] || continue
 
 		dev="${_dev##*/}"
@@ -80,19 +81,19 @@ detect_mac80211() {
 		channel="1"
 		htmode=""
 		ht_capab=""
-		ssidprefix="-2.4G"
+		ssidprefix=""
 		noscan="0"
 		band="2.4G"
 		htcodex="0"
 		txpower="20"
 
 
-		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT20
+		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT40
 
 		iw phy "$dev" info | grep -q '5180 MHz' && {
 			mode_band="a"
 			channel="161"
-			ssidprefix=""
+			ssidprefix="-5G"
 			band="5G"
 			txpower="25"
 			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
@@ -117,8 +118,11 @@ detect_mac80211() {
 		[ -f "/sys/devices/factory-read/countryid" ] && {
 			country=`cat /sys/devices/factory-read/countryid`
 		}
-		ssid=SiWiFi-`cat /sys/class/ieee80211/${dev}/macaddress | cut -c 13- | sed 's/://g'`$ssidprefix
-		ssid_lease=SiWiFi-租赁-$ssidprefix`cat /sys/class/ieee80211/${dev}/macaddress | cut -c 13- | sed 's/://g'`
+		#ssid=SiWiFi-`cat /sys/class/ieee80211/${dev}/macaddress | cut -c 13- | sed 's/://g'`$ssidprefix
+		#ssid_lease=SiWiFi-租赁-$ssidprefix`cat /sys/class/ieee80211/${dev}/macaddress | cut -c 13- | sed 's/://g'`
+
+		ssid=OpenWrt$ssidprefix
+		ssid_lease=OpenWrt-lease$ssidprefix
 		if [ ! -n "$country" ]; then
 			country='CN'
 		fi
@@ -131,9 +135,9 @@ detect_mac80211() {
 			set wireless.radio${devidx}=wifi-device
 			set wireless.radio${devidx}.type=mac80211
 			set wireless.radio${devidx}.country=${country}
-			set wireless.radio${devidx}.txpower_lvl=${txpower_lvl}
 			set wireless.radio${devidx}.txpower=${txpower}
-			set wireless.radio${devidx}.channel=${channel}
+			set wireless.radio${devidx}.txpower_max=${txpower}
+			set wireless.radio${devidx}.channel=auto
 			set wireless.radio${devidx}.band=${band}
 			set wireless.radio${devidx}.hwmode=11${mode_band}
 			set wireless.radio${devidx}.noscan=${noscan}
@@ -160,41 +164,8 @@ detect_mac80211() {
 			set wireless.default_radio${devidx}.wps_pushbutton=1
 			set wireless.default_radio${devidx}.wps_label=0
 
-			set wireless.guest_radio${devidx}=wifi-iface
-			set wireless.guest_radio${devidx}.device=radio${devidx}
-			set wireless.guest_radio${devidx}.network=guest
-			set wireless.guest_radio${devidx}.mode=ap
-			set wireless.guest_radio${devidx}.ssid=${ssid}-guest
-			set wireless.guest_radio${devidx}.encryption=none
-			set wireless.guest_radio${devidx}.hidden=0
-			set wireless.guest_radio${devidx}.ifname=wlan${devidx}-guest
-			set wireless.guest_radio${devidx}.isolate=1
-			set wireless.guest_radio${devidx}.group=1
-			set wireless.guest_radio${devidx}.netisolate=0
-			set wireless.guest_radio${devidx}.disable_input=0
-			set wireless.guest_radio${devidx}.disabled=1
 EOF
 		uci -q commit wireless
-
-			if [ "$devidx" == "0" ]; then
-				uci -q batch <<-EOF
-				set wireless.lease_radio${devidx}=wifi-iface
-				set wireless.lease_radio${devidx}.device=radio${devidx}
-				set wireless.lease_radio${devidx}.network=lease
-				set wireless.lease_radio${devidx}.mode=ap
-				set wireless.lease_radio${devidx}.ssid=${ssid_lease}
-				set wireless.lease_radio${devidx}.encryption=none
-				set wireless.lease_radio${devidx}.hidden=0
-				set wireless.lease_radio${devidx}.ifname=wlan${devidx}-lease
-				set wireless.lease_radio${devidx}.isolate=1
-				set wireless.lease_radio${devidx}.group=1
-				set wireless.lease_radio${devidx}.netisolate=0
-				set wireless.lease_radio${devidx}.disable_input=0
-				set wireless.lease_radio${devidx}.maxassoc=64
-				set wireless.lease_radio${devidx}.disabled=1
-				EOF
-				uci -q commit wireless
-			fi
 
 		devidx=$(($devidx + 1))
 	done

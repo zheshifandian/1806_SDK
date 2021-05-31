@@ -64,7 +64,9 @@ dkms.conf
 /openwrt-18.06/logs
 /openwrt-18.06/feeds.conf
 /openwrt-18.06/files
-/openwrt-19.06/package/openwrt-packages
+/openwrt-18.06/feeds/*
+/openwrt-18.06/dl/*
+
 key-build*
 *.orig
 *.rej
