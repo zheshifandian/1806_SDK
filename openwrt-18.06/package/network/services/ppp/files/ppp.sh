@@ -111,6 +111,8 @@ ppp_generic_setup() {
 		}
 	}
 
+	[ -n "$keepalive" ] || keepalive="5 1"
+
 	local lcp_failure="${keepalive%%[, ]*}"
 	local lcp_interval="${keepalive##*[, ]}"
 	local lcp_adaptive="lcp-echo-adaptive"

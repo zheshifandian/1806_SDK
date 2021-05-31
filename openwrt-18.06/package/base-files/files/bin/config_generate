@@ -89,7 +89,7 @@ generate_network() {
 	uci -q batch <<-EOF
 		set network.$1.type='bridge'
 		set network.$1.proto='static'
-		set network.$1.ipaddr='192.168.4.1'
+		set network.$1.ipaddr='192.168.8.1'
 		set network.$1.netmask='255.255.255.0'
 		set network.$1.ip6assign='60'
 	EOF
@@ -145,7 +145,7 @@ generate_network() {
 		static)
 			local ipad
 			case "$1" in
-				lan) ipad=${ipaddr:-"192.168.4.1"} ;;
+				lan) ipad=${ipaddr:-"192.168.8.1"} ;;
 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
 			esac
 

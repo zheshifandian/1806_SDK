@@ -6,6 +6,7 @@
 #
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
+include ./nand.mk
 
 define get_kernel_entry
 0x$(shell $(TARGET_CROSS)nm $(1) 2>/dev/null | grep " kernel_entry" | cut -f1 -d ' ')
@@ -58,6 +59,7 @@ define Image/MakeSysupgradeBinary
 	cat $(KDIR)/uImage.lzma $(KDIR)/root.squashfs > $(KDIR)/$(output_name)
 	$(call prepare_generic_squashfs,$(KDIR)/$(output_name))
 	$(CP) $(KDIR)/$(output_name) $(BIN_DIR)/$(output_name)
+	$(call Build/append-metadata,$(BIN_DIR)/$(output_name))
 endef
 
 define Image/Build/Initramfs
@@ -71,7 +73,7 @@ endef
 define Image/Build
 	$(call Image/Build/$(1))
 	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-root.$(1) bs=128k conv=sync
-	$(call Image/MakeSysupgradeBinary)
+	$(if $(TARGET_DEVICES),,$(call Image/MakeSysupgradeBinary))
 endef
 
 $(eval $(call BuildImage))

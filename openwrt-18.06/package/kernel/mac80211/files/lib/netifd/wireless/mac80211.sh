@@ -1,6 +1,7 @@
 #!/bin/sh
 . /lib/netifd/netifd-wireless.sh
 . /lib/netifd/hostapd.sh
+. /lib/functions/system.sh
 
 init_wireless_driver "$@"
 
@@ -398,18 +399,18 @@ mac80211_generate_mac() {
 	local oIFS="$IFS"; IFS=":"; set -- $ref; IFS="$oIFS"
 
 	macidx=$(($id + 2))
-	[ "$mask" = "ff:ff:ff:ff:ff:ff" ] && {
+#	[ "$mask" = "ff:ff:ff:ff:ff:ff" ] && {
 #		modified by robert
 #		for if mask is FF:FF:FF:FF:FF:FF, the previous logic will generate a wrong mac-address
-		printf "%s:%s:%s:%s:%s:%02x" $1 $2 $3 $4 $5 $(( 0x$6 ^ $id ))
-		return
-	}
+#		printf "%s:%s:%s:%s:%s:%02x" $1 $2 $3 $4 $5 $(( 0x$6 ^ $id ))
+#		return
+#	}
 
 	[ "$((0x$mask1))" -gt 0 ] && {
 		b1="0x$1"
 		[ "$id" -gt 0 ] && \
 			b1=$(($b1 ^ ((($id - 1) << 2) | 0x2)))
-		printf "%02x:%s:%s:%s:%s:%s" $b1 $2 $3 $4 $5 $6
+		printf "%02x:%s:%s:%s:%s:%s" $(($b1%256)) $2 $3 $4 $5 $6
 		return
 	}
 

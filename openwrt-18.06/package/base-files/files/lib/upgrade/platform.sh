@@ -9,6 +9,7 @@ platform_expected_image() {
 
 	case "$machine" in
 		# this is from dts
+		"GL")		[ -e /dev/ubi0 ] && echo "siwifi-1688a-nand" || echo "siwifi-1688a"; return;;
 		"sf16a18")	echo "siwifi-1688a"; return;;
 		"sf19a28")	echo "siwifi-1688a"; return;;
 	esac
@@ -42,7 +43,7 @@ platform_check_image() {
 	case "$file_type" in
 		"a18")
 			local dev_siwifi_id=$(platform_expected_image)
-			echo "Found A18 image with device siwifi_id $dev_siwifi_id"
+			#echo "Found A18 image with device siwifi_id $dev_siwifi_id"
 
 			if [ "$dev_siwifi_id" != "siwifi-1688a" ]; then
 				echo "Invalid image type."
@@ -58,8 +59,11 @@ platform_check_image() {
 			fi
 		;;
 		*)
-			echo "Invalid image type. Please use only .trx files"
-			error=1
+			local dev_siwifi_id=$(platform_expected_image)
+			if [ "$dev_siwifi_id" != "siwifi-1688a-nand" ]; then
+				echo "Invalid image type. Please use only .trx files"
+				error=1
+			fi
 		;;
 	esac
 
@@ -71,11 +75,19 @@ platform_do_upgrade() {
 	local cmd=""
 
 	case "$siwifi_id" in
-		"siwifi-1688a")		cmd=$ARGV;;
-		"siwifi-1688b")		cmd=$ARGV;;
+		"siwifi-1688a-nand")
+			cmd=$ARGV
+			nand_do_upgrade "$cmd"
+			;;
+		"siwifi-1688a" |\
+		"siwifi-1688b")
+			cmd=$ARGV
+			default_do_upgrade "$cmd"
+			;;
+		*)
+			default_do_upgrade "$cmd"
+			;;
 	esac
-
-	default_do_upgrade "$cmd"
 }
 
 disable_watchdog() {

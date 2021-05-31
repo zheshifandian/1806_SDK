@@ -8,7 +8,7 @@ Index: hostapd-2019-08-08-ca8c2bd2/src/ap/acs.c
  
 +static int acs_radar_chan(const struct hostapd_channel_data *chan)
 +{
-+	const int allowed[] = { 52, 56, 60, 64 };
++	const int allowed[] = { 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144 };
 +	unsigned int i;
 +	for (i = 0; i < ARRAY_SIZE(allowed); i++)
 +		if (chan->chan == allowed[i])

@@ -528,6 +528,14 @@ flowoffload_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	if (xt_flowoffload_skip(skb, xt_family(par)))
 		return XT_CONTINUE;
 
+	if (!xt_in(par) || !xt_out(par))
+		return XT_CONTINUE;
+
+	if ((xt_in(par)->type == ARPHRD_NONE) || (xt_out(par)->type == ARPHRD_NONE))
+		return XT_CONTINUE;
+
+	if (!strcmp(xt_in(par)->name,"3g-modem_1_1") || !strcmp(xt_out(par)->name,"3g-modem_1_1"))
+		return XT_CONTINUE;
 
 	ct = nf_ct_get(skb, &ctinfo);
 	if (ct == NULL)
@@ -632,6 +640,12 @@ flowoffload_tg(struct sk_buff *skb, const struct xt_action_param *par)
 
 	if (flow_offload_add(&nf_flowtable, flow) < 0)
 		goto err_flow_add;
+
+	if (!strcmp(xt_in(par)->name,"eth1") || !strcmp(xt_out(par)->name,"eth1"))
+		return XT_CONTINUE;
+
+	if (!strcmp(xt_in(par)->name,"usb0") || !strcmp(xt_out(par)->name,"usb0"))
+		return XT_CONTINUE;
 
 	if ((info->flags & XT_FLOWOFFLOAD_HW) && (atomic_read(&(nf_flowtable.nf_count.hw_total_count)) < FLOWOFFLOAD_HW_MAX)) {
 		if (!check_flow_in_blacklist(xt_net(par), flow))

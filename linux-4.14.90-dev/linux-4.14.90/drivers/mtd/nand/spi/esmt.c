@@ -95,8 +95,10 @@ static int esmt_spinand_detect(struct spinand_device *spinand)
 
 	ret = spinand_match_and_init(spinand, esmt_spinand_table,
 				     ARRAY_SIZE(esmt_spinand_table), id[2]);
-	if (ret)
+	if (ret > 0)
 		return ret;
+	else
+		return 0;
 
 	return 1;
 }

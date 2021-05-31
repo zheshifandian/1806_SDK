@@ -15,7 +15,6 @@ init_switch() {
 start_service() {
 	./usr/bin/hnat_update_interface.sh
 	local lanip=$(uci get network.lan.ipaddr)
-	echo ${lanip} siwifi.cn > /etc/hosts
 
 	init_switch
 

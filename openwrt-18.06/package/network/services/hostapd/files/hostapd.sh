@@ -875,7 +875,7 @@ wpa_supplicant_add_network() {
 		;;
 	esac
 
-	set_default ieee80211r 0
+	set_default ieee80211r 1
 	set_default multi_ap 0
 
 	local key_mgmt='NONE'

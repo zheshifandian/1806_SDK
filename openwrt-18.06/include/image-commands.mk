@@ -326,7 +326,38 @@ metadata_json = \
 		} \
 	}'
 
+ifeq ($(TOPDIR)/glinet/images.json, $(wildcard $(TOPDIR)/glinet/images.json))
+    supported_devices=$(shell echo \"glinet,gl-$(EXTRA_IMAGE_NAME)\")
+    metadate_board=gl-$(EXTRA_IMAGE_NAME)
+    release=$(shell cat $(TOPDIR)/glinet/images.json | \
+         python -c "import json; import sys; obj=json.load(sys.stdin); print obj['profiles']['$(EXTRA_IMAGE_NAME)']['version'].encode('utf-8')")
+else
+    supported_devices="unknown"
+    metadate_board=unknown
+    release=Unknown
+endif
+
+metadata_gl_json = \
+	'{ $(if $(IMAGE_METADATA),$(IMAGE_METADATA)$(comma)) \
+		"metadata_version": "1.0", \
+		"supported_devices":[$(supported_devices)], \
+		"version": { \
+			"release": "$(release)", \
+			"date": "$(shell TZ='Asia/Chongqing' date '+%Y%m%d%H%M%S')", \
+			"dist": "$(call json_quote,$(VERSION_DIST))", \
+			"version": "$(call json_quote,$(VERSION_NUMBER))", \
+			"revision": "$(call json_quote,$(REVISION))", \
+			"target": "$(call json_quote,$(TARGETID))", \
+			"board": "$(metadate_board)" \
+		} \
+	}'
+
+define Build/append-gl-metadata
+	echo $(call metadata_gl_json,$(SUPPORTED_DEVICES)) | fwtool -I - $@
+endef
+
 define Build/append-metadata
+	echo $(call metadata_gl_json,$(SUPPORTED_DEVICES)) | fwtool -I - $1
 	$(if $(SUPPORTED_DEVICES),-echo $(call metadata_json,$(SUPPORTED_DEVICES)) | fwtool -I - $@)
 	[ ! -s "$(BUILD_KEY)" -o ! -s "$(BUILD_KEY).ucert" -o ! -s "$@" ] || { \
 		cp "$(BUILD_KEY).ucert" "$@.ucert" ;\
