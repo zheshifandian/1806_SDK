@@ -64,14 +64,18 @@ define Image/Build/Initramfs
 	$(call CompressLzma,$(KDIR)/vmlinux-initramfs,$(KDIR)/vmlinux-initramfs.bin.lzma)
 	$(call MkuImage,lzma,,$(KDIR)/vmlinux-initramfs.bin.lzma,$(KDIR)/uImage-initramfs.lzma)
 	cp $(KDIR)/vmlinux-initramfs.elf $(BIN_DIR)/$(IMG_PREFIX)-vmlinux-initramfs.elf
-	cp $(KDIR)/vmlinux-initramfs $(BIN_DIR)/$(IMG_PREFIX)-vmlinux-initramfs.bin
-	cp $(KDIR)/uImage-initramfs.lzma $(BIN_DIR)/uImage-initramfs.lzma
 endef
 
 define Image/Build
 	$(call Image/Build/$(1))
 	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-root.$(1) bs=128k conv=sync
-	$(call Image/MakeSysupgradeBinary)
+	$(if $(TARGET_DEVICES),,$(call Image/MakeSysupgradeBinary))
+	rm -rf $(BIN_DIR)/$(IMG_PREFIX)-root.squashfs
+	rm -rf $(BIN_DIR)/$(IMG_PREFIX)-uImage-lzma
+	rm -rf $(BIN_DIR)/$(IMG_PREFIX)-uImage-gzip
+	rm -rf $(BIN_DIR)/$(IMG_PREFIX)-vmlinux.elf
+	rm -rf $(BIN_DIR)/$(IMG_PREFIX)-vmlinux-initramfs.elf
+	rm -rf $(BIN_DIR)/uImage-initramfs.lzma
 endef
 
 $(eval $(call BuildImage))

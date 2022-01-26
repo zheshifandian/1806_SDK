@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=fstools
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/fstools.git
-PKG_SOURCE_DATE:=2018-09-29
-PKG_SOURCE_VERSION:=29e53af0b91954ca6a13bdd1f0e67c939ccb8e6d
-PKG_MIRROR_HASH:=e90c60362dc3f304c9748b57a3e602f37fd758bf8134fbc3fbbda4300d4f46c7
+PKG_MIRROR_HASH:=04cc533f567e8a928a1c13dedcad781e73dfc796db8e83ac1218b47412ce01bd
+PKG_SOURCE_DATE:=2020-07-11
+PKG_SOURCE_VERSION:=5345343828df944ae247d91cc77182f87559bc9a
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -79,14 +79,14 @@ define Package/block-mount
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=Block device mounting and checking
-  DEPENDS:=+ubox +libubox +libuci
+  DEPENDS:=+ubox +libubox +libuci +libblobmsg-json +libjson-c
 endef
 
 define Package/blockd
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=Block device automounting
-  DEPENDS:=+block-mount +fstools +libubus +kmod-fs-autofs4
+  DEPENDS:=+block-mount +fstools +libubus +kmod-fs-autofs4 +libblobmsg-json +libjson-c
 endef
 
 define Package/fstools/install
@@ -110,6 +110,7 @@ define Package/block-mount/install
 	$(INSTALL_BIN) ./files/fstab.init $(1)/etc/init.d/fstab
 	$(INSTALL_CONF) ./files/fstab.default $(1)/etc/uci-defaults/10-fstab
 	$(INSTALL_CONF) ./files/mount.hotplug $(1)/etc/hotplug.d/block/10-mount
+	$(INSTALL_CONF) ./files/media-change.hotplug  $(1)/etc/hotplug.d/block/00-media-change
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/block $(1)/sbin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libblkid-tiny.so $(1)/lib/

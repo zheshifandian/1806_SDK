@@ -1,9 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2006-2015 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
+# Copyright (C) 2006-2020 OpenWrt.org
 
 ifneq ($(__prereq_inc),1)
 __prereq_inc:=1
@@ -64,6 +61,18 @@ define RequireHeader
   endef
 
   $$(eval $$(call Require,$(1),$(2)))
+endef
+
+define CleanupPython2
+  define Require/python2-cleanup
+	if [ -f "$(STAGING_DIR_HOST)/bin/python" ] && \
+		$(STAGING_DIR_HOST)/bin/python -V 2>&1 | \
+		grep -q 'Python 2'; then \
+			rm $(STAGING_DIR_HOST)/bin/python; \
+	fi
+  endef
+
+  $$(eval $$(call Require,python2-cleanup))
 endef
 
 define QuoteHostCommand

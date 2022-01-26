@@ -127,6 +127,22 @@ endef
 
 $(eval $(call KernelPackage,geneve))
 
+define KernelPackage/nsh
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Network Service Header (NSH) protocol
+  DEPENDS:=@!LINUX_4_9
+  KCONFIG:=CONFIG_NET_NSH
+  FILES:=$(LINUX_DIR)/net/nsh/nsh.ko@ge4.14
+  AUTOLOAD:=$(call AutoLoad,13,nsh)
+endef
+
+define KernelPackage/nsh/description
+  Network Service Header is an implementation of Service Function
+  Chaining (RFC 7665).  Requires kernel 4.14 or newer
+endef
+
+$(eval $(call KernelPackage,nsh))
+
 
 define KernelPackage/capi
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
@@ -255,11 +271,10 @@ $(eval $(call KernelPackage,ipsec))
 IPSEC4-m:= \
 	ipv4/ah4 \
 	ipv4/esp4 \
-	ipv4/xfrm4_mode_beet \
-	ipv4/xfrm4_mode_transport \
-	ipv4/xfrm4_mode_tunnel \
 	ipv4/xfrm4_tunnel \
 	ipv4/ipcomp \
+
+IPSEC4-m += $(ifeq ($$(strip $$(call CompareKernelPatchVer,$$(KERNEL_PATCHVER),le,5.2))),ipv4/xfrm4_mode_beet ipv4/xfrm4_mode_transport ipv4/xfrm4_mode_tunnel)
 
 define KernelPackage/ipsec4
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
@@ -296,11 +311,10 @@ $(eval $(call KernelPackage,ipsec4))
 IPSEC6-m:= \
 	ipv6/ah6 \
 	ipv6/esp6 \
-	ipv6/xfrm6_mode_beet \
-	ipv6/xfrm6_mode_transport \
-	ipv6/xfrm6_mode_tunnel \
 	ipv6/xfrm6_tunnel \
 	ipv6/ipcomp6 \
+
+IPSEC6-m += $(ifeq ($$(strip $$(call CompareKernelPatchVer,$$(KERNEL_PATCHVER),le,5.2))),ipv6/xfrm6_mode_beet ipv6/xfrm6_mode_transport ipv6/xfrm6_mode_tunnel)
 
 define KernelPackage/ipsec6
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
@@ -381,6 +395,22 @@ define KernelPackage/ip6-vti/description
 endef
 
 $(eval $(call KernelPackage,ip6-vti))
+
+
+define KernelPackage/xfrm-interface
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=IPsec XFRM Interface
+  DEPENDS:=@IPV6 +kmod-ipsec4 +kmod-ipsec6
+  KCONFIG:=CONFIG_XFRM_INTERFACE
+  FILES:=$(LINUX_DIR)/net/xfrm/xfrm_interface.ko
+  AUTOLOAD:=$(call AutoProbe,xfrm_interface)
+endef
+
+define KernelPackage/xfrm-interface/description
+ Kernel module for XFRM interface support
+endef
+
+$(eval $(call KernelPackage,xfrm-interface))
 
 
 define KernelPackage/iptunnel4
@@ -1105,3 +1135,17 @@ define KernelPackage/macsec/description
 endef
 
 $(eval $(call KernelPackage,macsec))
+
+define KernelPackage/netlink-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Netlink diag support for ss utility
+  KCONFIG:=CONFIG_NETLINK_DIAG
+  FILES:=$(LINUX_DIR)/net/netlink/netlink_diag.ko
+  AUTOLOAD:=$(call AutoLoad,31,netlink-diag)
+endef
+
+define KernelPackage/netlink-diag/description
+ Netlink diag is a module made for use with iproute2's ss utility
+endef
+
+$(eval $(call KernelPackage,netlink-diag))

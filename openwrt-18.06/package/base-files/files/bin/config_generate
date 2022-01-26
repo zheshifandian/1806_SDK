@@ -89,7 +89,7 @@ generate_network() {
 	uci -q batch <<-EOF
 		set network.$1.type='bridge'
 		set network.$1.proto='static'
-		set network.$1.ipaddr='192.168.4.1'
+		set network.$1.ipaddr='192.168.1.1'
 		set network.$1.netmask='255.255.255.0'
 		set network.$1.ip6assign='60'
 	EOF
@@ -104,19 +104,6 @@ generate_network() {
 		set network.wan6='interface'
 		set network.wan6.ifname='$ifname'
 		set network.wan6.proto='dhcpv6'
-	EOF
-	;;
-	guest)
-	uci -q batch <<-EOF
-		delete network.guest
-		set network.guest='interface'
-		set network.guest.ifname='guest'
-		set network.guest.type='bridge'
-		set network.guest.proto='static'
-		set network.guest.ipaddr='10.0.0.1'
-		set network.guest.netmask='255.255.255.0'
-		set network.guest.group='0'
-		set network.guest.forcelink='1'
 	EOF
 	;;
 	lease)
@@ -145,7 +132,7 @@ generate_network() {
 		static)
 			local ipad
 			case "$1" in
-				lan) ipad=${ipaddr:-"192.168.4.1"} ;;
+				lan) ipad=${ipaddr:-"192.168.1.1"} ;;
 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
 			esac
 

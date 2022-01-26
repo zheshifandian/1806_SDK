@@ -15,6 +15,8 @@ MAINTAINER:=Shanghai Siflower Communication Technology Co., Ltd.
 
 KERNEL_PATCHVER:=4.14
 
+DEFAULT_PACKAGES += kmod-fuse
+
 include $(INCLUDE_DIR)/target.mk
 
 define Target/Description

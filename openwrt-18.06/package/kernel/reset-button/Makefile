@@ -17,7 +17,7 @@ include $(INCLUDE_DIR)/package.mk
 define KernelPackage/reset-button
   SUBMENU:=Other modules
   TITLE:=Reset Button top driver
-  DEPENDS:=+kmod-button-hotplug +kernel
+  DEPENDS:=+kmod-button-hotplug
   FILES:=$(PKG_BUILD_DIR)/sfax8-reset-button-top.ko
   AUTOLOAD:=$(call AutoLoad,31,sfax8-reset-button-top,1)
   KCONFIG:=

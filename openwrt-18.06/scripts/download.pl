@@ -65,8 +65,8 @@ sub hash_cmd() {
 	my $len = length($file_hash);
 	my $cmd;
 
-	$len == 64 and return "mkhash sha256";
-	$len == 32 and return "mkhash md5";
+	$len == 64 and return "$ENV{'MKHASH'} sha256";
+	$len == 32 and return "$ENV{'MKHASH'} md5";
 	return undef;
 }
 
@@ -82,8 +82,8 @@ sub download_cmd($) {
 	}
 
 	return $have_curl
-		? (qw(curl -f --connect-timeout 20 --retry 5 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url)
-		: (qw(wget --tries=5 --timeout=20 --no-check-certificate --output-document=-), shellwords($ENV{WGET_OPTIONS} || ''), $url)
+		? (qw(curl -f --connect-timeout 8 --retry 2 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url)
+		: (qw(wget --tries=2 --timeout=8 --no-check-certificate --output-document=-), shellwords($ENV{WGET_OPTIONS} || ''), $url)
 	;
 }
 
@@ -93,6 +93,7 @@ $hash_cmd or ($file_hash eq "skip") or die "Cannot find appropriate hash command
 sub download
 {
 	my $mirror = shift;
+	my $download_filename = shift;
 
 	$mirror =~ s!/$!!;
 
@@ -139,7 +140,7 @@ sub download
 			}
 		};
 	} else {
-		my @cmd = download_cmd("$mirror/$url_filename");
+		my @cmd = download_cmd("$mirror/$download_filename");
 		print STDERR "+ ".join(" ",@cmd)."\n";
 		open(FETCH_FD, '-|', @cmd) or die "Cannot launch curl or wget.\n";
 		$hash_cmd and do {
@@ -189,25 +190,50 @@ sub cleanup
 
 foreach my $mirror (@ARGV) {
 	if ($mirror =~ /^\@SF\/(.+)$/) {
+		push @mirrors, "https://freefr.dl.sourceforge.net/$1";
+		push @mirrors, "https://netix.dl.sourceforge.net/$1";
 		# give sourceforge a few more tries, because it redirects to different mirrors
 		for (1 .. 5) {
 			push @mirrors, "https://downloads.sourceforge.net/$1";
 		}
+	} elsif ($mirror =~ /^\@OPENWRT$/) {
+		# use OpenWrt source server directly
+	} elsif ($mirror =~ /^\@DEBIAN\/(.+)$/) {
+		push @mirrors, "https://mirrors.tencent.com/debian/$1";
+		push @mirrors, "https://ftp.debian.org/debian/$1";
+		push @mirrors, "https://mirror.leaseweb.com/debian/$1";
+		push @mirrors, "https://mirror.netcologne.de/debian/$1";
 	} elsif ($mirror =~ /^\@APACHE\/(.+)$/) {
+		push @mirrors, "https://mirrors.tencent.com/apache/$1";
+		push @mirrors, "https://mirrors.aliyun.com/apache/$1";
+		# push @mirrors, "https://mirrors.tuna.tsinghua.edu.cn/apache/$1";
+		# push @mirrors, "https://mirrors.ustc.edu.cn/apache/$1";
 		push @mirrors, "https://mirror.netcologne.de/apache.org/$1";
 		push @mirrors, "https://mirror.aarnet.edu.au/pub/apache/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/apache/$1";
+		push @mirrors, "https://archive.apache.org/dist/$1";
 		push @mirrors, "http://mirror.cogentco.com/pub/apache/$1";
 		push @mirrors, "http://mirror.navercorp.com/apache/$1";
 		push @mirrors, "http://ftp.jaist.ac.jp/pub/apache/$1";
 		push @mirrors, "ftp://apache.cs.utah.edu/apache.org/$1";
 		push @mirrors, "ftp://apache.mirrors.ovh.net/ftp.apache.org/dist/$1";
 	} elsif ($mirror =~ /^\@GITHUB\/(.+)$/) {
+		my $dir = $1;
+		my $i = 0;
+		# replace the 2nd '/' with '@' for jsDelivr mirror
+		push @mirrors, "https://cdn.jsdelivr.net/gh/". $dir =~ s{\/}{++$i == 2 ? '@' : $&}ger;
+		push @mirrors, "https://raw.sevencdn.com/$dir";
+		push @mirrors, "https://raw.fastgit.org/$dir";
 		# give github a few more tries (different mirrors)
 		for (1 .. 5) {
-			push @mirrors, "https://raw.githubusercontent.com/$1";
+			push @mirrors, "https://raw.githubusercontent.com/$dir";
 		}
 	} elsif ($mirror =~ /^\@GNU\/(.+)$/) {
+		push @mirrors, "https://mirrors.tencent.com/gnu/$1";
+		push @mirrors, "https://mirrors.aliyun.com/gnu/$1";
+		# push @mirrors, "https://mirrors.tuna.tsinghua.edu.cn/gnu/$1";
+		# push @mirrors, "https://mirrors.cqu.edu.cn/gnu/$1";
+		# push @mirrors, "https://mirrors.ustc.edu.cn/gnu/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gnu/$1";
 		push @mirrors, "https://mirror.netcologne.de/gnu/$1";
 		push @mirrors, "http://ftp.kddilabs.jp/GNU/gnu/$1";
@@ -222,7 +248,6 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "http://ftp.acc.umu.se/mirror/gnu.org/savannah/$1";
 		push @mirrors, "http://nongnu.uib.no/$1";
 		push @mirrors, "http://ftp.igh.cnrs.fr/pub/nongnu/$1";
-		push @mirrors, "http://public.p-knowledge.co.jp/Savannah-nongnu-mirror/$1";
 		push @mirrors, "ftp://cdimage.debian.org/mirror/gnu.org/savannah/$1";
 		push @mirrors, "ftp://ftp.acc.umu.se/mirror/gnu.org/savannah/$1";
 	} elsif ($mirror =~ /^\@KERNEL\/(.+)$/) {
@@ -231,18 +256,21 @@ foreach my $mirror (@ARGV) {
 			push @extra, "$extra[0]/testing";
 		} elsif ($filename =~ /linux-(\d+\.\d+(?:\.\d+)?)/) {
 			push @extra, "$extra[0]/longterm/v$1";
-		}		
+		}
 		foreach my $dir (@extra) {
+			# push @mirrors, "https://mirrors.cqu.edu.cn/kernel/$dir";
+			# push @mirrors, "https://mirrors.ustc.edu.cn/kernel.org/$dir";
 			push @mirrors, "https://cdn.kernel.org/pub/$dir";
-			push @mirrors, "https://mirror.rackspace.com/kernel.org/$dir";
-			push @mirrors, "http://download.xs4all.nl/ftp.kernel.org/pub/$dir";
-			push @mirrors, "http://mirrors.mit.edu/kernel/$dir";
+			push @mirrors, "https://download.xs4all.nl/ftp.kernel.org/pub/$dir";
+			push @mirrors, "https://mirrors.mit.edu/kernel/$dir";
 			push @mirrors, "http://ftp.nara.wide.ad.jp/pub/kernel.org/$dir";
 			push @mirrors, "http://www.ring.gr.jp/archives/linux/kernel.org/$dir";
 			push @mirrors, "ftp://ftp.riken.jp/Linux/kernel.org/$dir";
 			push @mirrors, "ftp://www.mirrorservice.org/sites/ftp.kernel.org/pub/$dir";
 		}
-    } elsif ($mirror =~ /^\@GNOME\/(.+)$/) {
+	} elsif ($mirror =~ /^\@GNOME\/(.+)$/) {
+		push @mirrors, "https://download.gnome.org/sources/$1";
+		push @mirrors, "https://mirrors.ustc.edu.cn/gnome/sources/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gnome/sources/$1";
 		push @mirrors, "http://ftp.acc.umu.se/pub/GNOME/sources/$1";
 		push @mirrors, "http://ftp.kaist.ac.kr/gnome/sources/$1";
@@ -251,23 +279,47 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "http://ftp.belnet.be/ftp.gnome.org/sources/$1";
 		push @mirrors, "ftp://ftp.cse.buffalo.edu/pub/Gnome/sources/$1";
 		push @mirrors, "ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources/$1";
-    }
-    else {
+	} else {
 		push @mirrors, $mirror;
 	}
 }
 
-#push @mirrors, 'https://mirror1.openwrt.org';
-push @mirrors, 'https://sources.lede-project.org';
+# push @mirrors, 'https://mirror01.download.immortalwrt.eu.org';
+# push @mirrors, 'https://mirror02.download.immortalwrt.eu.org';
+push @mirrors, 'https://mirror2.immortalwrt.org/sources';
+push @mirrors, 'https://mirror.immortalwrt.org/sources';
+push @mirrors, 'https://sources.immortalwrt.org';
+push @mirrors, 'https://sources.cdn.immortalwrt.org';
+push @mirrors, 'https://sources.cdn.openwrt.org';
+push @mirrors, 'https://sources.openwrt.org';
 push @mirrors, 'https://mirror2.openwrt.org/sources';
-push @mirrors, 'https://downloads.openwrt.org/sources';
+
+if (-f "$target/$filename") {
+	$hash_cmd and do {
+		if (system("cat '$target/$filename' | $hash_cmd > '$target/$filename.hash'")) {
+			die "Failed to generate hash for $filename\n";
+		}
+
+		my $sum = `cat "$target/$filename.hash"`;
+		$sum =~ /^(\w+)\s*/ or die "Could not generate file hash\n";
+		$sum = $1;
+
+		cleanup();
+		exit 0 if $sum eq $file_hash;
+
+		die "Hash of the local file $filename does not match (file: $sum, requested: $file_hash) - deleting download.\n";
+		unlink "$target/$filename";
+	};
+}
 
 while (!-f "$target/$filename") {
 	my $mirror = shift @mirrors;
 	$mirror or die "No more mirrors to try - giving up.\n";
 
-	download($mirror);
+	download($mirror, $url_filename);
+	if (!-f "$target/$filename" && $url_filename ne $filename) {
+		download($mirror, $filename);
+	}
 }
 
 $SIG{INT} = \&cleanup;
-
