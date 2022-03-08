@@ -27,11 +27,22 @@ define Package/ubox
   TITLE:=OpenWrt system helper toolbox
 endef
 
+define Package/getrandom
+  SECTION:=base
+  CATEGORY:=Base system
+  TITLE:=OpenWrt getrandom system helper
+endef
+
 define Package/logd
 SECTION:=base
   CATEGORY:=Base system
   DEPENDS:=+libubox +libubus +libblobmsg-json +USE_GLIBC:librt
   TITLE:=OpenWrt system log implementation
+endef
+
+define Package/getrandom/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/getrandom $(1)/usr/bin/
 endef
 
 define Package/ubox/install
@@ -56,4 +67,5 @@ define Package/logd/install
 endef
 
 $(eval $(call BuildPackage,ubox))
+$(eval $(call BuildPackage,getrandom))
 $(eval $(call BuildPackage,logd))

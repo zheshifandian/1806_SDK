@@ -204,7 +204,7 @@ define Image/mkfs/squashfs
 		-nopad -noappend -root-owned \
 		-comp $(SQUASHFSCOMP) $(SQUASHFSOPT) \
 		-processors 1 \
-		$(if $(SOURCE_DATE_EPOCH),-fixed-time $(SOURCE_DATE_EPOCH))
+		-processors $(shell nproc)
 endef
 
 # $(1): board name

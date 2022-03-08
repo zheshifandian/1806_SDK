@@ -1,4 +1,5 @@
 include $(TOPDIR)/include/verbose.mk
+include $(TOPDIR)/rules.mk
 TMP_DIR:=$(TOPDIR)/tmp
 
 all: $(TMP_DIR)/.$(SCAN_TARGET)
@@ -12,25 +13,34 @@ OVERRIDELIST:=$(TMP_DIR)/info/.overrides-$(SCAN_TARGET)-$(SCAN_COOKIE)
 
 export PATH:=$(TOPDIR)/staging_dir/host/bin:$(PATH)
 
+define feedname
+$(if $(patsubst feeds/%,,$(1)),,$(word 2,$(subst /, ,$(1))))
+endef
+
 ifeq ($(SCAN_NAME),target)
   SCAN_DEPS=image/Makefile profiles/*.mk $(TOPDIR)/include/kernel*.mk $(TOPDIR)/include/target.mk image/*.mk
 else
   SCAN_DEPS=$(TOPDIR)/include/package*.mk
+ifneq ($(call feedname,$(SCAN_DIR)),)
+  SCAN_DEPS += $(TOPDIR)/feeds/$(call feedname,$(SCAN_DIR))/*.mk
+endif
 endif
 
 ifeq ($(IS_TTY),1)
-  define progress
+  ifneq ($(strip $(NO_COLOR)),1)
+    define progress
 	printf "\033[M\r$(1)" >&2;
-  endef
+    endef
+  else
+    define progress
+	printf "\r$(1)" >&2;
+    endef
+  endif
 else
   define progress
 	:;
   endef
 endif
-
-define feedname
-$(if $(patsubst feeds/%,,$(1)),,$(word 2,$(subst /, ,$(1))))
-endef
 
 define PackageDir
   $(TMP_DIR)/.$(SCAN_TARGET): $(TMP_DIR)/info/.$(SCAN_TARGET)-$(1)
@@ -91,7 +101,7 @@ $(TMP_DIR)/info/.files-$(SCAN_TARGET).mk: $(FILELIST)
 $(TARGET_STAMP)::
 	+( \
 		$(NO_TRACE_MAKE) $(FILELIST); \
-		MD5SUM=$$(cat $(FILELIST) $(OVERRIDELIST) | mkhash md5 | awk '{print $$1}'); \
+		MD5SUM=$$(cat $(FILELIST) $(OVERRIDELIST) | $(MKHASH) md5 | awk '{print $$1}'); \
 		[ -f "$@.$$MD5SUM" ] || { \
 			rm -f $@.*; \
 			touch $@.$$MD5SUM; \

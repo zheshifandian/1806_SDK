@@ -29,7 +29,7 @@ include $(INCLUDE_DIR)/package.mk
 ifeq ($(DUMP),)
   -include $(LINUX_DIR)/.config
   include $(INCLUDE_DIR)/netfilter.mk
-  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell grep 'NETFILTER' $(LINUX_DIR)/.config | mkhash md5)
+  STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell grep 'NETFILTER' $(LINUX_DIR)/.config | $(MKHASH) md5)
 endif
 
 
@@ -168,6 +168,39 @@ Includes support for:
   - string
   - bpf
 
+endef
+
+define Package/iptables-mod-imq
+$(call Package/iptables/Module, +kmod-ipt-imq)
+  TITLE:=IMQ support
+endef
+
+define Package/iptables-mod-imq/description
+iptables extension for IMQ support.
+
+ Targets:
+  - IMQ
+
+endef
+
+define Package/iptables-mod-bandwidth
+$(call Package/iptables/Module, +kmod-ipt-bandwidth)
+  TITLE:=bandwidth option extensions
+endef
+
+define Package/iptables-mod-timerange
+$(call Package/iptables/Module, +kmod-ipt-timerange)
+  TITLE:=timerange option extensions
+endef
+
+define Package/iptables-mod-webmon
+$(call Package/iptables/Module, +kmod-ipt-webmon)
+  TITLE:=webmon option extensions
+endef
+
+define Package/iptables-mod-weburl
+$(call Package/iptables/Module, +kmod-ipt-weburl)
+  TITLE:=weburl option extensions
 endef
 
 define Package/iptables-mod-ipopt
@@ -679,6 +712,11 @@ $(eval $(call BuildPlugin,iptables-mod-conntrack-label,$(IPT_CONNTRACK_LABEL-m))
 $(eval $(call BuildPlugin,iptables-mod-extra,$(IPT_EXTRA-m)))
 $(eval $(call BuildPlugin,iptables-mod-physdev,$(IPT_PHYSDEV-m)))
 $(eval $(call BuildPlugin,iptables-mod-filter,$(IPT_FILTER-m)))
+$(eval $(call BuildPlugin,iptables-mod-imq,$(IPT_IMQ-m)))
+$(eval $(call BuildPlugin,iptables-mod-bandwidth,$(IPT_BANDWIDTH-m)))
+$(eval $(call BuildPlugin,iptables-mod-timerange,$(IPT_TIMERANGE-m)))
+$(eval $(call BuildPlugin,iptables-mod-webmon,$(IPT_WEBMON-m)))
+$(eval $(call BuildPlugin,iptables-mod-weburl,$(IPT_WEBURL-m)))
 $(eval $(call BuildPlugin,iptables-mod-ipopt,$(IPT_IPOPT-m)))
 $(eval $(call BuildPlugin,iptables-mod-ipsec,$(IPT_IPSEC-m)))
 $(eval $(call BuildPlugin,iptables-mod-nat-extra,$(IPT_NAT_EXTRA-m)))
