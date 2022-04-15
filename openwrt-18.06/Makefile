@@ -1,10 +1,6 @@
-# Makefile for OpenWrt
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Copyright (C) 2007 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
 
 TOPDIR:=${CURDIR}
 LC_ALL:=C
@@ -41,7 +37,7 @@ else
   include tools/Makefile
   include toolchain/Makefile
 
-$(toolchain/stamp-compile): $(tools/stamp-compile)
+$(toolchain/stamp-compile): $(tools/stamp-compile) $(if $(CONFIG_BUILDBOT),toolchain_rebuild_check)
 $(target/stamp-compile): $(toolchain/stamp-compile) $(tools/stamp-compile) $(BUILD_DIR)/.prepared
 $(package/stamp-compile): $(target/stamp-compile) $(package/stamp-cleanup)
 $(package/stamp-install): $(package/stamp-compile)
@@ -53,27 +49,13 @@ printdb:
 
 prepare: $(target/stamp-compile)
 
-_clean: FORCE
+clean: FORCE
 	rm -rf $(BUILD_DIR) $(STAGING_DIR) $(BIN_DIR) $(OUTPUT_DIR)/packages/$(ARCH_PACKAGES) $(BUILD_LOG_DIR) $(TOPDIR)/staging_dir/packages
 
-clean: _clean
-	rm -rf $(BUILD_LOG_DIR)
-
-targetclean: _clean
-	rm -rf $(TOOLCHAIN_DIR) $(BUILD_DIR_BASE)/hostpkg $(BUILD_DIR_TOOLCHAIN)
-
-dirclean: targetclean clean
-	rm -rf $(STAGING_DIR_HOST) $(STAGING_DIR_HOSTPKG) $(BUILD_DIR_BASE)/host
+dirclean: clean
+	rm -rf $(STAGING_DIR_HOST) $(STAGING_DIR_HOSTPKG) $(TOOLCHAIN_DIR) $(BUILD_DIR_BASE)/host $(BUILD_DIR_BASE)/hostpkg $(BUILD_DIR_TOOLCHAIN)
 	rm -rf $(TMP_DIR)
-	$(MAKE) -C $(TOPDIR)/scripts/config clean
 
-toolchain_rebuild_check:
-	$(SCRIPT_DIR)/check-toolchain-clean.sh
-
-cacheclean:
-ifneq ($(CONFIG_CCACHE),)
-	$(STAGING_DIR_HOST)/bin/ccache -C
-endif
 ifndef DUMP_TARGET_DB
 $(BUILD_DIR)/.prepared: Makefile
 	@mkdir -p $$(dirname $@)

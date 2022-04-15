@@ -106,17 +106,17 @@ generate_network() {
 		set network.wan6.proto='dhcpv6'
 	EOF
 	;;
-	lease)
+	guest)
 	uci -q batch <<-EOF
-		delete network.lease
-		set network.lease='interface'
-		set network.lease.ifname='lease'
-		set network.lease.type='bridge'
-		set network.lease.proto='static'
-		set network.lease.ipaddr='10.2.0.1'
-		set network.lease.netmask='255.255.255.0'
-		set network.lease.group='0'
-		set network.lease.forcelink='1'
+		delete network.guest
+		set network.guest='interface'
+		set network.guest.ifname='guest'
+		set network.guest.type='bridge'
+		set network.guest.proto='static'
+		set network.guest.ipaddr='10.0.0.1'
+		set network.guest.netmask='255.255.255.0'
+		set network.guest.group='0'
+		set network.guest.forcelink='1'
 	EOF
 	;;
 	esac

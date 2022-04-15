@@ -84,8 +84,8 @@ ucidef_set_interfaces_lan_wan() {
 	ucidef_set_interface_wan "$wan_if"
 }
 
-ucidef_set_interface_lease() {
-	ucidef_set_interface "lease" ifname "$1"
+ucidef_set_interface_guest() {
+	ucidef_set_interface "guest" ifname "$1"
 }
 
 _ucidef_add_switch_port() {

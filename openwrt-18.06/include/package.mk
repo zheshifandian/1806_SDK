@@ -96,10 +96,9 @@ STAGING_FILES_LIST:=$(PKG_DIR_NAME)$(if $(BUILD_VARIANT),.$(BUILD_VARIANT),).lis
 define CleanStaging
 	rm -f $(STAMP_INSTALLED)
 	@-(\
-		if [ -f $(STAGING_DIR)/packages/$(STAGING_FILES_LIST) ]; then \
-			$(SCRIPT_DIR)/clean-package.sh \
-				"$(STAGING_DIR)/packages/$(STAGING_FILES_LIST)" \
-				"$(STAGING_DIR)"; \
+		cd "$(STAGING_DIR)"; \
+		if [ -f packages/$(STAGING_FILES_LIST) ]; then \
+			cat packages/$(STAGING_FILES_LIST) | xargs -r rm -f 2>/dev/null; \
 		fi; \
 	)
 endef
@@ -132,18 +131,6 @@ ifeq ($(DUMP)$(filter prereq clean refresh update,$(MAKECMDGOALS)),)
   endif
 endif
 
-ifdef USE_GIT_SRC_CHECKOUT
-  define Build/Prepare/Default
-	mkdir -p $(PKG_BUILD_DIR)
-	ln -s $(TOPDIR)/git-src/$(PKG_NAME)/.git $(PKG_BUILD_DIR)/.git
-	( cd $(PKG_BUILD_DIR); \
-		git checkout .; \
-		git submodule update --recursive; \
-		git submodule foreach git config --unset core.worktree; \
-		git submodule foreach git checkout .; \
-	)
-  endef
-endif
 ifdef USE_GIT_TREE
   define Build/Prepare/Default
 	mkdir -p $(PKG_BUILD_DIR)
@@ -172,6 +159,7 @@ define Build/Exports/Default
   $(1) : export CONFIG_SITE:=$$(CONFIG_SITE)
   $(1) : export PKG_CONFIG_PATH:=$$(PKG_CONFIG_PATH)
   $(1) : export PKG_CONFIG_LIBDIR:=$$(PKG_CONFIG_PATH)
+  $(if $(CONFIG_CCACHE),$(1) : export CCACHE_DIR:=$(STAGING_DIR)/ccache)
 endef
 Build/Exports=$(Build/Exports/Default)
 
@@ -182,8 +170,6 @@ define Build/CoreTargets
   $(if $(QUILT),$(Build/Quilt))
   $(call Build/Autoclean)
   $(call DefaultTargets)
-
-  $(call check_download_integrity)
 
   download:
 	$(foreach hook,$(Hooks/Download),
@@ -264,7 +250,7 @@ define Build/CoreTargets
 endef
 
 define Build/DefaultTargets
-  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE)$(USE_GIT_SRC_CHECKOUT),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
+  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
   $(if $(DUMP),,$(Build/CoreTargets))
 
   define Build/DefaultTargets

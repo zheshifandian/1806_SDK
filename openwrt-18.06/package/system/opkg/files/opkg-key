@@ -1,7 +1,5 @@
 #!/bin/sh
 
-OPKG_KEYS="${OPKG_KEYS:-/etc/opkg/keys}"
-
 usage() {
 	cat <<EOF
 Usage: $0 <command> <arguments...>
@@ -21,7 +19,7 @@ opkg_key_verify() {
 	(
 		zcat "$msgfile" 2>/dev/null ||
 		cat "$msgfile" 2>/dev/null
-	) | usign -V -P "$OPKG_KEYS" -q -x "$sigfile" -m -
+	) | usign -V -P /etc/opkg/keys -q -x "$sigfile" -m -
 }
 
 opkg_key_add() {
@@ -29,8 +27,8 @@ opkg_key_add() {
 	[ -n "$key" ] || usage
 	[ -f "$key" ] || echo "Cannot open file $1"
 	local fingerprint="$(usign -F -p "$key")"
-	mkdir -p "$OPKG_KEYS"
-	cp "$key" "$OPKG_KEYS/$fingerprint"
+	mkdir -p "/etc/opkg/keys"
+	cp "$key" "/etc/opkg/keys/$fingerprint"
 }
 
 opkg_key_remove() {
@@ -38,7 +36,7 @@ opkg_key_remove() {
 	[ -n "$key" ] || usage
 	[ -f "$key" ] || echo "Cannot open file $1"
 	local fingerprint="$(usign -F -p "$key")"
-	rm -f "$OPKG_KEYS/$fingerprint"
+	rm -f "/etc/opkg/keys/$fingerprint"
 }
 
 case "$1" in

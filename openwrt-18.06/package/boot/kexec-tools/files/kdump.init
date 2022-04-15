@@ -1,9 +1,10 @@
 #!/bin/sh /etc/rc.common
 
 START=41
-STOP=90
+STOP=98
 
-extra_command "status" "Print crashkernel status"
+EXTRA_COMMANDS="status"
+EXTRA_HELP="        status  Print crashkernel status"
 
 verify_kdump() {
 	local cfg="$1"

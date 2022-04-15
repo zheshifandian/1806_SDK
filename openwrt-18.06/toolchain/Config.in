@@ -37,19 +37,12 @@ menuconfig TARGET_OPTIONS
 
 		  Most people will answer N.
 
-config BUILD_LLVM_BPF
-	bool "Build LLVM toolchain for eBPF" if DEVEL
-	help
-	  If enabled, a LLVM toolchain for building eBPF binaries will be built.
-	  If this is not enabled, eBPF packages can only be built if the host
-	  has a suitable toolchain
-
 
 menuconfig EXTERNAL_TOOLCHAIN
 	bool
 	prompt "Use external toolchain"  if DEVEL
 	help
-	  If enabled, the buildroot will compile using an existing toolchain instead of
+	  If enabled, LEDE will compile using an existing toolchain instead of
 	  compiling one.
 
 	config NATIVE_TOOLCHAIN
@@ -58,7 +51,7 @@ menuconfig EXTERNAL_TOOLCHAIN
 		depends on EXTERNAL_TOOLCHAIN
 		select NO_STRIP
 		help
-		  If enabled, the buildroot will compile using the native toolchain for your
+		  If enabled, LEDE will compile using the native toolchain for your
 		  host instead of compiling one.
 
 	config TARGET_NAME
@@ -117,6 +110,11 @@ menuconfig EXTERNAL_TOOLCHAIN
 			bool "glibc"
 			select USE_GLIBC
 
+		config EXTERNAL_TOOLCHAIN_LIBC_USE_UCLIBC
+			bool "uClibc"
+			select USE_UCLIBC
+			depends on !(aarch64 || aarch64_be)
+
 		config EXTERNAL_TOOLCHAIN_LIBC_USE_MUSL
 			bool "musl"
 			select USE_MUSL
@@ -127,6 +125,7 @@ menuconfig EXTERNAL_TOOLCHAIN
 		string
 		depends on EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN
 		default "glibc" if EXTERNAL_TOOLCHAIN_LIBC_USE_GLIBC
+		default "uclibc" if EXTERNAL_TOOLCHAIN_LIBC_USE_UCLIBC
 		default "musl" if EXTERNAL_TOOLCHAIN_LIBC_USE_MUSL
 
 	config TOOLCHAIN_BIN_PATH
@@ -238,6 +237,8 @@ comment "C Library"
 
 choice
 	prompt "C Library implementation" if TOOLCHAINOPTS
+	default LIBC_USE_UCLIBC if arc
+	default LIBC_USE_GLIBC if powerpc64
 	default LIBC_USE_MUSL
 	help
 	  Select the C library implementation.
@@ -247,14 +248,20 @@ choice
 		select USE_GLIBC
 		depends on !arc
 
+	config LIBC_USE_UCLIBC
+		select USE_UCLIBC
+		bool "Use uClibc"
+		depends on !(aarch64 || aarch64_be || powerpc64)
+		depends on BROKEN || !(arm || armeb || i386 || x86_64 || mips || mipsel || mips64 || mips64el || powerpc)
+
 	config LIBC_USE_MUSL
 		select USE_MUSL
 		bool "Use musl"
-		depends on !arc
+		depends on !(arc || powerpc64)
 
 endchoice
 
-source "toolchain/musl/Config.in"
+source "toolchain/uClibc/Config.in"
 
 comment "Debuggers"
 	depends on TOOLCHAINOPTS
@@ -266,23 +273,20 @@ config GDB
 	help
 	  Enable if you want to build the gdb.
 
-config GDB_PYTHON
-	bool
-	depends on GDB
-	prompt "Build gdb with python binding"
-	
-	help
-	  Enable the python bindings for GDB to allow using python in the gdb shell.
-
 config USE_GLIBC
+	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && (powerpc64)
+	bool
+
+config USE_UCLIBC
+	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && (arc)
 	bool
 
 config USE_MUSL
-	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && !(arc)
+	default y if !TOOLCHAINOPTS && !EXTERNAL_TOOLCHAIN && !NATIVE_TOOLCHAIN && !(arc || powerpc64)
 	bool
 
 config SSP_SUPPORT
-	default y if !PKG_CC_STACKPROTECTOR_NONE
+	default y if USE_MUSL || GCC_LIBSSP
 	bool
 
 config USE_EXTERNAL_LIBC
@@ -295,12 +299,15 @@ source "toolchain/gcc/Config.version"
 config LIBC
 	string
 	default "glibc"   if USE_GLIBC
+	default "uClibc"  if USE_UCLIBC
 	default "musl"	  if USE_MUSL
 
 config TARGET_SUFFIX
 	string
 	default "gnueabi"         if USE_GLIBC && (arm || armeb)
 	default "gnu"             if USE_GLIBC && !(arm || armeb)
+	default "uclibcgnueabi"   if USE_UCLIBC && (arm || armeb)
+	default "uclibc"          if USE_UCLIBC && !(arm || armeb)
 	default "muslgnueabi"     if USE_MUSL && (arm || armeb)
 	default "musl"            if USE_MUSL && !(arm || armeb)
 

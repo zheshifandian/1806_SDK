@@ -84,7 +84,6 @@ int main(int argc, char **argv)
 
 	if (status != file_length) {
 		printf("Failed to load image\n");
-		free(executable);
 		return -ENOENT;
 	}
 
@@ -112,7 +111,6 @@ int main(int argc, char **argv)
 	status = lseek(in_file, 0, SEEK_SET);
 	if (status != 0) {
 		printf("failed to rewind\n");
-		free(executable);
 		return 1;
 	}
 	len = write(in_file, &img_header, sizeof(img_header));
@@ -120,7 +118,6 @@ int main(int argc, char **argv)
 	len = write(in_file, executable, file_length);
 	assert(len == file_length);
 	close(in_file);
-	free(executable);
 
 	return 0;
 }
