@@ -47,7 +47,7 @@ insmod_umac(){
     use_2040=${use_2040-1}
     nss=${nss-2}
     amsdu_rx_max=${amsdu_rx_max-1}
-    bfmee=${bfmee-1}
+    bfmee=${bfmee-0}
     bfmer=${bfmer-0}
     mesh=${mesh-0}
     murx=${murx-0}
@@ -56,8 +56,8 @@ insmod_umac(){
     use_80=${use_80-1}
     custregd=${custregd-0}
     lp_clk_ppm=${lp_clk_ppm-1000}
-    addr_maskall=${addr_maskall-1}
-    not_send_null=${not_send_null-1}
+    addr_maskall=${addr_maskall-0}
+	not_send_null=${not_send_null-0}
     ps_on=${ps_on-1}
     tx_lft=${tx_lft-100}
     tdls=${tdls-1}
@@ -65,6 +65,7 @@ insmod_umac(){
     uf=${uf-0}
     ampdu_max_cnt=${ampdu_max_cnt-32}
     independent_antenna_control=${independent_antenna_control-0}
+	rts_cts_change=${rts_cts_change-2}
     "
     smac_modparams="
     mfp_on=${mfp_on-0}

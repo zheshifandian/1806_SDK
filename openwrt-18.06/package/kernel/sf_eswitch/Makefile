@@ -32,7 +32,6 @@ endef
 
 
 EXTRA_KCONFIG:= \
-	CONFIG_NET_VENDOR_SIFLOWER=y \
 	CONFIG_SFAX8_ESWITCH_DRIVER=m \
 
 ifdef CONFIG_TARGET_siflower_sf19a28_mpw1
@@ -47,9 +46,9 @@ ifdef CONFIG_PACKAGE_kmod-sf_netlink
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_GENL
 endif
 
-ifdef CONFIG_ESWITCH_LIGHT
-EXTRA_KCONFIG += CONFIG_ESWITCH_LIGHT=y
-NOSTDINC_FLAGS += -DCONFIG_ESWITCH_LIGHT
+ifdef CONFIG_SFAX8_ESWITCH_LIGHT
+EXTRA_KCONFIG += CONFIG_SFAX8_ESWITCH_LIGHT=y
+NOSTDINC_FLAGS += -DCONFIG_SFAX8_ESWITCH_LIGHT
 endif
 
 SFAX8_KO_NAME="sf_eswitch.ko"
@@ -57,6 +56,13 @@ ifneq ($(findstring NF,$(PROFILE)),)
 SFAX8_KO_NAME="nf_sf_eswitch.ko"
 endif
 
+ifneq ($(findstring AC28S,$(PROFILE)),)
+SFAX8_KO_NAME="sf_eswitch_s.ko"
+endif
+
+ifneq ($(findstring NAND,$(PROFILE)),)
+SFAX8_KO_NAME="sf_eswitch_nand.ko"
+endif
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
