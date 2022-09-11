@@ -127,6 +127,22 @@ endef
 
 $(eval $(call KernelPackage,geneve))
 
+define KernelPackage/nsh
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Network Service Header (NSH) protocol
+  DEPENDS:=@!LINUX_4_9
+  KCONFIG:=CONFIG_NET_NSH
+  FILES:=$(LINUX_DIR)/net/nsh/nsh.ko@ge4.14
+  AUTOLOAD:=$(call AutoLoad,13,nsh)
+endef
+
+define KernelPackage/nsh/description
+  Network Service Header is an implementation of Service Function
+  Chaining (RFC 7665).  Requires kernel 4.14 or newer
+endef
+
+$(eval $(call KernelPackage,nsh))
+
 
 define KernelPackage/capi
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
@@ -754,6 +770,68 @@ endef
 $(eval $(call KernelPackage,sched-core))
 
 
+define KernelPackage/sched-cake
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Cake fq_codel/blue derived shaper
+  DEPENDS:=@!LINUX_4_14 +kmod-sched-core
+  KCONFIG:=CONFIG_NET_SCH_CAKE
+  FILES:=$(LINUX_DIR)/net/sched/sch_cake.ko
+  AUTOLOAD:=$(call AutoProbe,sch_cake)
+endef
+
+define KernelPackage/sched-cake/description
+ Common Applications Kept Enhanced fq_codel/blue derived shaper
+endef
+
+$(eval $(call KernelPackage,sched-cake))
+
+define KernelPackage/sched-flower
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Flower traffic classifier
+  DEPENDS:=+kmod-sched-core
+  KCONFIG:=CONFIG_NET_CLS_FLOWER
+  FILES:=$(LINUX_DIR)/net/sched/cls_flower.ko
+  AUTOLOAD:=$(call AutoProbe, cls_flower)
+endef
+
+define KernelPackage/sched-flower/description
+ Allows to classify packets based on a configurable combination of packet keys and masks.
+endef
+
+$(eval $(call KernelPackage,sched-flower))
+
+
+define KernelPackage/sched-act-vlan
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Traffic VLAN manipulation
+  DEPENDS:=+kmod-sched-core
+  KCONFIG:=CONFIG_NET_ACT_VLAN
+  FILES:=$(LINUX_DIR)/net/sched/act_vlan.ko
+  AUTOLOAD:=$(call AutoProbe, act_vlan)
+endef
+
+define KernelPackage/sched-act-vlan/description
+ Allows to configure rules to push or pop vlan headers.
+endef
+
+$(eval $(call KernelPackage,sched-act-vlan))
+
+
+define KernelPackage/sched-mqprio
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Multi-queue priority scheduler (MQPRIO)
+  DEPENDS:=+kmod-sched-core
+  KCONFIG:=CONFIG_NET_SCH_MQPRIO
+  FILES:=$(LINUX_DIR)/net/sched/sch_mqprio.ko
+  AUTOLOAD:=$(call AutoProbe, sch_mqprio)
+endef
+
+define KernelPackage/sched-mqprio/description
+  This scheduler allows QOS to be offloaded on NICs that have support for offloading QOS schedulers.
+endef
+
+$(eval $(call KernelPackage,sched-mqprio))
+
 define KernelPackage/sched-connmark
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Traffic shaper conntrack mark support
@@ -1105,3 +1183,43 @@ define KernelPackage/macsec/description
 endef
 
 $(eval $(call KernelPackage,macsec))
+
+
+define KernelPackage/netlink-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Netlink diag support for ss utility
+  KCONFIG:=CONFIG_NETLINK_DIAG
+  FILES:=$(LINUX_DIR)/net/netlink/netlink_diag.ko
+  AUTOLOAD:=$(call AutoLoad,31,netlink-diag)
+endef
+
+define KernelPackage/netlink-diag/description
+ Netlink diag is a module made for use with iproute2's ss utility
+endef
+
+$(eval $(call KernelPackage,netlink-diag))
+
+
+define KernelPackage/inet-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=INET diag support for ss utility
+  KCONFIG:= \
+	CONFIG_INET_DIAG \
+	CONFIG_INET_TCP_DIAG \
+	CONFIG_INET_UDP_DIAG \
+	CONFIG_INET_RAW_DIAG \
+	CONFIG_INET_DIAG_DESTROY=n
+  FILES:= \
+	$(LINUX_DIR)/net/ipv4/inet_diag.ko \
+	$(LINUX_DIR)/net/ipv4/tcp_diag.ko \
+	$(LINUX_DIR)/net/ipv4/udp_diag.ko \
+	$(LINUX_DIR)/net/ipv4/raw_diag.ko@ge4.10
+  AUTOLOAD:=$(call AutoLoad,31,inet_diag tcp_diag udp_diag raw_diag@ge4.10)
+endef
+
+define KernelPackage/inet-diag/description
+  Support for INET (TCP, DCCP, etc) socket monitoring interface used by
+  native Linux tools such as ss.
+endef
+
+$(eval $(call KernelPackage,inet-diag))

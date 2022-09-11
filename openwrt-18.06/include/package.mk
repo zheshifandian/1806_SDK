@@ -1,9 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2006-2008 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
+# Copyright (C) 2006-2020 OpenWrt.org
 
 __package_mk:=1
 
@@ -11,13 +8,15 @@ all: $(if $(DUMP),dumpinfo,$(if $(CHECK),check,compile))
 
 include $(INCLUDE_DIR)/download.mk
 
-PKG_BUILD_DIR ?= $(BUILD_DIR)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
+PKG_BUILD_DIR ?= $(BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
 PKG_INSTALL_DIR ?= $(PKG_BUILD_DIR)/ipkg-install
 PKG_BUILD_PARALLEL ?=
 PKG_USE_MIPS16 ?= 1
 PKG_IREMAP ?= 1
 
 MAKE_J:=$(if $(MAKE_JOBSERVER),$(MAKE_JOBSERVER) $(if $(filter 3.% 4.0 4.1,$(MAKE_VERSION)),-j))
+
+PKG_SOURCE_DATE_EPOCH:=$(if $(DUMP),,$(shell $(TOPDIR)/scripts/get_source_date_epoch.sh $(CURDIR)))
 
 ifeq ($(strip $(PKG_BUILD_PARALLEL)),0)
 PKG_JOBS?=-j1
@@ -40,6 +39,10 @@ include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/unpack.mk
 include $(INCLUDE_DIR)/depends.mk
 
+ifneq ($(wildcard $(TOPDIR)/git-src/$(PKG_NAME)/.git),)
+  USE_GIT_SRC_CHECKOUT:=1
+  QUILT:=1
+endif
 ifneq ($(if $(CONFIG_SRC_TREE_OVERRIDE),$(wildcard ./git-src)),)
   USE_GIT_TREE:=1
   QUILT:=1
@@ -53,14 +56,26 @@ endif
 
 include $(INCLUDE_DIR)/quilt.mk
 
-find_library_dependencies = $(wildcard $(patsubst %,$(STAGING_DIR)/pkginfo/%.version, \
-	$(filter-out $(BUILD_PACKAGES),$(foreach dep, \
-		$(filter-out @%, $(patsubst +%,%,$(1))), \
-		$(if $(findstring :,$(dep)), \
-			$(word 2,$(subst :,$(space),$(dep))), \
-			$(dep) \
-		) \
-	))))
+find_library_dependencies = \
+	$(wildcard $(patsubst %,$(STAGING_DIR)/pkginfo/%.version, \
+		$(filter-out $(BUILD_PACKAGES), $(sort $(foreach dep4, \
+			$(sort $(foreach dep3, \
+				$(sort $(foreach dep2, \
+					$(sort $(foreach dep1, \
+						$(sort $(foreach dep0, \
+							$(Package/$(1)/depends), \
+							$(Package/$(dep0)/depends) $(dep0) \
+						)), \
+						$(Package/$(dep1)/depends) $(dep1) \
+					)), \
+					$(Package/$(dep2)/depends) $(dep2) \
+				)), \
+				$(Package/$(dep3)/depends) $(dep3) \
+			)), \
+			$(Package/$(dep4)/depends) $(dep4) \
+		))) \
+	))
+
 
 PKG_DIR_NAME:=$(lastword $(subst /,$(space),$(CURDIR)))
 STAMP_NO_AUTOREBUILD=$(wildcard $(PKG_BUILD_DIR)/.no_autorebuild)
@@ -257,7 +272,7 @@ endef
 endif
 
   BUILD_PACKAGES += $(1)
-  $(STAMP_PREPARED): $$(if $(QUILT)$(DUMP),,$(call find_library_dependencies,$(DEPENDS)))
+  $(STAMP_PREPARED): $$(if $(QUILT)$(DUMP),,$(call find_library_dependencies,$(1)))
 
   $(foreach FIELD, TITLE CATEGORY SECTION VERSION,
     ifeq ($($(FIELD)),)
