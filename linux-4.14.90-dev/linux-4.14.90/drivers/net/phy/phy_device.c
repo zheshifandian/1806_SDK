@@ -1933,7 +1933,7 @@ void phy_drivers_unregister(struct phy_driver *drv, int n)
 EXPORT_SYMBOL(phy_drivers_unregister);
 
 static struct phy_driver genphy_driver = {
-	.phy_id		= 0xffffffff,
+	.phy_id		= 0x4f51e91b,
 	.phy_id_mask	= 0xffffffff,
 	.name		= "Generic PHY",
 	.soft_reset	= genphy_no_soft_reset,

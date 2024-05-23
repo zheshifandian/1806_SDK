@@ -24,6 +24,27 @@
 #include <spi.h>
 #include "nand_ecc.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
+static u32 *flash_index = NULL;
+static char flash_index_storage_done = 0;
+
+struct spinand_device_tree {
+	u32 base;
+	u32 size;
+};
+
+struct spinand_badblock_remap {
+	u32 index;
+	u32 remap;
+	u32 remap_magic;
+};
+
+#define SPINAND_MAX_BADBLOCKS	64
+#define SPINAND_BADBLOCK_REMAP_MAGIC	0x19950903
+#define SPINAND_BADBLOCK_MAGIC_1	0x4c464953
+#define SPINAND_BADBLOCK_MAGIC_2	0x5245574f
+
 extern int spi_nand_issue_cmd(struct spi_nand_chip *chip, struct spi_nand_cmd *cmd);
 static int spi_nand_erase(struct spi_nand_chip *chip, uint64_t addr, uint64_t len, bool check_bad);
 static int spi_nand_do_write_oob(struct spi_nand_chip *chip, loff_t to,
@@ -427,10 +448,10 @@ static struct spi_nand_flash spi_nand_table[] = {
 			SPI_NAND_ECCINFO(1,&micron_ecc_layout_64, NULL)),
 	#endif
 	#ifdef CONFIG_SPI_NAND_WINBOND
-	SPI_NAND_INFO("W25N01GV", 0xEF, MFR_ID_WINBOND, 2048, 64, 64, 1024,
+	SPI_NAND_INFO("W25N01GV", MFR_ID_WINBOND, 0xaa, 2048, 64, 64, 1024,
 			1, 0,
 			SPI_NAND_ECCINFO(1,&micron_ecc_layout_64, NULL)),
-	SPI_NAND_INFO("W25N02KV", 0xEF, 0xaa, 2048, 128, 64, 1024,
+	SPI_NAND_INFO("W25N02KV", MFR_ID_WINBOND, 0xaa, 2048, 128, 64, 1024,
 			1, 0,
 			SPI_NAND_ECCINFO(1,&micron_ecc_layout_64, NULL)),
 	#endif
@@ -439,7 +460,6 @@ static struct spi_nand_flash spi_nand_table[] = {
 			1, 0,
 			SPI_NAND_ECCINFO(4,&micron_ecc_layout_64,
 					 mx35lf1ge4ab_get_ecc_status)),
-
 	#endif
 	#ifdef CONFIG_SPI_NAND_TOSHIBA
 	SPI_NAND_INFO("TC58CVG0S3HxAIx", MFR_ID_TOSHIBA, 0xc2, 2048, 64, 64, 1024,
@@ -448,10 +468,10 @@ static struct spi_nand_flash spi_nand_table[] = {
 					 tc58cvg0s3hxaix_get_ecc_status)),
 	#endif
 	#ifdef CONFIG_SPI_NAND_FUDANMICRO
-	SPI_NAND_INFO("FM25S01A", MFR_ID_FUDANMICRO, 0xa1, 2048, 64, 64, 1024,
+	SPI_NAND_INFO("FM25S01A", MFR_ID_FUDANMICRO, 0xe4, 2048, 64, 64, 1024,
 			1,  0,
-			SPI_NAND_ECCINFO(8,&micron_ecc_layout_64,
-					 fn25s01a_get_ecc_status)),
+			SPI_NAND_ECCINFO(1,&micron_ecc_layout_64,
+					 NULL)),
 
 	#endif
 	#ifdef CONFIG_SPI_NAND_GIGADEVICE
@@ -2299,7 +2319,7 @@ int spi_nand_bind_cfg_table(struct spi_nand_chip *chip)
 		chip->cfg_table = macronix_cmd_cfg_table;
 	} else if (chip->mfr_id == MFR_ID_TOSHIBA) {
 		chip->cfg_table = toshiba_cmd_cfg_table;
-	} else if (chip->mfr_id == 0xa1) {
+	} else if (chip->mfr_id == MFR_ID_FUDANMICRO) {
 		chip->cfg_table = fudanmicro_cmd_cfg_table;
 	} else if (chip->mfr_id == MFR_ID_GIGADEVICE) {
 		chip->cfg_table = gigadevice_cmd_cfg_table;
@@ -2309,6 +2329,294 @@ int spi_nand_bind_cfg_table(struct spi_nand_chip *chip)
 		chip->cfg_table = generic_cmd_cfg_table;
 	}
 	return 0;
+}
+
+static int spinand_index_table_storage(struct spi_nand_chip *chip,
+				       struct spinand_device_tree *index_pos,
+				       u32 *buf, u32 len)
+{
+	u32 offset;
+	u32 badblock_offset = index_pos->base;
+	int ret = 0;
+	char can_storage = 0;
+
+	for (offset = badblock_offset; offset < index_pos->base + index_pos->size;
+	     offset += chip->block_size) {
+		ret = spi_nand_cmd_erase_ops(chip, offset, chip->block_size, 0);
+		if (ret) {
+			printf("Badblock index table flash on:0x%x erase fail\n", offset);
+			continue;
+		}
+		badblock_offset = offset;
+		can_storage = 1;
+		break;
+	}
+	if (can_storage) {
+		ret = spi_nand_cmd_write_ops(chip, badblock_offset, len, buf);
+		if (!ret) {
+			printf("Badblock index table storage flash on:0x%x\n", badblock_offset);
+		} else {
+			printf("Badblock index table storage fail\n");
+		}
+	} else {
+		printf("ERROR: Don't have space in flash to storage Badblock index table\n");
+	}
+	return ret;
+}
+
+static int spinand_remap_badblocks(struct spi_nand_chip *chip,
+				    u32 *buf, u32 blks,
+				    struct spinand_device_tree *remap_pos)
+{
+	int ret, i;
+	u32 *data = NULL;
+	struct spinand_badblock_remap *b_remap = NULL;
+
+	data = (u32*) malloc ( sizeof(u32) * 2 +
+			sizeof(struct spinand_badblock_remap) * (SPINAND_MAX_BADBLOCKS));
+
+	if (NULL == data) {
+		printf("error:  FUNC@%s malloc failed!", __func__);
+		return -ENOMEM;
+	}
+
+	b_remap = (struct spinand_badblock_remap *) data;
+
+	ret = spi_nand_cmd_read_ops(chip, remap_pos->base,
+				    sizeof(u32) * 2 +
+				    sizeof(struct spinand_badblock_remap) * (SPINAND_MAX_BADBLOCKS),
+				    data);
+	if (!ret && SPINAND_BADBLOCK_MAGIC_2 == ((u32 *)(b_remap + SPINAND_MAX_BADBLOCKS))[0] &&
+	    SPINAND_BADBLOCK_MAGIC_1 == ((u32 *)(b_remap + SPINAND_MAX_BADBLOCKS))[1]) {
+		printf("Badblock remap table read flash on:0x%x ok!\n", remap_pos->base);
+		for (i = 0; i < SPINAND_MAX_BADBLOCKS; ++i) {
+			if (SPINAND_BADBLOCK_REMAP_MAGIC == b_remap[i].remap_magic) {
+				if (b_remap[i].index > blks || b_remap[i].remap > blks) {
+					printf("ERROE: Remap table index:0x%x remap:0x%x ilegal\n",
+					       b_remap[i].index, b_remap[i].remap);
+					continue;
+				}
+
+				buf[b_remap[i].index] = b_remap[i].remap;
+			}
+		}
+	}
+
+	printf("Badblock remap table ok!\n");
+	free(b_remap);
+	return ret;
+}
+static void spinand_get_badblock_pos(struct spi_nand_chip *chip,
+				     struct spinand_device_tree *index_pos,
+				     struct spinand_device_tree *remap_pos)
+{
+	u32 array[2];
+	int ret;
+	ret = fdtdec_get_int_array_count(gd->fdt_blob, chip->dev->of_offset, "spi-nand-badblock-index-pos", array, 2);
+	if (ret < 0 || 2 != ret) {
+		index_pos->base = 0x7f00000;
+		index_pos->size = 0x80000;
+		printf("Get spi-nand-badblock-index-pos fail, use default <0x7f00000 0x80000>\n");
+	} else {
+		index_pos->base = array[0];
+		index_pos->size = array[1];
+	}
+
+	ret = fdtdec_get_int_array_count(gd->fdt_blob, chip->dev->of_offset, "spi-nand-badblock-remap-pos", array, 2);
+	if (ret < 0 || 2 != ret) {
+		remap_pos->base = 0x7f80000;
+		remap_pos->size = 0x80000;
+		printf("Get spi-nand-badblock-remap-pos fail, use default <0x7f80000 0x80000>\n");
+	} else {
+		remap_pos->base = array[0];
+		remap_pos->size = array[1];
+	}
+}
+
+int spinand_index_table_probe(struct spi_nand_chip *chip)
+{
+	u32 block_size;
+	struct spinand_device_tree index_pos, remap_pos;
+	int i, pos, blks = 0;
+	loff_t offset = 0;
+	int ret;
+
+	if (NULL == chip)
+		return -EINVAL;
+
+	block_size = (1 << chip->block_shift);
+	blks = 1 << (chip->lun_shift - chip->block_shift);
+
+	debug("Create badblock index table: flash size:0x%x, block size:0x%x, blks:0x%x\n",
+	       1 << chip->lun_shift, block_size, blks);
+
+	if (NULL == flash_index) {
+		flash_index = (u32*) malloc (sizeof(u32) * (blks + 2));
+		if (NULL == flash_index) {
+			printf("error:  FUNC@%s malloc failed!", __func__);
+			return -ENOMEM;
+		}
+	} else {
+		debug("Badblock index table is exist, so exit...\n");
+		return 0;
+	}
+
+	spinand_get_badblock_pos(chip, &index_pos, &remap_pos);
+
+	memset(flash_index, 0, (blks + 2) * (sizeof(u32)));
+
+	ret = spi_nand_cmd_read_ops(chip, index_pos.base,
+				    (blks + 2) * (sizeof(u32)), flash_index);
+	if (!ret && SPINAND_BADBLOCK_MAGIC_1 == flash_index[blks] &&
+	    SPINAND_BADBLOCK_MAGIC_2 == flash_index[blks + 1]) {
+		printf("Badblock index table read flash on:0x%x ok!\n", index_pos.base);
+		spinand_remap_badblocks(chip, flash_index, blks, &remap_pos);
+		flash_index_storage_done = 1;
+		return 0;
+	}
+
+	/*
+	 * It must be ensured that when spi nand flash
+	 * is used as a boot device, the first block is
+	 * good, which is also guaranteed by the flash
+	 * manufacturer, so the first block does not need
+	 * to be checked
+	 *
+	 * */
+
+	memset(flash_index, 0, (blks + 2) * (sizeof(u32)));
+
+	pos = 1;
+	for (i = 1; i < blks; i++) {
+		for (;;) {
+			if (pos >= blks) {
+				goto done;
+			}
+
+			offset = pos * block_size;
+			if (!spi_nand_block_isbad(chip, offset)) {
+				flash_index[i] = pos;
+				pos++;
+				break;
+			}
+
+			printf("0x%.4xth block offset:0x%.8llx is bad\n", pos, offset);
+			pos++;
+		}
+	}
+done:
+
+	flash_index[blks] = SPINAND_BADBLOCK_MAGIC_1;
+	flash_index[blks + 1] = SPINAND_BADBLOCK_MAGIC_2;
+	spinand_index_table_storage(chip, &index_pos, flash_index,
+				    sizeof(u32) * (blks + 2));
+	flash_index_storage_done = 1;
+	printf("Create badblock index table ok...\n");
+	return 0;
+
+}
+
+void spinand_index_table_remove(struct spi_nand_chip *chip)
+{
+	if (flash_index)
+		free(flash_index);
+	flash_index = NULL;
+	flash_index_storage_done = 0;
+}
+
+int spinand_remap_table_update(struct spi_nand_chip *chip,
+			       struct spinand_badblock_remap* b_remap_t)
+{
+	int i, ret = 0;
+	u32 offset, badblock_offset;
+	u32 *data = NULL;
+	char remap_ok = 0, can_storage = 0;
+	struct spinand_device_tree index_pos, remap_pos;
+	struct spinand_badblock_remap *b_remap = NULL;
+
+	data = (u32*) malloc ( sizeof(u32) * 2 +
+			sizeof(struct spinand_badblock_remap) * (SPINAND_MAX_BADBLOCKS));
+
+	if (NULL == data) {
+		printf("error:  FUNC@%s malloc failed!", __func__);
+		return -ENOMEM;
+	}
+
+	spinand_index_table_remove(chip);
+
+	b_remap = (struct spinand_badblock_remap *) data;
+
+	spinand_get_badblock_pos(chip, &index_pos, &remap_pos);
+	badblock_offset = remap_pos.base;
+
+	ret = spi_nand_cmd_read_ops(chip, remap_pos.base,
+				    sizeof(u32) * 2 +
+				    sizeof(struct spinand_badblock_remap) * (SPINAND_MAX_BADBLOCKS),
+				    data);
+
+	if (!ret && SPINAND_BADBLOCK_MAGIC_2 == ((u32 *)(b_remap + SPINAND_MAX_BADBLOCKS))[0] &&
+	    SPINAND_BADBLOCK_MAGIC_1 == ((u32 *)(b_remap + SPINAND_MAX_BADBLOCKS))[1]) {
+		printf("Badblock remap table read flash on:0x%x ok!\n", remap_pos.base);
+		for (i = 0; i < SPINAND_MAX_BADBLOCKS; ++i) {
+			if (SPINAND_BADBLOCK_REMAP_MAGIC == b_remap[i].remap_magic &&
+			    b_remap[i].index != b_remap_t->index) {
+				continue;
+			}
+				b_remap[i].index = b_remap_t->index;
+				b_remap[i].remap = b_remap_t->remap;
+				b_remap[i].remap_magic = SPINAND_BADBLOCK_REMAP_MAGIC;
+				remap_ok = 1;
+				break;
+		}
+	} else if (!ret) {
+		printf("First create badblock remap table on flash:0x%x!\n", remap_pos.base);
+		memset(data, 0, sizeof(u32) * 2 +
+		       sizeof(struct spinand_badblock_remap) * (SPINAND_MAX_BADBLOCKS));
+		b_remap[0].index = b_remap_t->index;
+		b_remap[0].remap = b_remap_t->remap;
+		b_remap[0].remap_magic = SPINAND_BADBLOCK_REMAP_MAGIC;
+		((u32 *)(b_remap + SPINAND_MAX_BADBLOCKS))[0] = SPINAND_BADBLOCK_MAGIC_2;
+		((u32 *)(b_remap + SPINAND_MAX_BADBLOCKS))[1] = SPINAND_BADBLOCK_MAGIC_1;
+		remap_ok = 1;
+	} else {
+		/*
+		 * should never go there
+		 * */
+		printf("Badblock remap table read flash on:0x%x fail!\n", remap_pos.base);
+	}
+	if (!remap_ok) {
+		ret = -EFAULT;
+		goto done;
+	}
+
+
+	for (offset = remap_pos.base; offset < remap_pos.base + remap_pos.size;
+	     offset += chip->block_size) {
+		ret = spi_nand_cmd_erase_ops(chip, offset, chip->block_size, 0);
+		if (ret) {
+			printf("Badblock remap table flash on:0x%x erase fail\n", offset);
+			continue;
+		}
+		badblock_offset = offset;
+		can_storage = 1;
+		break;
+	}
+	if (can_storage) {
+		ret = spi_nand_cmd_write_ops(chip, badblock_offset, sizeof(u32) * 2 +
+					     sizeof(struct spinand_badblock_remap) * (SPINAND_MAX_BADBLOCKS),
+					     data);
+		if (!ret) {
+			printf("Badblock remap table storage flash on:0x%x\n", badblock_offset);
+		} else {
+			printf("Badblock remap table storage fail\n");
+		}
+	} else {
+		printf("ERROR: Don't have space in flash to storage Badblock remap table\n");
+	}
+done:
+	free(data);
+	spinand_index_table_probe(chip);
+	return ret;
 }
 
 
@@ -2374,6 +2682,7 @@ ident_done:
 	spi_nand_enable_ecc(chip);
 	if (!*chip_ptr)
 		*chip_ptr = chip;
+	spinand_index_table_probe(chip);
 
 	return 0;
 }
@@ -2389,6 +2698,15 @@ int spi_nand_cmd_write_ops(struct spi_nand_chip *chip, u32 offset,
 	u32 writeoffset;
 	int ret = 0;
 	bool end;
+	u32 block_offset;
+
+	/*
+	 * fixed offset
+	 * */
+	if (NULL != flash_index && flash_index_storage_done) {
+		block_offset = offset & ~(loff_t)(chip->block_size - 1);
+		offset = chip->block_size * flash_index[block_offset / chip->block_size];
+	}
 
 	while (leftlen > 0) {
 		if (offset >= chip->size)
@@ -2425,9 +2743,19 @@ int spi_nand_cmd_erase_ops(struct spi_nand_chip *chip, u32 offset, size_t len, i
 	size_t leftlen = len;
 	size_t eraselen;
 	u32 eraseoffset;
+	u32 block_offset;
 	u64 endaddr = offset + len;
 	int ret = 0;
 	bool end;
+
+	/*
+	 * fixed offset
+	 * when spread == 2, don't fixed offset, becase erase force.
+	 * */
+	if (NULL != flash_index && 2 != spread && flash_index_storage_done) {
+		block_offset = offset & ~(loff_t)(chip->block_size - 1);
+		offset = chip->block_size * flash_index[block_offset / chip->block_size];
+	}
 
 	if (offset & (chip->block_size - 1)) {
 		spi_nand_error("%s: Unaligned address\n", __func__);
@@ -2514,9 +2842,18 @@ int spi_nand_cmd_read_pages(struct spi_nand_chip *chip, u32 from, u_char *buf, s
 	bool ecc_off = true;
 	unsigned int failed = 0;
 	int lun_num;
+	u32 block_offset;
 
 	spi_nand_debug("%s: from = 0x%x, len = %i\n",
 			 __func__, from, len);
+
+	/*
+	 * fixed offset
+	 * */
+	if (NULL != flash_index && flash_index_storage_done) {
+		block_offset = from & ~(loff_t)(chip->block_size - 1);
+		from = chip->block_size * flash_index[block_offset / chip->block_size];
+	}
 
 	page_addr = from >> chip->page_shift;
 	page_offset = from & chip->page_mask;
@@ -2547,6 +2884,15 @@ out:
 int spi_nand_cmd_write_oob(struct spi_nand_chip *chip, u32 to, u_char *buf, size_t len)
 {
 	struct mtd_oob_ops ops = {0};
+	u32 block_offset;
+
+	/*
+	 * fixed offset
+	 * */
+	if (NULL != flash_index && flash_index_storage_done) {
+		block_offset = to & ~(loff_t)(chip->block_size - 1);
+		to = chip->block_size * flash_index[block_offset / chip->block_size];
+	}
 
 	ops.mode = MTD_OPS_PLACE_OOB;
 	ops.ooblen = len;
@@ -2573,6 +2919,15 @@ int spi_nand_cmd_read_ops(struct spi_nand_chip *chip, u32 offset,
 	u32 readoffset;
 	int ret = 0;
 	bool end;
+	u32 block_offset;
+
+	/*
+	 * fixed offset
+	 * */
+	if (NULL != flash_index && flash_index_storage_done) {
+		block_offset = offset & ~(loff_t)(chip->block_size - 1);
+		offset = chip->block_size * flash_index[block_offset / chip->block_size];
+	}
 
 	while (leftlen > 0) {
 		if (offset >= chip->size)

@@ -22,6 +22,7 @@ dtb-$(CONFIG_DT_SF19A28_FULLMASK_AC28S)	+= sf19a28_fullmask_ac28s.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_PHY)  += sf19a28_fullmask_phy.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_WS_IN)	+= sf19a28_fullmask_ws_in.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_AC28S_CSD)	+= sf19a28_fullmask_ac28s_csd.dtb
+dtb-$(CONFIG_DT_SF19A28_FULLMASK_YTS)	+= sf19a28_fullmask_yts.dtb
 
 obj-y		+= $(patsubst %.dtb, %.dtb.o, $(dtb-y))
 always				:= $(dtb-y)

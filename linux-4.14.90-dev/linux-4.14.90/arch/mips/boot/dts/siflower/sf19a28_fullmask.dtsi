@@ -632,7 +632,7 @@
 	wifi_lb: wifi-lb@11000000{
 		 compatible = "siflower,sf16a18-wifi-lb";
 		 reg = <0x11000000 0x400000>;
-		 interrupts = <GIC_SHARED 90 IRQ_TYPE_LEVEL_HIGH>,<GIC_SHARED 89 IRQ_TYPE_LEVEL_HIGH>;
+		 interrupts = <GIC_SHARED 90 IRQ_TYPE_LEVEL_HIGH>,<GIC_SHARED 89 IRQ_TYPE_LEVEL_HIGH>,<GIC_SHARED 115 IRQ_TYPE_LEVEL_HIGH>;
 		 mtd-mac-address = <&factory 0>;
 		 mtd-tx-power-cali-config = <&factory 2052>;
 		 clocks = <&wlan24clk 0>, <&bus2xnclk 0>, <&m_SFDSP0clk 0>, <&wlan5clk 0>, <&bus3xnclk 0>;
@@ -643,7 +643,7 @@
 	wifi_hb: wifi-hb@17800000{
 		 compatible = "siflower,sf16a18-wifi-hb";
 		 reg = <0x17800000 0x400000>;
-		 interrupts = <GIC_SHARED 186 IRQ_TYPE_LEVEL_HIGH>,<GIC_SHARED 185 IRQ_TYPE_LEVEL_HIGH>;
+		 interrupts = <GIC_SHARED 186 IRQ_TYPE_LEVEL_HIGH>,<GIC_SHARED 185 IRQ_TYPE_LEVEL_HIGH>,<GIC_SHARED 115 IRQ_TYPE_LEVEL_HIGH>;
 		 mtd-mac-address = <&factory 0>;
 		 mtd-tx-power-cali-config = <&factory 2052>;
 		 clocks = <&wlan5clk 0>, <&bus3xnclk 0>, <&m_SFDSP1clk 0>, <&wlan24clk 0>, <&bus2xnclk 0>;

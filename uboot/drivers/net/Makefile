@@ -15,7 +15,8 @@ obj-$(CONFIG_BCM_SF2_ETH) += bcm-sf2-eth.o
 obj-$(CONFIG_BCM_SF2_ETH_GMAC) += bcm-sf2-eth-gmac.o
 obj-$(CONFIG_SFA18_ETH) += sfa18_eth.o
 obj-$(CONFIG_SFA18_MAC) += sfa18_mac.o
-obj-$(CONFIG_SFA18_GMAC) += sfa18_gmac.o sf_rtk_api.o sf_intel_api.o sf_yt_api.o sf_nf_api.o
+obj-$(CONFIG_SFA18_GMAC) += sfa18_gmac.o sf_rtk_api.o sf_intel_api.o sf_yt_api.o sf_nf_api.o	\
+			    sf_yt9215_api.o
 obj-$(CONFIG_BFIN_MAC) += bfin_mac.o
 obj-$(CONFIG_CALXEDA_XGMAC) += calxedaxgmac.o
 obj-$(CONFIG_CS8900) += cs8900.o

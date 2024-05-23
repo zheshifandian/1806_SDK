@@ -106,10 +106,17 @@ mac80211_hostapd_setup_base() {
 		HT40*|VHT40|VHT80|VHT160)
 			case "$hwmode" in
 				a)
-					case "$(( ($channel / 4) % 2 ))" in
-						1) ht_capab="[HT40+]";;
-						0) ht_capab="[HT40-]";;
-					esac
+                    if [ "$channel" -eq 179 ] || [ "$channel" -eq 181 ]; then
+                        case "$(( ($channel / 4) % 2 ))" in
+                            0) ht_capab="[HT40+]";;
+                            1) ht_capab="[HT40-]";;
+                        esac
+                    else
+                        case "$(( ($channel / 4) % 2 ))" in
+                            1) ht_capab="[HT40+]";;
+                            0) ht_capab="[HT40-]";;
+                        esac
+                    fi
 				;;
 				*)
 					case "$htmode" in
@@ -181,6 +188,11 @@ mac80211_hostapd_setup_base() {
 				1) idx=$(($channel + 2));;
 				0) idx=$(($channel - 2));;
 			esac
+            if [ "$channel" -eq 175 ] || [ "$channel" -eq 177 ]; then
+                idx=176
+            elif [ "$channel" -eq 179 ] || [ "$channel" -eq 181 ]; then
+                idx=180
+            fi
 			enable_ac=1
 			append base_cfg "vht_oper_chwidth=0" "$N"
 			if [ "$band" = "5G" ]; then
@@ -194,6 +206,12 @@ mac80211_hostapd_setup_base() {
 				3) idx=$(($channel - 2));;
 				0) idx=$(($channel - 6));;
 			esac
+            if [ "$channel" -eq 175 ] || [ "$channel" -eq 177 ] ||[ "$channel" -eq 179 ] || [ "$channel" -eq 181 ]; then
+                idx=178
+            fi
+            if [ "$channel" -eq 188 ] || [ "$channel" -eq 192 ] ||[ "$channel" -eq 196 ] || [ "$channel" -eq 200 ]; then
+                idx=194
+            fi
 			enable_ac=1
 			append base_cfg "vht_oper_chwidth=1" "$N"
 			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
