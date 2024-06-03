@@ -31,8 +31,14 @@ const uchar default_environment[] = {
 #ifdef	CONFIG_BOOTARGS
 	"bootargs="	CONFIG_BOOTARGS			"\0"
 #endif
+#ifdef CONFIG_NAND_BACKUP_COMMAND
+	"backupnandbootcmd="	CONFIG_NAND_BACKUP_COMMAND	"\0"
+#endif
 #ifdef	CONFIG_BOOTCOMMAND
 	"bootcmd="	CONFIG_BOOTCOMMAND		"\0"
+#endif
+#ifdef CONFIG_BACKUP_BOOTCOMMAND
+	"backupbootcmd="	CONFIG_BACKUP_BOOTCOMMAND "\0"
 #endif
 #ifdef	CONFIG_RAMBOOTCOMMAND
 	"ramboot="	CONFIG_RAMBOOTCOMMAND		"\0"

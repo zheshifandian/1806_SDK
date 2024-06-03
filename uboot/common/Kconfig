@@ -134,3 +134,14 @@ config CONSOLE_RECORD_IN_SIZE
 	  tstc() and getc() will use this in preference to real device input.
 	  The buffer is allocated immediately after the malloc() region is
 	  ready.
+config DOUBLE_IMAGE_BACKUP_NAND
+	bool "Support for double image backup to nand flash"
+	default n
+	help
+		Support for double image backup to nand flash
+
+config DOUBLE_IMAGE_BACKUP
+	bool "Support for double image backup to nor flash"
+	default n
+	help
+		Support for double image backup to nor flash

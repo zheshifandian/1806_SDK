@@ -5,8 +5,10 @@
 #define    RTL8367C_REG_BYPASS_LINE_RATE            0x03f7
 #define    RTL8367C_REG_SDS_MISC                    0x1d11
 #define    RTL8367C_REG_DIGITAL_INTERFACE_SELECT    0x1305
+#define    RTL8367C_REG_DIGITAL_INTERFACE_SELECT_1  0x13c3
 #define    RTL8367C_REG_REG_TO_ECO4                 0x1d41
 #define    RTL8367C_REG_DIGITAL_INTERFACE0_FORCE    0x1310
+#define    RTL8367C_REG_DIGITAL_INTERFACE2_FORCE    0x13c4
 #define    RTL8367C_PHY_BASE						0x2000
 #define    RTL8367C_PHY_OFFSET						5
 #define    RTL8367C_REG_GPHY_OCP_MSB_0				0x1d15
@@ -15,6 +17,7 @@
 #define    RTL8367C_CFG_MAC8_SEL_SGMII_OFFSET       6
 #define    RTL8367C_CFG_MAC8_SEL_HSGMII_OFFSET      11
 #define    RTL8367C_SELECT_GMII_0_MASK              0xF
+#define    RTL8367C_SELECT_GMII_2_MASK    			0xF
 #define    RTL8367C_SELECT_GMII_1_OFFSET            4
 #define    RTL8367C_CFG_SGMII_FDUP_OFFSET           10
 #define    RTL8367C_CFG_SGMII_SPD_MASK              0x180
@@ -33,7 +36,13 @@
 #define    RTL8367C_REG_EXT1_RGMXF    0x1307
 #define    RTL8367C_REG_EXT2_RGMXF    0x13c5
 
+#define    RTL8367C_REG_PHY_AD    0x130f
+#define    RTL8367C_PDNPHY_OFFSET	5
+
 #define    RTK_SWITCH_PORT_NUM (32)
+
+#define SFA18_RTK8367_GMAC_TX_DELAY	0x25
+#define SFA18_RTK8367_GMAC_RX_DELAY	0x25
 
 #define    RTK_PORTMASK_CLEAR(__portmask__)                    ((__portmask__).bits[0] = 0)
 #define    RTK_PORTMASK_PORT_SET(__portmask__, __port__)       ((__portmask__).bits[0] |= (0x00000001 << __port__))
@@ -55,6 +64,7 @@ int rtl8367c_setAsicRegBit(struct sgmac_priv *priv, int reg, int bit, int value)
 int rtl8367c_setAsicRegBits(struct sgmac_priv *priv, int reg, int bits, int value);
 int rtl8367c_getAsicReg(struct sgmac_priv *priv, int reg, int *pValue);
 int rtl8367c_getAsicPHYReg(struct sgmac_priv *priv, int phyNo, int phyReg, int *phyData);
+int dal_rtl8367c_port_phyEnableAll_set(struct sgmac_priv *priv, int enable);
 #ifdef CONFIG_SOC_SFA28_MPW0
 int rtk_port_rgmiiDelayExt_set(struct sgmac_priv *priv, int port, int txDelay, int rxDelay);
 #endif

@@ -181,6 +181,12 @@ menuconfig PHYLIB
 
 if PHYLIB
 
+config JLSEMI_PHY
+	tristate "JLSEMI PHYs"
+	---help---
+      Currently has a driver for the jlsemi
+
+
 config SWPHY
 	bool
 

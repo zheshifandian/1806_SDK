@@ -174,14 +174,16 @@
 #define SFAX8_SF_READ_DDR_ADDR 0x81000000
 #ifdef CONFIG_SPI_NAND
 #define SFAX8_SF_READ_FLASH_ADDR 0xc0000
-#define SFAX8_SF_READ_SIZE 0x300000
+#define SFAX8_SF_READ_FLASH_BACKUP_ADDR 0x14c0000
+#define SFAX8_SF_READ_SIZE 0x1400000
 #else //CONFIG_SPI_NAND
 #ifdef CONFIG_SFA18_UBOOT_LITE
 #define SFAX8_SF_READ_FLASH_ADDR 0x32000
 #define SFAX8_SF_READ_SIZE 0x300000
 #else /* CONFIG_SFA18_UBOOT_LITE */
 #define SFAX8_SF_READ_FLASH_ADDR 0xa0000
-#define SFAX8_SF_READ_SIZE 0x300000
+#define SFAX8_SF_READ_FLASH_BACKUP_ADDR 0x1050000
+#define SFAX8_SF_READ_SIZE 0xA00000
 #endif /* CONFIG_SFA18_UBOOT_LITE */
 #endif //!CONFIG_SPI_NAND
 
@@ -195,10 +197,18 @@
 	"sf probe 0 33000000;"                 \
 	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
 	"bootm"
+#define CONFIG_BACKUP_BOOTCOMMAND                           \
+	"sf probe 0 33000000;"                 \
+	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"bootm"
 #elif defined CONFIG_SPI_NAND_BOOT /* CONFIG_SPI_BOOT */
 #define CONFIG_BOOTCOMMAND                           \
 	"spi_nand probe 0 33000000;"                 \
 	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"bootm"
+#define CONFIG_NAND_BACKUP_COMMAND                          \
+	"spi_nand probe 0 33000000;"                 \
+	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
 	"bootm"
 #else  /* CONFIG_SPI_NAND_BOOT */
 #define CONFIG_BOOTCOMMAND                   \

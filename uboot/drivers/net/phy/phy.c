@@ -515,7 +515,9 @@ int phy_init(void)
 #ifdef CONFIG_PHY_INTEL_XWAY
 	phy_xway_init();
 #endif
-
+#ifdef CONFIG_JLSEMI_PHY
+	phy_jlsemi_init();
+#endif
 	return 0;
 }
 

@@ -16,7 +16,15 @@ dtb-$(CONFIG_SOC_SFA28_FULLMASK) += sfa28_fullmask_nand.dtb
 dtb-$(CONFIG_SOC_SFA28_MPW0) += sfa28_mpw0_nand.dtb
 else
 dtb-$(CONFIG_SOC_SFA18_FULLMASK) += sfa18_fullmask.dtb
+ifeq ($(CONFIG_DOUBLE_IMAGE_BACKUP_NAND), y)
+dtb-$(CONFIG_SOC_SFA28_FULLMASK) += sfa28_fullmask_bkimgnand.dtb
+else
+ifeq ($(CONFIG_DOUBLE_IMAGE_BACKUP), y)
+dtb-$(CONFIG_SOC_SFA28_FULLMASK) += sfa28_fullmask_bkimg.dtb
+else
 dtb-$(CONFIG_SOC_SFA28_FULLMASK) += sfa28_fullmask.dtb
+endif
+endif
 dtb-$(CONFIG_SOC_SFA28_MPW0) += sfa28_mpw0.dtb
 endif
 

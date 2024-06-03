@@ -61,6 +61,10 @@ obj-$(CONFIG_MII) += miiphyutil.o
 obj-$(CONFIG_CMD_MII) += miiphyutil.o
 obj-$(CONFIG_PHYLIB) += miiphyutil.o
 
+obj-$(CONFIG_DOUBLE_IMAGE_BACKUP_NAND) += double_image_backup.o
+
+obj-$(CONFIG_DOUBLE_IMAGE_BACKUP) += double_image_backup.o
+
 ifdef CONFIG_CMD_USB
 obj-y += usb.o usb_hub.o
 obj-$(CONFIG_USB_STORAGE) += usb_storage.o

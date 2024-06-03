@@ -18,7 +18,7 @@
 #include <linux/of_net.h>
 #include <sf16a18.h>
 #ifdef CONFIG_SFAX8_FACTORY_READ
-#include <linux/sfax8_factory_read.h>
+#include <sfax8_factory_read.h>
 #endif
 #include "sf_eth.h"
 #include "sf_mdio.h"
