@@ -5221,38 +5221,39 @@ static bool sd_has_rps_ipi_waiting(struct softnet_data *sd)
 #endif
 }
 
-static DEFINE_RWLOCK(backlog_hook_lock);
+static DEFINE_SPINLOCK(backlog_hook_lock);
 typedef int (*device_drv_hook_fn)(struct sk_buff *skb);
-static device_drv_hook_fn g_wlan_hook_fn = NULL;
+device_drv_hook_fn g_wlan_hook_fn = NULL;
 
 int backlog_skb_handler_register(device_drv_hook_fn hook)
 {
-	write_lock_bh(&backlog_hook_lock);
-	rcu_assign_pointer(g_wlan_hook_fn, hook);
-	write_unlock_bh(&backlog_hook_lock);
-	return 0;
+	spin_lock(&backlog_hook_lock);
+    g_wlan_hook_fn = hook;
+	spin_unlock(&backlog_hook_lock);
+    return 0;
 }
 EXPORT_SYMBOL_GPL(backlog_skb_handler_register);
 
 int backlog_skb_handler_unregister(device_drv_hook_fn hook)
 {
-	write_lock_bh(&backlog_hook_lock);
-	RCU_INIT_POINTER(g_wlan_hook_fn, NULL);
-	write_unlock_bh(&backlog_hook_lock);
-	return 0;
+	spin_lock(&backlog_hook_lock);
+    g_wlan_hook_fn = NULL;
+	spin_unlock(&backlog_hook_lock);
+    return 0;
 }
 EXPORT_SYMBOL_GPL(backlog_skb_handler_unregister);
 
 static int hook_dev_xmit_path(struct sk_buff *skb)
 {
-	int ret = NET_RX_DROP;
-	rcu_read_lock();
-	device_drv_hook_fn hook_fn = rcu_dereference(g_wlan_hook_fn);
-	if (hook_fn)
-		ret = hook_fn(skb);
-
-	rcu_read_unlock();
-	return ret;
+    int ret = NET_RX_DROP;
+    if (!g_wlan_hook_fn) {
+        ret = NET_RX_DROP;
+    } else {
+        spin_lock(&backlog_hook_lock);
+        ret = g_wlan_hook_fn(skb);
+	    spin_unlock(&backlog_hook_lock);
+    }
+    return ret;
 }
 
 struct net_device *sf_hnat_find_wifi_ndev_by_dmac(struct sk_buff *skb, struct net_bridge *br)

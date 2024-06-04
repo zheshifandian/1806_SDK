@@ -1214,7 +1214,7 @@ struct sk_buff *skb_morph(struct sk_buff *dst, struct sk_buff *src)
 #endif
 #ifdef CONFIG_SF_SKB_POOL
 	if (IS_DATA_FROM_POOL(skb_shinfo(src))) {
-		gfp_mask_pool = GFP_ATOMIC;
+		gfp_mask_pool = GFP_KERNEL;
 		if (skb_pfmemalloc(src))
 			gfp_mask_pool |= __GFP_MEMALLOC;
 		data = kmalloc_reserve(src->pool->pool_param.skb_size, gfp_mask_pool, NUMA_NO_NODE, &pfmemalloc);

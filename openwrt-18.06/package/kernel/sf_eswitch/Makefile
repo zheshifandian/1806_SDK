@@ -73,10 +73,6 @@ ifneq ($(findstring EVB,$(PROFILE)),)
 SFAX8_KO_NAME="sf_eswitch_evb.ko"
 endif
 
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="sf_eswitch_yts.ko"
-endif
-
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) ./* $(PKG_BUILD_DIR)/

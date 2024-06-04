@@ -136,9 +136,6 @@ case ${board} in
 	a28_rep)
 		target_board=target/linux/siflower/sf19a28_rep_fullmask_def.config
 		;;
-	a28_yts)
-		target_board=target/linux/siflower/sf19a28_yts_fullmask_def.config
-		;;
 	clean)
 		echo "clean build enviroment"
 		echo "delete build dir "

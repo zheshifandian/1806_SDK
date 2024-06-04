@@ -16,12 +16,9 @@
 #include "sf_rtk_api.h"
 #include "sf_yt_api.h"
 #include "sf_nf_api.h"
-#include "sf_yt9215_api.h"
 
 int sf_gmac_vlan_all_enable = 0;
 int sf_gmac_first_recv_vlan = 0;
-extern int intel_phy_addr;
-int rtk_phy_id;
 
 struct sgmac_priv *g_priv = NULL;
 
@@ -593,23 +590,11 @@ int sf_get_gmac_delay_from_factory(unsigned char *buf)
 			GMAC_DELAY_READ_SIZE, buf);
 }
 
-static int strtou32(const char *str, unsigned int base, u32 *result)
-{
-	char *ep;
-
-	*result = simple_strtoul(str, &ep, base);
-	if (ep == str || *ep != '\0')
-		return -EINVAL;
-
-	return 0;
-}
 
 int sf_gmac_register(void)
 {
 	struct eth_device *dev;
 	struct sgmac_priv *priv;
-	unsigned char buf[GMAC_DELAY_READ_SIZE+1] = {0};
-	uint gmac_delay = 0;
 #ifdef CONFIG_GMAC_USE_GPIO_MDIO
 	uint regValue = 0;
 #else
@@ -617,8 +602,6 @@ int sf_gmac_register(void)
 	rtk_portmask_t portmask;
 #endif
 	int ret = 0;
-	u32 chip_mode;
-	int rtk_rgmii_port;
 
 	dev = (struct eth_device *)malloc(sizeof(struct eth_device));
 	if (dev == NULL) {
@@ -665,70 +648,31 @@ int sf_gmac_register(void)
 #ifndef CONFIG_SFA18_GMAC_PHY
 	// trigger switch hw reset first
 	sf_trigger_eswitch_hwReset();
-	// chip id to read realtek 8367c
-	rtk_phy_id = 0;
-	rtk_rgmii_port = 16;
+
+	// chip id to read realtek
 	rtl8367c_setAsicReg(priv, 0x13C2, 0x0249);
 	rtl8367c_getAsicReg(priv, 0x1300, &chip_id);
 
-	if (chip_id == 0xFFFF) {
-		// chip id to read realtek 8367s
-		rtk_phy_id = 29;
-		rtk_rgmii_port = 17;
-		rtl8367c_setAsicReg(priv, 0x13C2, 0x0249);
-		rtl8367c_getAsicReg(priv, 0x1300, &chip_id);
-	}
-	if (!chip_id || chip_id == 0xFFFF)
-		gsw_reg_rd(priv, 0xFA11, 0, 16, (unsigned int *)&chip_id);
-	if (chip_id == 0 || chip_id == 0xFFFF) {
-		intel_phy_addr = 0x1F;
+	if (!chip_id) {
 		gsw_reg_rd(priv, 0xFA11, 0, 16, (unsigned int*)&chip_id);
 	}
-
-	//chip id to read yt9215rb
-	if (chip_id == 0 || chip_id == 0xFFFF) {
-		yt9215_reg_read(priv, CHIP_CHIP_ID_REG, (u32 *)&chip_id);
-		yt9215_reg_read(priv, CHIP_CHIP_MODE_REG, &chip_mode);
-
-		if ((chip_id >> 16 & 0xffff) == YT_SW_ID_9215 &&
-		    (chip_mode & 0x3) == SWCHIP_YT9215RB) {
-			priv->gswitch = 1;
-
-			//set gmac8 rgmii and tx delay 2ns rx delay 0ns
-			yt9215_reg_write(priv, CHIP_INTERFACE_SELECT_REG, 0x2);
-			yt9215_reg_write(priv, CHIP_INTERFACE_MAC8, 0x841c4100);
-			//force gmac8 1G full
-			yt9215_reg_write(priv, MAC8_SPEED_SET, 0x1fa);
-		} else if ((chip_id >> 16 & 0xffff) == YT_SW_ID_9215 &&
-		    (chip_mode & 0x3) == SWCHIP_YT9215S) {
-				priv->gswitch = 1;
-				//set gmac9 rgmii and tx/rx delay 0ns
-				yt9215_reg_write(priv, CHIP_INTERFACE_SELECT_REG, 0x1);
-				yt9215_reg_write(priv, CHIP_INTERFACE_MAC9, 0x841c0000);
-				//force gmac9 1G full
-				yt9215_reg_write(priv, MAC9_SPEED_SET, 0x1fa);
-			}
-	}
-
-	printf("%d chid_id 0x%08x\n", __LINE__, chip_id);
 
 	if (chip_id == 0x6367) {
 		// realtek giga switch
 		priv->gswitch = 1;
-		dal_rtl8367c_port_phyEnableAll_set(priv, 1);
-		rtk_extPort_rgmii_init(priv, rtk_rgmii_port);
+		rtk_extPort_rgmii_init(priv, 16);
 #if defined(CONFIG_SOC_SFA28_MPW0)
 		rtk_port_rgmiiDelayExt_set(priv, 16, 1, 1);
 #endif
-		// sync system tx delay to uboot, or use autodelay value will result in pkt lose
-		rtl8367c_setAsicReg(priv, 0x13f9, 0x90);
+
 		// RM#10001 rtk isolation vlan to fix ip error
 		for(; i < 5; i++){
 			RTK_PORTMASK_CLEAR(portmask);
-			RTK_PORTMASK_PORT_SET(portmask, (rtk_rgmii_port - 10));
+			RTK_PORTMASK_PORT_SET(portmask, 6);
 			RTK_PORTMASK_PORT_SET(portmask, i);
 			rtk_port_isolation_set(priv, i, &portmask);
 		}
+
 	} else if (chip_id == 0x2003) {
 		// intel giga switch
 		priv->gswitch = 1;
@@ -739,49 +683,22 @@ int sf_gmac_register(void)
 					PCDU_5_TXDLY_SIZE,
 					2);
 #endif
-		// RM#10001 intel enable vlan to fix ip error
-		sf_gmac_vlan_all_enable = 1;
-		intel7084_vlan_set();
-	} else if (chip_id == 0x3003) {
-		// intel giga switch
-		priv->gswitch = 1;
-		intel_rgmii_init(priv, 5);
-		gsw_reg_wr(priv, 0xF101, 0, 3, 0);
-		gsw_reg_wr(priv, 0xF101, 7, 3, 0);
-#if defined(CONFIG_SOC_SFA28_MPW0)
-		gsw_reg_wr(priv, PCDU_5_TXDLY_OFFSET,
-					PCDU_5_TXDLY_SHIFT,
-					PCDU_5_TXDLY_SIZE,
-					2);
-#endif
-		// RM#10001 intel enable vlan to fix ip error
-		sf_gmac_vlan_all_enable = 1;
-		intel7084_vlan_set();
-	}
-#else
-	sgmac_phy_init(priv, dev);
 
+		// RM#10001 intel enable vlan to fix ip error
+		sf_gmac_vlan_all_enable = 1;
+		intel7084_vlan_set();
+
+	}else
+#else
+	{
+		sgmac_phy_init(priv, dev);
+	}
 #endif /* CONFIG_SFA18_GMAC_PHY */
 #endif /* CONFIG_GMAC_USE_GPIO_MDIO */
 
-	sf_get_gmac_delay_from_factory(buf);
-			printf("get gmac delay:%s\n", buf);
-	if ((buf[0] != 0) && (buf[0] != 0xff)) {
-		if (strtou32((char*)buf, 16, &gmac_delay) == 0) {
-			writew((gmac_delay >> 8) & 0xFF, (void *)EMAC_CLK_TX_I_DLY);
-			writew(gmac_delay & 0xFF, (void *)EMAC_CLK_PHY_RX_I_DLY);
-			printf("get gmac delay:0x%04x\n", gmac_delay);
-		}
-	}else if (chip_id == 0x6367) {
-		writew(SFA18_RTK8367_GMAC_TX_DELAY, (void *)EMAC_CLK_TX_I_DLY);
-		writew(SFA18_RTK8367_GMAC_RX_DELAY, (void *)EMAC_CLK_PHY_RX_I_DLY);
-	} else if ((chip_id >> 16 & 0xffff) == YT_SW_ID_9215) {
-		writew(SFA18_YT9215_GMAC_TX_DELAY, (void *)EMAC_CLK_TX_I_DLY);
-		writew(SFA18_YT9215_GMAC_RX_DELAY, (void *)EMAC_CLK_PHY_RX_I_DLY);
-	} else {
-		writew(CONFIG_SFA18_GMAC_TX_DELAY, (void *)EMAC_CLK_TX_I_DLY);
-		writew(CONFIG_SFA18_GMAC_RX_DELAY, (void *)EMAC_CLK_PHY_RX_I_DLY);
-	}
+
+	writew(CONFIG_SFA18_GMAC_TX_DELAY, (void *)EMAC_CLK_TX_I_DLY);
+	writew(CONFIG_SFA18_GMAC_RX_DELAY, (void *)EMAC_CLK_PHY_RX_I_DLY);
 	writew(0x1, (void *)EMAC_CLK_PHY_RX_I_DLY_EN);
 
 	sgmac_hw_init(dev, priv);

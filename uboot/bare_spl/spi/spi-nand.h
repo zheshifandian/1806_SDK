@@ -370,6 +370,5 @@ int SPI_NAND_write(u8 chnum, u32 page_size, u32 offset, const u8 *buf, u32 len);
 int SPI_NAND_Erase(u32 offset, u32 len);
 void SPI_NAND_set_soft_ecc(int enable);
 int inline SPI_NAND_get_soft_ecc(void);
-int bad_block_management(struct spi_nand_chip *chip, u32 offset, int sign);
 
 #endif

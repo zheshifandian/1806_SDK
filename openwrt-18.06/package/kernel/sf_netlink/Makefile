@@ -56,10 +56,6 @@ ifneq ($(findstring PHY,$(PROFILE)),)
 SFAX8_KO_NAME="sfax8_netlink_p.ko"
 endif
 
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_netlink_yts.ko"
-endif
-
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) ./* $(PKG_BUILD_DIR)/

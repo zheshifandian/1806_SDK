@@ -5,7 +5,6 @@
 extern struct sgmac_priv *g_priv;
 extern int sgmac_mdio_read(struct mii_dev *bus, int addr, int devad, int reg);
 extern int sgmac_mdio_write(struct mii_dev *bus, int addr, int devad, int reg, u16 val);
-int intel_phy_addr = 0;
 
 static ur num_ports;
 const PCE_MICROCODE pce_mc_sw2_3 = {
@@ -88,8 +87,8 @@ int gsw_reg_rd(struct sgmac_priv *priv,u16 Offset, u16 Shift, u16 Size, uint *va
 	else
 		ro = (Offset | 0xE000);
 
-	sgmac_mdio_write(priv->bus, intel_phy_addr, 0, SMDIO_WRADDR, ro);
-	rv = sgmac_mdio_read(priv->bus, intel_phy_addr, 0, SMDIO_RDADDR);
+	sgmac_mdio_write(priv->bus, 0, 0, SMDIO_WRADDR, ro);
+	rv = sgmac_mdio_read(priv->bus, 0, 0, SMDIO_RDADDR);
 
 	mask = (1 << Size) - 1;
 	rv = (rv >> Shift);
@@ -106,17 +105,18 @@ int gsw_reg_wr(struct sgmac_priv *priv,u16 Offset, u16 Shift, u16 Size, u32 valu
 	else
 		ro = (Offset | 0xE000);
 
-	sgmac_mdio_write(priv->bus, intel_phy_addr, 0, SMDIO_WRADDR, ro);
+	sgmac_mdio_write(priv->bus, 0, 0, SMDIO_WRADDR, ro);
 
 	if (Size != 16) {
-		rv = sgmac_mdio_read(priv->bus, intel_phy_addr, 0, SMDIO_RDADDR);
+		rv = sgmac_mdio_read(priv->bus, 0, 0, SMDIO_RDADDR);
 		mask = (1 << Size) - 1;
 		mask = (mask << Shift);
 		value = ((value << Shift) & mask);
 		value = ((rv & ~mask) | value);
-		sgmac_mdio_write(priv->bus, intel_phy_addr, 0, SMDIO_WRADDR, ro);
+		sgmac_mdio_write(priv->bus, 0, 0, SMDIO_WRADDR, ro);
 	}
-	sgmac_mdio_write(priv->bus, intel_phy_addr, 0, SMDIO_RDADDR, value);
+
+	sgmac_mdio_write(priv->bus, 0, 0, SMDIO_RDADDR, value);
 	return 0;
 }
 

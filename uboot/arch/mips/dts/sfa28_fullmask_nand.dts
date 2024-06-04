@@ -57,8 +57,6 @@
 				compatible = "spi-nand";
 				reg = <0>;
 				spi-max-frequency = <25000000>;
-				spi-nand-badblock-index-pos = <0x7f00000 0x80000>;
-				spi-nand-badblock-remap-pos = <0x7f80000 0x80000>;
 				u-boot,dm-pre-reloc;
 			};
 		};

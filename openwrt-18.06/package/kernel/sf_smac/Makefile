@@ -8,11 +8,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/sf_smac
   SUBMENU:=Wireless Drivers
-  TITLE:=SIFLOWER sf16a18 wireless driver
+  TITLE:=SIFLOWER sf19a28 wireless driver
   DEPENDS:=+kmod-sfax8-factory-read +kmod-cfg80211 +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT
   FILES:= \
-	$(PKG_BUILD_DIR)/sf16a18_rf.ko \
-	$(PKG_BUILD_DIR)/startcore.ko
+	  	$(PKG_BUILD_DIR)/sf16a18_rf.ko \
+		$(PKG_BUILD_DIR)/startcore.ko
 ifdef CONFIG_PACKAGE_SFUMAC_FMAC
 ifndef CONFIG_FLASH_OPTIMIZE
 	FILES += $(PKG_BUILD_DIR)/sf16a18_fmac.ko
@@ -59,10 +59,6 @@ define KernelPackage/sf_smac/config
 
 		config SFFMAC_ENABLE_TOKEN
 			bool "enable token for fmac"
-			default "y"
-
-		config SFFMAC_ENABLE_BRG
-			bool "enable brg config"
 			default "y"
 
 		config SFFMAC_ENABLE_RX_MEM_POOL
@@ -144,10 +140,6 @@ endif
 
 ifneq ($(findstring PHY,$(PROFILE)),)
 KO_FILE_NAME="src_p"
-endif
-
-ifneq ($(findstring YTS,$(PROFILE)),)
-KO_FILE_NAME="src_yts"
 endif
 
 define KernelPackage/sf_smac/description
@@ -251,12 +243,6 @@ ifdef CONFIG_MEMORY_OPTIMIZE
 #EXTRA_KCONFIG += CONFIG_SF16A18_TXQ_MAX_CNT=32
 EXTRA_KCONFIG += CONFIG_WIFI_LITE_MEMORY=y
 endif
-
-ifdef CONFIG_ENABLE_BRG
-EXTRA_KCONFIG += CONFIG_SFFMAC_ENABLE_BRG=y
-NOSTDINC_FLAGS += -DCONFIG_SFFMAC_ENABLE_BRG
-endif
-
 ifdef CONFIG_TARGET_siflower_sf19a28_fullmask_SF19A28-A28-HWA
 #CONFIG_DUAL_ANTENNA_CALIBRATE=y
 endif
@@ -322,32 +308,17 @@ define KernelPackage/sf_smac/install
 		$(PKG_BUILD_DIR)/config/siwifi_aetnensis.ini \
 		$(PKG_BUILD_DIR)/config/siwifi_settings.ini \
 		$(PKG_BUILD_DIR)/config/tx_adjust_gain_table.bin \
+		$(PKG_BUILD_DIR)/config/$(SF_ARCH)/agcram.bin \
 		$(PKG_BUILD_DIR)/config/$(SF_ARCH)/agcram_24g.bin \
 		$(PKG_BUILD_DIR)/config/$(SF_ARCH)/ldpcram.bin \
 		$(1)/lib/firmware
 
-ifndef CONFIG_SFFMAC_ENABLE_BRG
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/agcram.bin $(1)/lib/firmware
-else
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/agcram-brg/agcram.bin $(1)/lib/firmware
-endif
-
 ifdef CONFIG_TARGET_siflower_sf19a28_fullmask_SF19A28-A28-HWA
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/1.10.003T/rf_pmem.bin $(1)/lib/firmware
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/1.10.003T/rf_default_reg.bin $(1)/lib/firmware
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/sf_rf_expa_config_hwa.ini $(1)/lib/firmware/sf_rf_expa_config.ini
 else
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/rf_pmem.bin $(1)/lib/firmware
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/rf_default_reg.bin $(1)/lib/firmware
-
-ifdef CONFIG_TARGET_siflower_sf19a28_fullmask_SF19A28-brg
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/sf_rf_expa_config_brg.ini $(1)/lib/firmware/sf_rf_expa_config.ini
-else
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/sf_rf_expa_config.ini $(1)/lib/firmware/sf_rf_expa_config.ini
-endif
-ifdef CONFIG_TARGET_siflower_sf19a28_fullmask_SF19A28-BRG128
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/sf_rf_expa_config_brg.ini $(1)/lib/firmware/sf_rf_expa_config.ini
-endif
 endif
 
 ifdef CONFIG_TARGET_siflower_sf19a28_fullmask
@@ -391,13 +362,8 @@ endif
 	cp $(PKG_BUILD_DIR)/config/reload_wifi.sh $(1)/bin/
 ifdef CONFIG_PACKAGE_SFUMAC_FMAC
 ifdef CONFIG_MEMORY_OPTIMIZE
-ifndef CONFIG_ENABLE_BRG
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/memory-opt/sf1688_lb_fmac.bin $(1)/lib/firmware/
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/memory-opt/sf1688_hb_fmac.bin $(1)/lib/firmware/
-else
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/memory-opt/fmac-brg/sf1688_lb_fmac.bin $(1)/lib/firmware/
-	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/memory-opt/fmac-brg/sf1688_hb_fmac.bin $(1)/lib/firmware/
-endif
 else
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/sf1688_lb_fmac.bin $(1)/lib/firmware/
 	cp $(PKG_BUILD_DIR)/config/$(SF_ARCH)/sf1688_hb_fmac.bin $(1)/lib/firmware/
@@ -422,7 +388,12 @@ endif
 ifdef CONFIG_PACKAGE_SFUMAC_SMAC
 	echo 'boot_hook_add preinit_main insmod_mac80211' >> $(1)/lib/preinit/99_rf_misc
 endif
+
+ifndef CONFIG_PACKAGE_SFSMAC_HB_LA_ENABLE
+ifndef CONFIG_PACKAGE_SFSMAC_LB_LA_ENABLE
 	echo 'boot_hook_add preinit_main insmod_fmac' >> $(1)/lib/preinit/99_rf_misc
+endif
+endif
 
 #ifndef CONFIG_PACKAGE_SFSMAC_HB_LA_ENABLE
 #	echo 'boot_hook_add preinit_main insmod_$(SF_UMAC_TYPE)_lb' >> $(1)/lib/preinit/99_rf_misc

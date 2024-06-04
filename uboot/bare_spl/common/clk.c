@@ -228,7 +228,7 @@ int clk_update(void)
 #endif /* CRYSTAL_40M */
 	/* bus1, bus2 -> 300MHz */
 	/* bus3 -> 375MHz */
-	writel(9, BUS1_XN_CLK_DIV);
+	writel(4, BUS1_XN_CLK_DIV);
 	writel(4, BUS2_XN_CLK_DIV);
 	writel(3, BUS3_XN_CLK_DIV);
 

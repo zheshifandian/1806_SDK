@@ -25,7 +25,6 @@
 #define MFR_ID_MACRONIX		0xC2
 #define MFR_ID_TOSHIBA		0x98
 #define MFR_ID_GIGADEVICE	0xC8
-#define MFR_ID_FUDANMICRO	0xA1
 
 /*
  * Standard SPI-NAND flash commands
