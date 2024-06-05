@@ -286,6 +286,13 @@ case $prj in
 #		[ -z $ddr2 ] && ddr2=em68b16cwqh
 		[ -z $ddr2 ] && ddr2=pme809416dbr
 		;;
+	ac10)
+		DEFCONFIG="sfa28_"$ver"_ac10"
+		add_sfbl_flag sf19a28_fullmask=1
+		add_sfbl_flag crystal_40m=1
+		add_sfbl_flag odt=1
+		[ -z $ddr3 ] && ddr3=m15t1g1664a
+		;;
 	sfa28_ac28)
 		DEFCONFIG="sfa28_"$ver"_ac28"
 		add_sfbl_flag sf19a28_fullmask=1
@@ -293,15 +300,30 @@ case $prj in
 		add_sfbl_flag odt=1
 		[ -z $ddr3 ] && ddr3=m15t1g1664a
 		;;
-	sfa28_a28phy)
-        DEFCONFIG="sfa28_"$ver"_a28phy"
-        add_sfbl_flag sf19a28_fullmask=1
-        add_sfbl_flag crystal_40m=1
-        add_sfbl_flag odt=1
-        [ -z $ddr2 ] && ddr2=ddr2_512mcommon
-        ;;
+	sfa28_ac28bkimg)
+		DEFCONFIG="sfa28_"$ver"_ac28bkimg"
+		add_sfbl_flag sf19a28_fullmask=1
+		add_sfbl_flag crystal_40m=1
+		add_sfbl_flag odt=1
+		[ -z $ddr3 ] && ddr3=m15t1g1664a
+		;;
+	sfa28_yts)
+		DEFCONFIG="sfa28_"$ver"_yts"
+		add_sfbl_flag sf19a28_fullmask=1
+		add_sfbl_flag crystal_40m=1
+		add_sfbl_flag odt=1
+		[ -z $ddr2 ] && ddr2=ddr2_1gcommon
+		;;
 	sfa28_ac28nand)
 		DEFCONFIG="sfa28_"$ver"_ac28nand"
+		add_sfbl_flag sf19a28_fullmask=1
+		add_sfbl_flag crystal_40m=1
+		add_sfbl_flag odt=1
+		[ -z $ddr3 ] && ddr3=m15t1g1664a
+		nand=1
+		;;
+	sfa28_ac28nandbkimg)
+		DEFCONFIG="sfa28_"$ver"_ac28bkimgnand"
 		add_sfbl_flag sf19a28_fullmask=1
 		add_sfbl_flag crystal_40m=1
 		add_sfbl_flag odt=1

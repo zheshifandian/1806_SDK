@@ -22,6 +22,9 @@
 #include "errno.h"
 #include "external.h"
 
+int badblock_num = 0;
+int sign = 0;
+int virtual_addr[20];
 #ifdef SPI_NAND
 
 extern int spi_nand_issue_cmd(struct spi_nand_chip *chip, struct spi_nand_cmd *cmd);
@@ -1793,6 +1796,39 @@ int spi_nand_init(struct spi_nand_chip *chip)
 	return 0;
 }
 
+int bad_block_management(struct spi_nand_chip *chip, u32 offset, int sign)
+{
+	loff_t check;
+	int rel;
+	if (!sign){
+		memset(virtual_addr, chip->size, 20);
+		for (check = 0; check < chip->size; check += chip->block_size){
+			if(spi_nand_block_isbad(chip, check)){
+				printf("Bad block at %#lx\n", check);
+				badblock_num++;
+				virtual_addr[badblock_num] = check;
+				if(badblock_num>19){
+                    printf("error:Too many bad blocks!!!\n");
+                    return -1;
+                }
+				if(offset >= check)
+					offset += chip->block_size;
+			}
+		}
+	}
+	else
+	{
+		for(rel=1;rel<=badblock_num;rel++)
+		{
+			if(offset >= virtual_addr[rel])
+				offset += chip->block_size;
+			else
+				break;
+		}
+	}
+	return offset;
+}
+
 void inline SPI_NAND_set_soft_ecc(int enable) {
 	soft_ecc = enable;
 }
@@ -1850,6 +1886,11 @@ int SPI_NAND_read(u32 offset, u8 *data, u8 chnum, u32 len) {
 
 	spi_nand_init(&sfax8_spi_nand);
 
+	offset = bad_block_management(&sfax8_spi_nand, offset, sign);
+	if(offset<0)
+		return err;
+	sign++;
+
 	err = spi_nand_cmd_read_ops(&sfax8_spi_nand, offset, len, data);
 
 	return err;
@@ -1859,6 +1900,7 @@ int SPI_NAND_Erase(u32 offset, u32 len) {
 	SPI_Init();
 
 	spi_nand_init(&sfax8_spi_nand);
+	offset = bad_block_management(&sfax8_spi_nand, offset, sign);
 
 	return spi_nand_erase(&sfax8_spi_nand, offset, len);
 }
@@ -1870,6 +1912,7 @@ int SPI_NAND_write(u8 chnum, u32 page_size, u32 offset, const u8 *buf, u32 len) 
 	SPI_Init();
 
 	spi_nand_init(&sfax8_spi_nand);
+	offset = bad_block_management(&sfax8_spi_nand, offset, sign);
 
 	err = spi_nand_write(&sfax8_spi_nand, offset, len, &retlen, buf);
 	if (err)

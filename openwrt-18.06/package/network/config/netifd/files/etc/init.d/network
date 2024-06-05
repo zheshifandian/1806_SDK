@@ -17,7 +17,7 @@ check_switch_port_valid() {
 	local cpu_port=$2
 
 	if [ -n "$switch_type" -a -n "$cpu_port" ]; then
-		if [ "$switch_type" -eq "1" -a "$cpu_port" -eq "16" ];then
+		if [ "$switch_type" -eq "1" ] && [ "$cpu_port" -eq "16" -o "$cpu_port" -eq "17" ]; then
 			return 1; # realtek switch
 		fi
 
@@ -35,6 +35,12 @@ check_switch_port_valid() {
 
 		if [ "$switch_type" -eq "5" -a "$cpu_port" -eq "5" ];then
 			return 1; # yt9215rb switch
+		fi
+		if [ "$switch_type" -eq "6" -a "$cpu_port" -eq "6" ];then
+			return 1; #yt9215s switch
+		fi
+		if [ "$switch_type" -eq "7" -a "$cpu_port" -eq "5" ];then
+			return 1; #an8855 switch
 		fi
 	fi
 

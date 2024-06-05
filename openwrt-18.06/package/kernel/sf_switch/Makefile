@@ -55,20 +55,27 @@ ifdef CONFIG_SFAX8_SWITCH_DPS
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_SWITCH_DPS
 endif
 
-ifdef CONFIG_SFAX8_FACTORY_READ
+ifdef CONFIG_PACKAGE_kmod-sfax8-factory-read
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_FACTORY_READ
 endif
 
-SFAX8_KO_NAME="evb_v5_sfax8eth.ko"
-
+NOSTDINC_FLAGS += \
+	-I$(PKG_BUILD_DIR)
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./Makefile $(PKG_BUILD_DIR)/
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(CP) ../siflower_include/sfax8_factory_read.h $(PKG_BUILD_DIR)/
 endef
 
 define Build/Compile
-	$(CP) ./$(SFAX8_KO_NAME) $(PKG_BUILD_DIR)/sfax8eth.ko
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+		ARCH="$(LINUX_KARCH)" \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
+		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+		$(EXTRA_KCONFIG)  \
+		modules
 endef
 
 $(eval $(call KernelPackage,sf_switch))

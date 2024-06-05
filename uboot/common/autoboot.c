@@ -14,6 +14,7 @@
 #include <menu.h>
 #include <post.h>
 #include <u-boot/sha256.h>
+#include <double_image_backup.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -346,11 +347,24 @@ const char *bootdelay_process(void)
 		s = getenv("altbootcmd");
 	} else
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
+#ifdef CONFIG_DOUBLE_IMAGE_BACKUP_NAND
+	if(need_boot_backup_img() == 1){
+		s = getenv("backupnandbootcmd");
+	} else
+#endif
+#ifdef CONFIG_DOUBLE_IMAGE_BACKUP
+	if(need_boot_backup_img() == 1){
+		s = getenv("backupbootcmd");
+	} else
+#endif
 		s = getenv("bootcmd");
 
 	process_fdt_options(gd->fdt_blob);
 	stored_bootdelay = bootdelay;
 
+#if defined(CONFIG_DOUBLE_IMAGE_BACKUP_NAND) || defined(CONFIG_DOUBLE_IMAGE_BACKUP)
+	staring_up_image();
+#endif
 	return s;
 }
 

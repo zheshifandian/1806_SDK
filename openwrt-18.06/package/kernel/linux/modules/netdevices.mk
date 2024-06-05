@@ -196,6 +196,16 @@ endef
 $(eval $(call KernelPackage,phy-realtek))
 
 
+define KernelPackage/phy-jlsemi
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=JLSEMI PHY driver
+  KCONFIG:=CONFIG_JLSEMI_PHY=y
+  FILES:=$(LINUX_DIR)/drivers/net/phy/jlsemiphy.ko
+  AUTOLOAD:=$(call AutoLoad,20,jlsemiphy,1)
+endef
+
+$(eval $(call KernelPackage,phy-jlsemi))
+
 define KernelPackage/swconfig
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=switch configuration API

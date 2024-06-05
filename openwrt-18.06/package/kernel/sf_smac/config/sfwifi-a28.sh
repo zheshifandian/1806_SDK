@@ -46,7 +46,28 @@ insmod_cfg80211(){
 }
 
 insmod_umac(){
-    cmd="/sbin/insmod $1"
+    all_modparams=
+    hb_modparams="
+    uapsd_timeout_hb=${uapsd_timeout-0}
+    ap_uapsd_on_hb=${ap_uapsd_on-0}
+    amsdu_rx_max_hb=${amsdu_rx_max-1}
+    ps_on_hb=${ps_on-1}
+    amsdu_maxnb_hb=${amsdu_maxnb-6}
+    rts_cts_change_hb=${rts_cts_change-2}
+    nss_hb=${nss-2}
+    "
+    lb_modparams="
+    uapsd_timeout_lb=${uapsd_timeout-0}
+    ap_uapsd_on_lb=${ap_uapsd_on-0}
+    amsdu_rx_max_lb=${amsdu_rx_max-1}
+    ps_on_lb=${ps_on-1}
+    amsdu_maxnb_lb=${amsdu_maxnb-6}
+    rts_cts_change_lb=${rts_cts_change-2}
+    nss_lb=${nss-2}
+    "
+
+    all_modparams=$hb_modparams$lb_modparams
+    cmd="/sbin/insmod $1 $all_modparams"
     eval $cmd
 }
 
