@@ -444,6 +444,11 @@ config CMD_GPIO
 	help
 	  GPIO support.
 
+config CMD_MTDPARTS
+	bool "mtdpart"
+	help
+	  MTDPART support
+
 endmenu
 
 

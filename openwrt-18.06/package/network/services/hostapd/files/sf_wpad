@@ -123,10 +123,14 @@ generate_wpa_supplicant_args() {
     i=0
     for sta in ${stations}
     do
-        network_bridge=$(uci show wireless.${sta}.network 2>/dev/null)
-        if [ -n "${network_bridge}" ];then
-            network_bridge=$(uci get wireless.${sta}.network)
-            network_bridge="br-${network_bridge}"
+        network=$(uci get wireless.${sta}.network 2>/dev/null)
+        network_bridge=
+        if [ -n "${network}" ];then
+            network_type=$(uci get network.${network}.type 2>/dev/null)
+            if [ "${network_type}" = "bridge" ];then
+                network_bridge=${network}
+                network_bridge="br-${network_bridge}"
+            fi
         fi
         ifname=$(uci get wireless.${sta}.ifname)
 

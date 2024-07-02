@@ -175,7 +175,11 @@
 #ifdef CONFIG_SPI_NAND
 #define SFAX8_SF_READ_FLASH_ADDR 0xc0000
 #define SFAX8_SF_READ_FLASH_BACKUP_ADDR 0x14c0000
+#define SFAX8_SF_READ_FLASH_FACTORY 0xa0000
+#define ADDR_FLASH_FLAG	0x810000b8
+#define ADDR_FLASH_FLAG_VALUE 0xeeeeeeee
 #define SFAX8_SF_READ_SIZE 0x1400000
+#define SFAX8_FLASH_FLAG_SIZE 0x20000
 #else //CONFIG_SPI_NAND
 #ifdef CONFIG_SFA18_UBOOT_LITE
 #define SFAX8_SF_READ_FLASH_ADDR 0x32000
@@ -183,7 +187,15 @@
 #else /* CONFIG_SFA18_UBOOT_LITE */
 #define SFAX8_SF_READ_FLASH_ADDR 0xa0000
 #define SFAX8_SF_READ_FLASH_BACKUP_ADDR 0x1050000
+#define SFAX8_SF_READ_FLASH_FACTORY 0x90000
+#define SFAX8_FLASH_FLAG_SIZE 0x10000
+#define ADDR_FLASH_FLAG	0x810000b8
+#define ADDR_FLASH_FLAG_VALUE 0xeeeeeeee
+#ifdef CONFIG_DOUBLE_IMAGE_BACKUP
+#define SFAX8_SF_READ_SIZE 0xFB0000
+#else
 #define SFAX8_SF_READ_SIZE 0xA00000
+#endif
 #endif /* CONFIG_SFA18_UBOOT_LITE */
 #endif //!CONFIG_SPI_NAND
 
@@ -192,23 +204,53 @@
 #define CONFIG_BOOTCOMMAND \
 	"sf_pcba_test;"
 #else /* CONFIG_SFA18_PCBA_TEST */
-#ifdef CONFIG_SPI_BOOT
-#define CONFIG_BOOTCOMMAND                     \
-	"sf probe 0 33000000;"                 \
+#if defined(CONFIG_DOUBLE_IMAGE_BACKUP)
+#define CONFIG_BOOTCOMMAND                    \
+	"sf probe 0 33000000;"                \
 	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"setenv bootargs mtdparts=spi2.0:128k(spl-loader),384k(u-boot),64k(u-boot-env),64k(factory),16064K(firmware),16064K(firmware2)" ";"    \
+	"bootm || "                           \
+	"sf probe 0 33000000;"                \
+	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_FACTORY) " " __stringify(SFAX8_FLASH_FLAG_SIZE) ";" \
+	"sf erase " __stringify(SFAX8_SF_READ_FLASH_FACTORY) " " __stringify(SFAX8_FLASH_FLAG_SIZE) ";" \
+	"mw "__stringify(ADDR_FLASH_FLAG)" "__stringify(ADDR_FLASH_FLAG_VALUE)";" \
+	"sf write " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_FACTORY)" " __stringify(SFAX8_FLASH_FLAG_SIZE) ";" \
+	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"setenv bootargs mtdparts=spi2.0:128k(spl-loader),384k(u-boot),64k(u-boot-env),64k(factory),16064K(firmware2),16064K(firmware)" ";"     \
 	"bootm"
 #define CONFIG_BACKUP_BOOTCOMMAND                           \
 	"sf probe 0 33000000;"                 \
 	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"setenv bootargs mtdparts=spi2.0:128k(spl-loader),384k(u-boot),64k(u-boot-env),64k(factory),16064K(firmware2),16064K(firmware)" ";"     \
+	"bootm"
+#elif defined CONFIG_SPI_BOOT
+#define CONFIG_BOOTCOMMAND                     \
+	"sf probe 0 33000000;"                 \
+	"sf read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"bootm"
+#elif defined(CONFIG_DOUBLE_IMAGE_BACKUP_NAND)
+#define CONFIG_BOOTCOMMAND                           \
+	"spi_nand probe 0 33000000;"                 \
+	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"setenv bootargs mtdparts=spi2.0:128k(spl-loader),384k(u-boot),128k(u-boot-env),128k(factory),20m(firmware),20m(firmware2)" ";"    \
+	"bootm || "                                  \
+	"spi_nand probe 0 33000000;"                 \
+	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_FACTORY) " " __stringify(SFAX8_FLASH_FLAG_SIZE) ";" \
+	"spi_nand erase " __stringify(SFAX8_SF_READ_FLASH_FACTORY) " " __stringify(SFAX8_FLASH_FLAG_SIZE) ";" \
+	"mw "__stringify(ADDR_FLASH_FLAG)" "__stringify(ADDR_FLASH_FLAG_VALUE)";" \
+	"spi_nand write " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_FACTORY)" " __stringify(SFAX8_FLASH_FLAG_SIZE) ";" \
+	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"setenv bootargs mtdparts=spi2.0:128k(spl-loader),384k(u-boot),128k(u-boot-env),128k(factory),20m(firmware2),20m(firmware)" ";"    \
+	"bootm"
+#define CONFIG_NAND_BACKUP_COMMAND                          \
+	"spi_nand probe 0 33000000;"                 \
+	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
+	"setenv bootargs mtdparts=spi2.0:128k(spl-loader),384k(u-boot),128k(u-boot-env),128k(factory),20m(firmware2),20m(firmware)" ";"    \
 	"bootm"
 #elif defined CONFIG_SPI_NAND_BOOT /* CONFIG_SPI_BOOT */
 #define CONFIG_BOOTCOMMAND                           \
 	"spi_nand probe 0 33000000;"                 \
 	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
-	"bootm"
-#define CONFIG_NAND_BACKUP_COMMAND                          \
-	"spi_nand probe 0 33000000;"                 \
-	"spi_nand read " __stringify(SFAX8_SF_READ_DDR_ADDR) " " __stringify(SFAX8_SF_READ_FLASH_BACKUP_ADDR) " " __stringify(SFAX8_SF_READ_SIZE) ";" \
 	"bootm"
 #else  /* CONFIG_SPI_NAND_BOOT */
 #define CONFIG_BOOTCOMMAND                   \
@@ -217,6 +259,22 @@
 	"bootm"
 #endif /* CONFIG_SPI_BOOT */
 #endif /* CONFIG_SFA18_PCBA_TEST */
+
+#if defined(CONFIG_BACKUP_BOOTCOMMAND)
+#define	MTDIDS_DEFAULT "nor1=spi2.0"
+#define	MTDPARTS_DEFAULT                     \
+	"mtdparts=spi2.0:128k(spl-loader),384k(u-boot),"     \
+		  "64k(u-boot-env),64k(factory),"                  \
+		  "16064K(firmware),"                      \
+		  "16064K(firmware2),"
+#elif defined(CONFIG_NAND_BACKUP_COMMAND)
+#define	MTDIDS_DEFAULT "nand1=spi2.0"
+#define	MTDPARTS_DEFAULT                     \
+	"mtdparts=spi2.0:128k(spl-loader),384k(u-boot),"     \
+		  "128k(u-boot-env),128k(factory),"                  \
+		  "20m(firmware),"                      \
+		  "20m(firmware2),"
+#endif
 
 #define CONFIG_LZMA
 #define CONFIG_CMD_LZMADEC
