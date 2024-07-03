@@ -21,6 +21,8 @@ nand="0"
 patch_file="board/siflower/sfax8_common/irom_patch_default.txt"
 custom_ddr="0"
 performance_mode="0"
+LZMA=./lzma
+compress="true"
 
 show_help() {
 	echo "Usage: $0"
@@ -352,6 +354,10 @@ case $prj in
 		;;
 esac
 
+if [ "$compress" == "true" ] ;then
+	add_sfbl_flag compress=1
+fi
+
 # Special settings of evb
 [ "$prj" = "evb" ] && add_sfbl_flag skip=1
 
@@ -488,14 +494,25 @@ if [ "$sign" == "true" ] ;then
 	./tools/mkimage -A mips -T firmware -C none -O u-boot -a 0xa0000000 -e 0xa0000000 -n "U-Boot 2016.07-rc2-00014-signed" -d ./u-boot-sign.bin ./u-boot-sign.img
 fi
 
+if [ "$compress" == "true" ] ;then
+	rm -f u-boot-compress.img
+	if [ ! -e $LZMA/lzma ] ; then
+		make -C $LZMA  -f makefile.gcc all
+	fi
+	$LZMA/lzma   --best --keep u-boot.bin
+	./tools/mkimage -A mips -T firmware -C lzma -O u-boot -a 0xa0000000 -e 0xa0000000 -n "U-Boot 2016.07-rc2-00014-compressed" -d ./u-boot.bin.lzma ./u-boot-compress.img
+fi
+
 rm -rf sfax8
 mkdir sfax8
 
 cp ./u-boot-spl.img sfax8
-if [ "$sign" == "false" ]; then
-cp ./u-boot.img sfax8/
-else
+if [ "$sign" == "true" ]; then
 cp ./u-boot-sign.img sfax8/u-boot.img
+elif [ "$compress" == "true" ]; then
+cp ./u-boot-compress.img sfax8/u-boot.img
+else
+cp ./u-boot.img sfax8/
 fi
 
 # build up uboot_full.img

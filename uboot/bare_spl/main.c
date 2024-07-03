@@ -21,6 +21,9 @@
 #ifdef POE
 #include <ip808.h>
 #endif
+#ifdef CONFIG_LZMA
+#include <LzmaWrapper.h>
+#endif
 
 #ifdef SECURITY_BOOT
 #include <security_boot.h>
@@ -58,6 +61,7 @@
 #define IH_COMP_NONE		0	/*  No	 Compression Used	*/
 #define IH_MAGIC	0x27051956	/* Image Magic Number		*/
 #define IH_NMLEN		32
+#define IH_COMP_LZMA           3       /* lzma  Compression Used       */
 
 
 typedef struct image_header {
@@ -156,6 +160,9 @@ static int load_image(int bl_dev, int boot)
 	unsigned int size, load, magic, offset;
 	unsigned char factory[32];
 	int err;
+#ifdef CONFIG_LZMA
+	int load_size;
+#endif
 
 	if ((err = flash_read(bl_dev, SYS_FACTORY_OFFS, factory, 32)))
 		return err;
@@ -208,10 +215,36 @@ static int load_image(int bl_dev, int boot)
 	such->magic[1] = 0;
 
 	if (boot_from_ram)
-		memcpy((void*)load, (void *)(such->address + sizeof(header)), size);
+	{
+		if (header.ih_comp == IH_COMP_NONE)
+			memcpy((void*)load, (void *)(such->address + sizeof(header)), size);
+#ifdef CONFIG_LZMA
+		else if (header.ih_comp == IH_COMP_LZMA)
+			lzma_inflate((unsigned char *)such->address, size, (unsigned char* )load, &load_size);
+#endif
+		else {
+                    printf("The compression mode [0x%x] is not supported\n", header.ih_comp);
+                    return -EFAULT;
+		}
+	}
 	else
 #endif
-		flash_read(bl_dev, offset + sizeof(header), (unsigned char *)load, size);
+	{
+		if (header.ih_comp == IH_COMP_NONE) {
+			flash_read(bl_dev, offset + sizeof(header), (unsigned char *)load, size);
+#ifdef CONFIG_LZMA
+            	} else if (header.ih_comp == IH_COMP_LZMA) {
+                	/*
+                     	* DDR size must be greater than (32MB + image size)
+                     	* */
+                    	flash_read(bl_dev, offset + sizeof(header), (unsigned char *)(load + 0x2000000), size);
+                    	lzma_inflate((unsigned char *)(load + 0x2000000),size, (unsigned char* )load, &load_size);
+#endif
+            	} else {
+			printf("The compression mode [0x%x] is not supported\n", header.ih_comp);
+                    	return -EFAULT;
+            	}
+	}
 #ifdef SECURITY_BOOT
 	unsigned char key[RSA_KEY_LEN] = { 0 };
 	unsigned  int start, end;

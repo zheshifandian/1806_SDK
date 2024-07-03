@@ -138,11 +138,14 @@ int need_boot_backup_img(void)
 			printf("boot backup image fail\n");
 			return MASTER_IMAGE;
 		}
-	}else{
+	}else if(ram_flag == LINUX_REBOOT){
 		if(flash_flag == MASTER_IMAGE)
 			return BOOT_MASTER;
 		else
 			return BOOT_BACKUP;
+	} else{
+		//if first boot ,we set master img as default
+		return BOOT_MASTER;
 	}
 }
 

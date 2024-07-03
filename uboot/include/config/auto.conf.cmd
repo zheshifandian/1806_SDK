@@ -267,6 +267,7 @@ deps_config := \
 	arch/mips/mach-sfax8/pcba-test/pmu/Kconfig \
 	arch/mips/mach-sfax8/pcba-test/audio/Kconfig \
 	arch/mips/mach-sfax8/pcba-test/Kconfig \
+	board/siflower/sfa28_ac10/Kconfig \
 	board/siflower/sfa28_rep/Kconfig \
 	board/siflower/sfa28_ac28nand/Kconfig \
 	board/siflower/sfa28_ac28/Kconfig \

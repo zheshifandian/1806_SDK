@@ -150,6 +150,14 @@ CSOURCES += \
 	$(BASE)/common/heap.c \
 	$(BASE)/common/stdio.c
 
+ifeq ($(compress), 1)
+CSOURCES += \
+	$(BASE)/lzma/LzmaWrapper.c \
+	$(BASE)/lzma/LzmaDecode.c
+
+CFLAGS += -DCONFIG_LZMA=1
+endif
+
 COBJECTS=$(CSOURCES:.c=.o)
 AOBJECTS=$(ASOURCES:.S=.o)
 
