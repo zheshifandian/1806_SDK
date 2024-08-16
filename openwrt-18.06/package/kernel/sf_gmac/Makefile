@@ -152,19 +152,7 @@ endif
 
 SFAX8_KO_NAME="a28_sgmac.ko"
 
-ifneq ($(findstring EVB-V5,$(PROFILE)),)
-SFAX8_KO_NAME="evb_v5_sgmac.ko"
-endif
-
-ifneq ($(findstring NF,$(PROFILE)),)
-SFAX8_KO_NAME="nf_sgmac.ko"
-endif
-
 ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="a28_sgmac_s.ko"
-endif
-
-ifneq ($(findstring WS-IN,$(PROFILE)),)
 SFAX8_KO_NAME="a28_sgmac_s.ko"
 endif
 

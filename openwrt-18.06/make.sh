@@ -73,47 +73,8 @@ fi
 
 
 case ${board} in
-	p20)
-		target_board=target/linux/siflower/sf16a18_p20_fullmask_def.config
-		;;
-	86v)
-		target_board=target/linux/siflower/sf16a18_86v_fullmask_def.config
-		;;
-	p10h)
-		target_board=target/linux/siflower/sf16a18_p10h_fullmask_def.config
-		;;
-	tool)
-		target_board=target/linux/siflower/sf16a18_p10h_fullmask_def.config_tool
-		;;
-	ac20)
-		target_board=target/linux/siflower/sf16a18_ac20_fullmask_def.config
-		;;
-	ac20_sjby)
-		target_board=target/linux/siflower/sf16a18_ac20_fullmask_gmac_sjby.config
-		;;
-	evb_v5)
-		target_board=target/linux/siflower/sf16a18_evb_v5_fullmask_def.config
-		;;
-	fpga)
-		target_board=target/linux/siflower/sf19a28_fpga_fullmask_def.config
-		;;
-	ac28)
-		target_board=target/linux/siflower/sf19a28_ac28_mpw1_def.config
-		;;
-	evb)
-		target_board=target/linux/siflower/sf19a28_evb_mpw1_def.config
-		;;
-	hwa)
-		target_board=target/linux/siflower/sf19a28_hwa_mpw1_def.config
-		;;
-	ac22)
-		target_board=target/linux/siflower/sf19a28_ac22_mpw1_def.config
-		;;
 	a28_evb)
 		target_board=target/linux/siflower/sf19a28_evb_fullmask_def.config
-		;;
-	a28_nf)
-		target_board=target/linux/siflower/sf19a28_nf_fullmask_def.config
 		;;
 	a28_ac28)
 		target_board=target/linux/siflower/sf19a28_ac28_fullmask_def.config
@@ -124,17 +85,8 @@ case ${board} in
 	a28_phy)
         target_board=target/linux/siflower/sf19a28_phy_fullmask_def.config
         ;;
-	ws_in)
-		target_board=target/linux/siflower/sf19a28_ws_in_fullmask_def.config
-		;;
 	a28_ac28nand)
 		target_board=target/linux/siflower/sf19a28_ac28nand_fullmask_def.config
-		;;
-	a28_hwa)
-		target_board=target/linux/siflower/sf19a28_a28_hwa_fullmask_def.config
-		;;
-	a28_rep)
-		target_board=target/linux/siflower/sf19a28_rep_fullmask_def.config
 		;;
 	a28_yts)
 		target_board=target/linux/siflower/sf19a28_yts_fullmask_def.config

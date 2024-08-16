@@ -122,16 +122,8 @@ endif
 
 KO_FILE_NAME="src"
 
-ifneq ($(findstring NF,$(PROFILE)),)
-KO_FILE_NAME="nf_src"
-endif
-
 ifneq ($(findstring AC28S,$(PROFILE)),)
 KO_FILE_NAME="src_s"
-endif
-
-ifneq ($(findstring WS-IN,$(PROFILE)),)
-KO_FILE_NAME="src_ws_in"
 endif
 
 ifneq ($(findstring NAND,$(PROFILE)),)

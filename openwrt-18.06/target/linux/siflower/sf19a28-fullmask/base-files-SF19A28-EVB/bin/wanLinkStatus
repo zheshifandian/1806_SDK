@@ -1,3 +1,0 @@
-#!/bin/sh
-
-cat /sys/kernel/debug/esw_debug |grep phy0 |awk '{print $3}'
