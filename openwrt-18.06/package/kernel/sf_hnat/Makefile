@@ -41,15 +41,7 @@ endif
 
 SFAX8_KO_NAME="sfhnat.ko"
 
-ifneq ($(findstring NF,$(PROFILE)),)
-SFAX8_KO_NAME="nf_sfhnat.ko"
-endif
-
 ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="sfhnat_s.ko"
-endif
-
-ifneq ($(findstring WS-IN,$(PROFILE)),)
 SFAX8_KO_NAME="sfhnat_s.ko"
 endif
 

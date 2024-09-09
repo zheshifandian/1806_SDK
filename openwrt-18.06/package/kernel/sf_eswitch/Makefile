@@ -53,15 +53,8 @@ endif
 
 SFAX8_KO_NAME="sf_eswitch.ko"
 
-ifneq ($(findstring NF,$(PROFILE)),)
-SFAX8_KO_NAME="nf_sf_eswitch.ko"
-endif
 
 ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="sf_eswitch_s.ko"
-endif
-
-ifneq ($(findstring WS-IN,$(PROFILE)),)
 SFAX8_KO_NAME="sf_eswitch_s.ko"
 endif
 

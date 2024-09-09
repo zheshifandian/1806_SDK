@@ -1,0 +1,60 @@
+--- netifd-2018-12-16-2750ce2e/interface.c	2024-06-13 02:47:19.428834650 +0000
++++ netifd-2018-12-16-2750ce2e/interface.c	2024-06-20 03:30:23.148867439 +0000
+@@ -82,6 +82,9 @@ interface_set_main_dev(struct interface
+ static void
+ interface_event(struct interface *iface, enum interface_event ev);
+ 
++static int
++sf_reload_dnsmasq(const char *iface, bool new_state);
++
+ static void
+ interface_error_flush(struct interface *iface)
+ {
+@@ -372,6 +375,38 @@ interface_set_enabled(struct interface *
+ 	interface_check_state(iface);
+ }
+ 
++static int
++sf_reload_dnsmasq(const char *iface, bool new_state)
++{
++	int pid;
++	char *argv[6];
++	char iface_name[32];
++
++	strlcpy(iface_name, iface, sizeof(iface_name));
++
++	argv[0] = "/usr/sbin/sf_dnsmasq";
++	argv[1] = iface_name;
++	argv[2] = (new_state ? "connectivity" : "loss");
++	argv[3] = NULL;
++	argv[4] = NULL;
++	argv[5] = NULL;
++
++	if ((pid = fork()) < 0) {
++		netifd_log_message(L_NOTICE, "failed to fork for reloading dnsmasq");
++		goto error;
++	}
++
++	if (!pid) {
++		execvp(argv[0], (char **) argv);
++		exit(127);
++	}
++
++	return 0;
++
++error:
++	return -1;
++}
++
+ static void
+ interface_set_link_state(struct interface *iface, bool new_state)
+ {
+@@ -386,6 +421,8 @@ interface_set_link_state(struct interfac
+ 		interface_event(iface, IFEV_LINK_UP);
+ 		iface->link_up_event = true;
+ 	}
++
++	sf_reload_dnsmasq(iface->name, new_state);
+ }
+ 
+ static void
