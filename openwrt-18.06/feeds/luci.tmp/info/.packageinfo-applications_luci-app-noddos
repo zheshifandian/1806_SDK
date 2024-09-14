@@ -1,0 +1,583 @@
+Source-Makefile: feeds/luci/applications/luci-app-noddos/Makefile
+Build-Depends: lua/host luci-base/host LUCI_CSSTIDY:csstidy/host 
+
+Package: luci-app-noddos
+Submenu: 3. Applications
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci +luci-compat +noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: Noddos Service Web UI
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Description:    Provides Web UI for Noddos service.
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-bg
+Default: LUCI_LANG_bg||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - bg translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - български (Bulgarian)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-ca
+Default: LUCI_LANG_ca||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - ca translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Català (Catalan)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-cs
+Default: LUCI_LANG_cs||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - cs translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Čeština (Czech)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-de
+Default: LUCI_LANG_de||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - de translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Deutsch (German)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-el
+Default: LUCI_LANG_el||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - el translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Ελληνικά (Greek)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-en
+Default: LUCI_LANG_en||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - en translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - English
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-es
+Default: LUCI_LANG_es||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - es translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Español (Spanish)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-fr
+Default: LUCI_LANG_fr||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - fr translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Français (French)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-he
+Default: LUCI_LANG_he||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - he translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - עִבְרִית (Hebrew)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-hi
+Default: LUCI_LANG_hi||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - hi translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - हिंदी (Hindi)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-hu
+Default: LUCI_LANG_hu||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - hu translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Magyar (Hungarian)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-it
+Default: LUCI_LANG_it||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - it translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Italiano (Italian)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-ja
+Default: LUCI_LANG_ja||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - ja translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - 日本語 (Japanese)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-ko
+Default: LUCI_LANG_ko||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - ko translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - 한국어 (Korean)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-ms
+Default: LUCI_LANG_ms||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - ms translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Bahasa Melayu (Malay)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-nb_NO
+Default: LUCI_LANG_nb_NO||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - nb_NO translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - 
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - pl translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Polski (Polish)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-pt
+Default: LUCI_LANG_pt||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - pt translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Português (Portuguese)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-pt_BR
+Default: LUCI_LANG_pt_BR||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - pt_BR translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - 
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-ro
+Default: LUCI_LANG_ro||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - ro translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Română (Romanian)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-ru
+Default: LUCI_LANG_ru||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - ru translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Русский (Russian)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-sk
+Default: LUCI_LANG_sk||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - sk translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Slovenčina (Slovak)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-sv
+Default: LUCI_LANG_sv||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - sv translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Svenska (Swedish)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-tr
+Default: LUCI_LANG_tr||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - tr translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Türkçe (Turkish)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-uk
+Default: LUCI_LANG_uk||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - uk translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Українська (Ukrainian)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-vi
+Default: LUCI_LANG_vi||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - vi translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - Tiếng Việt (Vietnamese)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - zh-cn translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - 中文 (Chinese)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+Package: luci-i18n-noddos-zh-tw
+Default: LUCI_LANG_zh-tw||(ALL&&m)
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-noddos
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-noddos - zh-tw translation
+Maintainer: Steven Hessing <steven.hessing@gmail.com>
+Source: 
+License: GPLv3
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-noddos - 臺灣華語 (Taiwanese)
+Steven Hessing <steven.hessing@gmail.com>
+@@
+
+

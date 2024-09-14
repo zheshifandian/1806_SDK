@@ -75,6 +75,8 @@ generate_network() {
 	# force bridge for multi-interface devices (and lan)
 	case "$1:$ifname" in
 		*\ * | lan:*) type="bridge" ;;
+		*\ * | lan1:*) type="bridge" ;;
+		*\ * | lan2:*) type="bridge" ;;
 	esac
 
 	uci -q batch <<-EOF
@@ -97,6 +99,7 @@ generate_network() {
 	wan)
 	uci -q batch <<-EOF
 		set network.$1.proto='dhcp'
+		set network.$1.metric='1'
 	EOF
 	uci -q batch <<-EOF
 		set network.$1.proto='dhcp'
@@ -104,6 +107,31 @@ generate_network() {
 		set network.wan6='interface'
 		set network.wan6.ifname='$ifname'
 		set network.wan6.proto='dhcpv6'
+	EOF
+	;;
+	wwan)
+		uci -q batch <<-EOF
+		set network.$1.proto='dhcp'
+		set network.$1.metric='2'
+	EOF
+	uci -q batch <<-EOF
+		set network.$1.proto='dhcp'
+		delete network.wan6
+		set network.wan6='interface'
+		set network.wan6.ifname='$ifname'
+		set network.wan6.proto='dhcpv6'
+	EOF
+	uci -q batch <<-EOF
+		add network rule
+		set network.@rule[0].in=lan2
+		set network.@rule[0].lookup=100
+		add network route
+		set network.@route[0]=route
+		set network.@route[0].interface=wwan
+		set network.@route[0].table=100
+		set network.@route[0].target=0.0.0.0
+		set network.@route[0].netmask=0.0.0.0
+		set network.@route[0].gateway=192.168.0.1
 	EOF
 	;;
 	guest)
@@ -146,6 +174,8 @@ generate_network() {
 			local ipad
 			case "$1" in
 				lan) ipad=${ipaddr:-"192.168.4.1"} ;;
+				lan1) ipad=${ipaddr:-"192.168.5.1"} ;;
+				lan2) ipad=${ipaddr:-"192.168.6.1"} ;;
 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
 			esac
 

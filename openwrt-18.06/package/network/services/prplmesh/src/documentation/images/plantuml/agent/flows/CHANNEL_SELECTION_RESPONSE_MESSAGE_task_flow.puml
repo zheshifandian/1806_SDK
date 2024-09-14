@@ -1,0 +1,53 @@
+@startuml
+participant son_slave_thread
+participant backhaul_manager
+participant task_pool
+participant channel_selection_task 
+participant controller
+participant switch_channel_task
+participant fronthaul
+
+
+son_slave_thread -> backhaul_manager : send_cmdu(CHANNEL_SELECTION_RESPONSE_MESSAGE)
+backhaul_manager -> backhaul_manager : handle_cmdu()
+backhaul_manager -> backhaul_manager : handle_slave_1905_1_message()
+backhaul_manager -> task_pool : handle_cmdu()
+task_pool -> channel_selection_task : handle_cmdu()
+group handle_cmdu
+    note left of channel_selection_task #99ccff: switch <cmdu_rx.getMessageType()>:
+    channel_selection_task -> channel_selection_task : handle_channel_selection_request()
+    note left: CHANNEL_SELECTION_REQUEST_MESSAGE
+    channel_selection_task -> channel_selection_task : handle_slave_channel_selection_response()
+    note left: CHANNEL_SELECTION_RESPONSE_MESSAGE
+    channel_selection_task -> controller : send_cmdu_to_broker ()
+    channel_selection_task -> channel_selection_task : handle_vendor_specific()
+    note left: VENDOR_SPECIFIC_MESSAGE
+end
+group handle_vendor_specific
+
+    note left of channel_selection_task #99ccff: switch <beerocks_header->action_op()>:
+    channel_selection_task -> channel_selection_task : handle_vs_csa_notification()
+    note left: ACTION_BACKHAUL_HOSTAP_CSA_NOTIFICATION:
+    channel_selection_task -> switch_channel_task : send_event(SWITCH_CHANNEL_NOTIFICATION_EVENT)
+
+    channel_selection_task -> channel_selection_task : handle_vs_csa_error_notification()
+    note left: ACTION_BACKHAUL_HOSTAP_CSA_ERROR_NOTIFICATION:
+    channel_selection_task -> switch_channel_task : send_event(SWITCH_CHANNEL_NOTIFICATION_EVENT)
+
+    channel_selection_task -> channel_selection_task : handle_vs_cac_started_notification()
+    note left: ACTION_BACKHAUL_HOSTAP_DFS_CAC_STARTED_NOTIFICATION:
+    channel_selection_task -> : send_event(CAC_STARTED_NOTIFICATION)
+
+    channel_selection_task -> channel_selection_task : handle_vs_dfs_cac_completed_notification()
+    note left: ACTION_BACKHAUL_HOSTAP_DFS_CAC_COMPLETED_NOTIFICATION:
+    channel_selection_task -> : send_event(CAC_COMPLETED_NOTIFICATION)
+
+    channel_selection_task -> channel_selection_task : handle_vs_channels_list_response()
+    note left: ACTION_BACKHAUL_CHANNELS_LIST_RESPONSE:
+
+    channel_selection_task -> channel_selection_task : handle_vs_zwdfs_ant_channel_switch_response()
+    note left: ACTION_BACKHAUL_HOSTAP_ZWDFS_ANT_CHANNEL_SWITCH_RESPONSE:
+     channel_selection_task ->  channel_selection_task : zwdfs_fsm()
+    backhaul_manager -> fronthaul: send_cmdu
+end
+@enduml

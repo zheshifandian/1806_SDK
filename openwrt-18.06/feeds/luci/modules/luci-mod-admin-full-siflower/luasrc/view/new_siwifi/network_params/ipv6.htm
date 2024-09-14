@@ -1,0 +1,465 @@
+<%+header%>
+<fieldset class="dhcp">
+	<legend>IPv6</legend>
+	<!-- <i class="helpBtn" helpstr="dynamicIpHelp" onclick="clickHelp(0)"></i> -->
+	<div id="Error">
+		<div id="hsErr" class="hsTip">
+			<i class="altIcon"></i>
+			<span class="detail"><%:Invalid input! Please refer to the correct format:%></span>
+			<input class="subBtn" value="<%:confirm%>" type="button" onclick="closeError()">
+		</div>
+	</div>
+	<div class="bWlSwitchCon dhcp">
+		<div id="switchCon" class="switchCon" onclick="switchChange()">
+			<i class="switchBg"></i>
+			<i id="switchOn" class="switchBall"></i>
+			<i id="switchOff" class="switchBallOff" style="display: none;"></i>
+		</div>
+		<span id="switchSpan" class="bWlSwitchOff"><%:disabled%></span>
+	</div>
+	<ul>
+		<li class="border-line"></li>
+	</ul>
+	<table class="tb-no-border whole"></table>
+	<legend>WAN</legend>
+	<ul>
+		<li class="border-line"></li>
+	</ul>
+	<div class="float-left-37"><span class="span-v6"><%:adress type%></span></div>
+	<div class="float-left">
+		<select id="wanv6_type" onchange="changeSelectBtn(this.id)" value="">
+			<option value="dhcp"><%:ipv6 auto%></option>
+			<option value="static"><%:ipv6 manual%></option>
+		</select>
+	</div>
+	<div class="float-clear-bottom"></div>
+	<!-- <div class="whole" id="dhcp" style="display: none">
+		<div class="float-left-37"><span class="span-v6"><%:IP address%></span></div>
+		<div class="float-left"><span class="span-v6" id="wan_dhcp_addr"></span></div>
+		<div class="float-clear"></div>
+		<div class="float-left-37"><span class="span-v6"><%:gateway%></span></div>
+		<div class="float-left"><span class="span-v6" id="wan_dhcp_gateway"></span></div>
+		</div>
+		<div class="float-clear"></div> -->
+	<div class="whole" id="static" style="display: none">
+		<div class="float-left-37"><span class="span-v6"><%:IP address%></span></div>
+		<div class="float-left"><input id="wan_static_addr" class="input-v6-long" type="text">
+		</div>
+		<div class="float-left"><span class="span-v6">/</span></div>
+		<div class="float-left"><input id="wan_static_prefix" class="input-v6-short" type="text"
+				onkeyup="nStrLimit(this)"></div>
+		<div class="float-clear"></div>
+		<div class="float-left-37"><span class="span-v6"><%:gateway%></span></div>
+		<div class="float-left"><input id="wan_static_gateway" type="text" onkeyup="nStrLimit(this)"></div>
+	</div>
+	<table class="tb-no-border whole">
+		<tr>
+			<td class="td-37-right"><%:dns type%></td>
+			<td class="td-37-left">
+				<select id="dns_type" onchange="changeSelectBtn(this.id)">
+					<option value="dns_auto"><%:ipv6 auto%></option>
+					<option value="dns_manual"><%:ipv6 manual%></option>
+				</select>
+			</td>
+		</tr>
+		<!-- <tr>
+			<table class="tb-no-border whole" id="dns_auto" style="display: none">
+				<tr>
+					<td class="td-37-right"><%:dns server address%></td>
+					<td class="td-37-left"><span id="wan_dns_addr"></span></td>
+				</tr>
+			</table>
+		</tr> -->
+		<tr>
+			<table class="tb-no-border whole" id="dns_manual" style="display: none">
+				<tr>
+					<td class="td-37-right"><%:dns master address%></td>
+					<td class="td-37-left"><input id="wan_master" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+				<tr>
+					<td class="td-37-right"><%:dns slave address%></td>
+					<td class="td-37-left"><input id="wan_slave" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+			</table>
+		</tr>
+	</table>
+	<legend>LAN</legend>
+	<ul>
+		<li class="border-line"></li>
+	</ul>
+	<table class="tb-no-border whole">
+		<tr>
+			<td class="td-37-right"><%:broadcast type%></td>
+			<td class="td-37-left">
+				<select id="broadcast" onchange="changeSelectBtn(this.id)">
+					<option value="broadcast_enable"><%:ipv6 auto%></option>
+					<option value="broadcast_forbid"><%:forbid%></option>r
+				</select>
+			</td>
+		</tr>
+	</table>
+	<table class="tb-no-border whole">
+		<tr>
+			<td class="td-37-right"><%:dhcp type%></td>
+			<td class="td-37-left">
+				<select id="dhcp_type" onchange="changeSelectBtn(this.id)">
+					<option value="dhcp_auto"><%:ipv6 auto%></option>
+					<option value="dhcp_manual"><%:ipv6 manual%></option>
+					<option value="dhcp_disabled"><%:forbid%></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<table class="tb-no-border whole" id="dhcp_manual" style="display: none">
+				<tr>
+					<td class="td-37-right"><%:prefix%></td>
+					<td class="td-37-left">
+						<input id="dhcp_prefix_ipaddr" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+				<tr>
+					<td class="td-37-right"><%:prefix length%></td>
+					<td class="td-37-left">
+						<input id="dhcp_prefix_length" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+				<tr>
+					<td class="td-37-right"><%:prefered lifetime%></td>
+					<td class="td-37-left">
+						<input id="dhcp_prefered" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+				<tr>
+					<td class="td-37-right"><%:valid lifetime%></td>
+					<td class="td-37-left">
+						<input id="dhcp_valid" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+				<tr>
+					<td class="td-37-right"><%:dns master address%></td>
+					<td class="td-37-left">
+						<input id="dhcp_master" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+				<tr>
+					<td class="td-37-right"><%:dns slave address%></td>
+					<td class="td-37-left">
+						<input id="dhcp_slave" type="text" onkeyup="nStrLimit(this)">
+					</td>
+				</tr>
+			</table>
+		</tr>
+		<tr>
+			<td id="dhcp_disabled" style="display: none"></td>
+		</tr>
+	</table>
+	<button class="position-horizon-37" onclick="setIpv6()"><%:save%></button>
+	<tr>
+		<td>
+			<i id="saveTip" class="hsSubLoading saving" style="display: none"></i>
+			<i id="saveTipSucess" class="hsSubLoading save-suc" style="display: none"></i>
+		</td>
+	</tr>
+	<!-- <div id="Help" class="Help">
+			<p class="helpTop">
+				<span class="helpDes"><%:help%></span>
+				<i class="helpClose" onclick="clickHelp(1)"></i>
+			</p>
+			<div class="helpDetail">
+				<ul id="dynamicIpHelp" class="help">
+					<li class="title"><%:wan connection type%></li>
+					<li class="content"><%:WAN connection type intro%></li>
+					<li class="title"><%:automatically get IP address%></li>
+					<li class="content"><%:using temporary IP%></li>
+					<li class="title"><%:IP address, subnet mask, gateway%></li>
+					<li class="content"><%:Operator dynamic allocation of network parameters%></li>
+					<li class="title"><%:Packet MTU%></li>
+					<li class="content"><%:Packet maximum transmission unit%></li>
+					<li class="title"><%:Manually set the DNS server%></li>
+					<li class="content"><%:Manually set the DNS server in dhcp%></li>
+					<li class="title"><%:Get IP by unicast%></li>
+					<li class="content"><%:Get IP by unicast intro%></li>
+					<li class="title"><%:WAN port speed setting%></li>
+					<li class="content"><%:WAN port speed setting intro%></li>
+				</ul>
+			</div>
+		</div > -->
+	<!-- <div id="Helphc" class="Helphc" style="top: 682px;" >
+			<p class="helpTop">
+				<span class="helpDes"><%:help%></span>
+				<i class="helpClose" onclick="clickHelphc(1)"></i>
+			</p>
+			<div class="helpDetailhc">
+				<ul id="PPPoEAdvHelp" class="help">
+					<li class="title"><%:Packet MTU%></li>
+					<li class="content"><%:Packet maximum transmission unit for pppoe%></li>
+					<li class="title"><%:Service name/server name%></li>
+					<li class="content"><%:Service name/server name intro%></li>
+					<li class="title"><%:Use operators to specify IP addresses%></li>
+					<li class="content"><%:specifies IP address intro%></li>
+					<li class="title"><%:Manually set the DNS server%></li>
+					<li class="content"><%:Manually set the DNS server in pppoe%></li>
+				</ul>
+			</div>
+		</div> -->
+	<div id="waiting" style="display: none">
+		<div class="LoadConCover">
+			<div class="coverLoadCon">
+				<div class="coverLoad">
+					<i class="coverLoadClose" onclick="coverClose()"></i>
+					<i class="coverLoading"></i>
+					<p class="coverLoadNote"><%:Please wait for the detect%></p>
+				</div>
+			</div>
+		</div>
+	</div>
+</fieldset>
+<%+footer%>
+<script>
+
+	XHR.get('<%=luci.dispatcher.build_url("admin", "networknew","get_ipv6")%>', null,
+		function (x, result) {
+			console.log(result);
+			if (result != null && result.code == 0) {
+				if (result.enable == true) {
+					switchChange(true)
+					if (result.wan.address_type == "auto") {
+						document.getElementById('wanv6_type').value = 'dhcp';
+						// todo setWanDHCP(result.wan.ip6addr, result.wan.ip6gw);
+					} else {
+						document.getElementById('wanv6_type').value = 'static';
+						setWanStatic(result.wan.ip6addr, result.wan.ip6gw);
+					}
+
+					if (result.wan.dns_mode == "auto") {
+						document.getElementById('dns_type').value = 'dns_auto';
+						//todo setWanDNSAuto(result.wan.dns1);
+					} else {
+						document.getElementById('dns_type').value = 'dns_manual';
+						setWanDnsManual(result.wan.dns1, result.wan.dns2);
+					}
+					if (result.lan.router_broadcast) {
+						document.getElementById('broadcast').value = 'broadcast_enable';
+					} else {
+						document.getElementById('broadcast').value = 'broadcast_forbid';
+					}
+					if (result.lan.dhcp_mode == "auto") {
+						console.log("dhcp auto");
+						document.getElementById('dhcp_type').value = 'dhcp_auto';
+					} else if (result.lan.dhcp_mode == "manual") {
+						document.getElementById('dhcp_type').value = 'dhcp_manual';
+						setDHCPLifetime(result.lan.preferred_lifetime, result.lan.valid_lifetime);
+						setDHCPPrefix(result.lan.ip6prefix, result.lan.prefix_len);
+						setDHCPDns(result.lan.dns1, result.lan.dns2);
+					} else {
+						console.log("dhcp disable");
+						document.getElementById('dhcp_type').value = 'dhcp_disabled';
+					}
+				} else {
+					setDisabledSelection();
+					switchChange(false);
+				}
+				notifySelectionChange();
+			} else {
+				var err = document.getElementById('Error');
+				var text = err.getElementsByTagName('span')[0];
+				text.innerText = '<%:router connection failure%>';
+				err.style.visibility = 'visible';
+			}
+		});
+
+
+	function switchChange(checked) {
+		if (checked != undefined) {
+			document.getElementById("switchSpan").innerText = checked ? '<%:enabled%>' : '<%:disabled%>';
+			document.getElementById("switchSpan").className = checked ? "bWlSwitchOff spanSwitchOn" : "bWlSwitchOff";
+			document.getElementById("switchOn").style.display = checked ? "" : "none";
+			document.getElementById("switchOff").style.display = checked ? "none" : "";
+		} else {
+			var isChecked;
+			var txt = document.getElementById("switchSpan").innerText;
+			isChecked = (txt == '<%:enabled%>')
+			switchChange(!isChecked)
+		}
+	}
+
+	function setIpv6() {
+
+		var setV6Param = {
+			"enable": 1,
+			"wan": {
+				"address_type": "auto",
+				"ip6gw": "",
+				"ip6addr": "",
+				"suffix": "",
+				"dns_mode": "auto",
+				"dns1": "",
+				"dns2": ""
+			},
+			"lan": {
+				"router_broadcast": true,
+				"prefix_len": "",
+				"ip6prefix": "",
+				"valid_lifetime": "",
+				"preferred_lifetime": "",
+				"dhcp_mode": "disable",
+				"dns1": "",
+				"dns2": ""
+			}
+		};
+
+		setV6Param.enable = (document.getElementById("switchSpan").innerHTML == "<%:enabled%>") ? 1 : 0;
+		if (setV6Param.enable) {
+			if (!checkInput()) {
+				return;
+			}
+			setV6Param.wan.address_type = (document.getElementById("wanv6_type").selectedIndex == 0) ? "auto" : "manual";
+			console.log("wan address type is " + setV6Param.wan.address_type);
+			setV6Param.wan.ip6addr = (setV6Param.wan.address_type == "auto") ? "" : (document.getElementById("wan_static_addr").value + "/" + document.getElementById("wan_static_prefix").value);
+			setV6Param.wan.ip6gw = (setV6Param.wan.address_type == "auto") ? "" : document.getElementById("wan_static_gateway").value;
+
+			setV6Param.wan.dns_mode = (document.getElementById("dns_type").selectedIndex == 0) ? "auto" : "manual";
+			setV6Param.wan.dns1 = (setV6Param.wan.dns_mode == "auto") ? "" : document.getElementById("wan_master").value;
+			setV6Param.wan.dns2 = (setV6Param.wan.dns_mode == "auto") ? "" : document.getElementById("wan_slave").value;
+
+			setV6Param.lan.router_broadcast = (document.getElementById("broadcast").selectedIndex == 0) ? true : false;
+
+			var dhcpIndex = document.getElementById("dhcp_type").selectedIndex;
+			switch (dhcpIndex) {
+				case 0:
+					setV6Param.lan.dhcp_mode = "auto";
+					break;
+				case 1:
+					setV6Param.lan.dhcp_mode = "manual";
+					break;
+				case 2:
+					setV6Param.lan.dhcp_mode = "disable";
+					break;
+				default:
+					setV6Param.lan.dhcp_mode = "auto";
+					break;
+			}
+
+			setV6Param.lan.ip6prefix = (setV6Param.lan.dhcp_mode == "manual") ? document.getElementById("dhcp_prefix_ipaddr").value : "";
+			setV6Param.lan.prefix_len = (setV6Param.lan.dhcp_mode == "manual") ? document.getElementById("dhcp_prefix_length").value : "";
+			setV6Param.lan.preferred_lifetime = (setV6Param.lan.dhcp_mode == "manual") ? document.getElementById("dhcp_prefered").value : "";
+			setV6Param.lan.valid_lifetime = (setV6Param.lan.dhcp_mode == "manual") ? document.getElementById("dhcp_valid").value : "";
+			setV6Param.lan.dns1 = (setV6Param.lan.dhcp_mode == "manual") ? document.getElementById("dhcp_master").value : "";
+			setV6Param.lan.dns2 = (setV6Param.lan.dhcp_mode == "manual") ? document.getElementById("dhcp_slave").value : "";
+		}
+
+		XHR.post('<%=luci.dispatcher.build_url("admin", "networknew","set_ipv6")%>', setV6Param,
+			function (x, result) {
+				console.log(result);
+				document.getElementById("saveTip").style.display = 'none';
+				if (result == null) {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					text.innerText = '<%:router connection failure%>';
+					err.style.visibility = 'visible';
+				} else if (result.code == 0) {
+					document.getElementById("saveTipSucess").style.display = '';
+					if (!setV6Param.enable) {
+						setDisabledSelection();
+						notifySelectionChange();
+					}
+				} else {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+			});
+	}
+
+	function checkInput() {
+		// ip
+		if ((document.getElementById("wanv6_type").selectedIndex == 1)) {
+			if (!checkv6Addr(document.getElementById("wan_static_addr").value, false)) {
+				showError("IP", '<%:ipv6 addr error%>');
+				return false;
+			}
+
+			if (!checkv6Musk(document.getElementById("wan_static_prefix").value)) {
+				showError("IP", '<%:ipv6 mask error%>');
+				return false;
+			}
+
+			if (!checkv6Addr(document.getElementById("wan_static_gateway").value, false)) {
+				showError('<%:gateway%>', '<%:ipv6 addr error%>');
+				return false;
+			}
+		}
+
+		// dns
+		if ((document.getElementById("dns_type").selectedIndex == 1)) {
+			if (!checkv6Addr(document.getElementById("wan_master").value)) {
+				showError("WAN DNS", '<%:ipv6 addr error%>');
+				return false;
+			}
+
+			var wanslave = document.getElementById("wan_slave").value;
+			if (wanslave != null && wanslave != "") {
+				if (!checkv6Addr(wanslave)) {
+					showError("WAN DNS", '<%:ipv6 addr error%>');
+					return false;
+				}
+			}
+
+		}
+
+		//dhcp
+		if ((document.getElementById("dhcp_type").selectedIndex == 1)) {
+			if (!checkv6Addr(document.getElementById("dhcp_prefix_ipaddr").value, false)) {
+				showError('DHCP', '<%:ipv6 addr error%>');
+				return false;
+			}
+
+			if (!checkv6Prefix(document.getElementById("dhcp_prefix_length").value)) {
+				showError("DHCP", '<%:dhcp prefix error%>');
+				return false;
+			}
+
+			if (!checkLifetime(document.getElementById("dhcp_prefered").value)) {
+				showError('<%:prefered lifetime%>', '<%:lifetime error%>');
+				return false;
+			}
+
+			if (!checkLifetime(document.getElementById("dhcp_valid").value)) {
+				showError('<%:valid lifetime%>', '<%:lifetime error%>');
+				return false;
+			}
+
+			if (!checkv6Addr(document.getElementById("dhcp_master").value)) {
+				showError("DHCP DNS", '<%:ipv6 addr error%>');
+				return false;
+			}
+
+			var dhcpslave = document.getElementById("dhcp_slave").value;
+			if (dhcpslave != null && dhcpslave != "") {
+				if (!checkv6Addr(dhcpslave)) {
+					showError("DHCP DNS", '<%:ipv6 addr error%>');
+					return false;
+				}
+			}
+
+		}
+
+		return true;
+	}
+
+	function showError(type, sysStr) {
+		var err = document.getElementById('Error');
+		var text = err.getElementsByTagName('span')[0];
+		text.innerText = type + sysStr;
+		err.style.visibility = 'visible';
+	}
+
+	function closeError() {
+		document.getElementById("Error").style.visibility = 'hidden'
+	}
+
+</script>
+<script src="<%=media%>/js/network_params/ipv6.js?v=git-20.154.39169-f8715cb"></script>

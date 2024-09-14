@@ -1,0 +1,131 @@
+@startuml
+package boardfarm_generic <<Frame>> {
+
+    class LinuxDevice {
+    }
+
+    class OpenWrtRouter {
+        string prompt
+        string lan_iface
+        string wan_iface
+        IPv4Network lan_network
+        IPv4Address lan_gateway
+
+        __init__()
+        install_package()
+        wait_for_boot()
+        get_wan_iface()
+        get_wan_proto()
+        config_wan_proto()
+        enable_ssh()
+        uci_allow_wan_ssh()
+    }
+}
+
+package prplMesh_devices <<Frame>> {
+
+    class prplWRT {
+        string model
+        IPv4Network wan_network
+        IPv4Address wan_gateway
+
+        check_status()
+    }
+
+    class PrplMeshBase {
+    }
+
+    class PrplMeshDocker {
+        check_status()
+        isalive()
+    }
+
+    class sniffer {
+        string interface
+
+        start()
+        stop()
+        get_packets()
+    }
+}
+
+package prplMesh_entities <<Frame>> {
+
+    class ALEntity {
+        string mac
+
+        get_status()
+        {abstract} command()
+        prplmesh_command()
+        {abstract} wait_for_log()
+        cmd_reply()
+        dev_get_parameter()
+        dev_send_1905()
+    }
+
+    class ALEntityDocker {
+        command()
+        wait_for_log()
+    }
+
+    class ALEntityPrplWrt {
+        command()
+        wait_for_log()
+    }
+
+    class Radio {
+        string mac
+
+        {abstract} get_current_channel()
+        {abstract} get_txpower()
+        {abstract} wait_for_log()
+    }
+
+    class RadioDocker {
+        get_current_channel()
+        get_txpower()
+        wait_for_log()
+    }
+
+    class RadioHostapd {
+        get_current_channel()
+        get_txpower()
+        wait_for_log()
+    }
+
+    class VirtualAP {
+        string bssid
+        {abstract} associate(sta)
+        {abstract} disassociate(sta)
+    }
+
+    class VirtualAPDocker {
+        associate(sta)
+        disassociate(sta)
+    }
+
+    class VirtualAPHostapd {
+        associate(sta)
+        disassociate(sta)
+    }
+}
+
+LinuxDevice <|-right- OpenWrtRouter
+OpenWrtRouter <|-- prplWRT
+PrplMeshBase *-- ALEntity : > controller_entity
+PrplMeshBase *-- ALEntity : > agent_entity
+PrplMeshDocker --|> PrplMeshBase
+PrplMeshDocker --|> LinuxDevice
+prplWRT --|> PrplMeshBase
+PrplMeshBase o-left- sniffer : > wired_sniffer
+PrplMeshBase o-left- sniffer : > wireless_sniffer
+ALEntity --|> ALEntityDocker
+ALEntity --|> ALEntityPrplWrt
+ALEntity *-left- Radio : > radios
+Radio <|-- RadioHostapd
+Radio <|-- RadioDocker
+Radio *-left- VirtualAP : > vaps
+VirtualAP <|-- VirtualAPDocker
+VirtualAP <|-- VirtualAPHostapd
+
+@enduml

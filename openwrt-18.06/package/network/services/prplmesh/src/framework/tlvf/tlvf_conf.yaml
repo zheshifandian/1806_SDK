@@ -1,0 +1,107 @@
+#
+---
+# Relative to tlvf.py yaml_path argument
+include_yaml_path: {
+    "tlvf/WSC/",
+    "tlvf/common/",
+    "tlvf/ieee_1905_1/",
+    "tlvf/test/",
+    "tlvf/association_frame/AssocReqFields.yaml",
+    "tlvf/association_frame/cMobilityDomain.yaml",
+    "tlvf/association_frame/eElementID.yaml",
+    "tlvf/association_frame/eExtElementID.yaml",
+    "tlvf/association_frame/cCapInfoDmgSta.yaml",
+    "tlvf/association_frame/cQosCapability.yaml",
+    "tlvf/association_frame/cStaHtCapability.yaml",
+    "tlvf/association_frame/cStaVhtCapability.yaml",
+    "tlvf/association_frame/cStaHeCapability.yaml",
+    "tlvf/association_frame/cSupportedChannels.yaml",
+    "tlvf/association_frame/cRmEnabledCaps.yaml",
+    "tlvf/association_frame/cExtendedCap.yaml",
+    "tlvf/association_frame/ReassocReqFields.yaml",
+
+    #
+    # "wfa_map/",
+    "tlvf/wfa_map/eTlvTypeMap.yaml",
+    "tlvf/wfa_map/tlvApCapability.yaml",
+    "tlvf/wfa_map/tlvApHeCapabilities.yaml",
+    "tlvf/wfa_map/tlvApHtCapabilities.yaml",
+    "tlvf/wfa_map/tlvApMetricQuery.yaml",
+    "tlvf/wfa_map/tlvApMetrics.yaml",
+    "tlvf/wfa_map/tlvApOperationalBSS.yaml",
+    "tlvf/wfa_map/tlvApRadioBasicCapabilities.yaml",
+    "tlvf/wfa_map/tlvApRadioIdentifier.yaml",
+    "tlvf/wfa_map/tlvApVhtCapabilities.yaml",
+    "tlvf/wfa_map/tlvAssociatedClients.yaml",
+    "tlvf/wfa_map/tlvAssociatedStaExtendedLinkMetrics.yaml",
+    "tlvf/wfa_map/tlvAssociatedStaLinkMetrics.yaml",
+    "tlvf/wfa_map/tlvAssociatedStaTrafficStats.yaml",
+    "tlvf/wfa_map/tlvBackhaulBssConfiguration.yaml",
+    "tlvf/wfa_map/tlvBackhaulSteeringRequest.yaml",
+    "tlvf/wfa_map/tlvBackhaulSteeringResponse.yaml",
+    "tlvf/wfa_map/tlvBeaconMetricsQuery.yaml",
+    "tlvf/wfa_map/tlvBeaconMetricsResponse.yaml",
+    "tlvf/wfa_map/tlvChannelPreference.yaml",
+    "tlvf/wfa_map/tlvChannelScanCapabilities.yaml",
+    "tlvf/wfa_map/tlvChannelScanReportingPolicy.yaml",
+    "tlvf/wfa_map/tlvProfile2ChannelScanRequest.yaml",
+    "tlvf/wfa_map/tlvProfile2ChannelScanResult.yaml",
+    "tlvf/wfa_map/tlvChannelSelectionResponse.yaml",
+    "tlvf/wfa_map/tlvClientAssociationControlRequest.yaml",
+    "tlvf/wfa_map/tlvClientAssociationEvent.yaml",
+    "tlvf/wfa_map/tlvClientCapabilityReport.yaml",
+    "tlvf/wfa_map/tlvClientInfo.yaml",
+    "tlvf/wfa_map/tlvErrorCode.yaml",
+    "tlvf/wfa_map/tlvHigherLayerData.yaml",
+    "tlvf/wfa_map/tlvMetricReportingPolicy.yaml",
+    "tlvf/wfa_map/tlvOperatingChannelReport.yaml",
+    "tlvf/wfa_map/tlvProfile2ApCapability.yaml",
+    "tlvf/wfa_map/tlvProfile2ApRadioAdvancedCapabilities.yaml",
+    "tlvf/wfa_map/tlvProfile2AssociationStatusNotification.yaml",
+    "tlvf/wfa_map/tlvProfile2CacCapabilities.yaml",
+    "tlvf/wfa_map/tlvProfile2CacCompletionReport.yaml",
+    "tlvf/wfa_map/tlvProfile2CacRequest.yaml",
+    "tlvf/wfa_map/tlvProfile2CacStatusReport.yaml",
+    "tlvf/wfa_map/tlvProfile2CacTermination.yaml",
+    "tlvf/wfa_map/tlvProfile2Default802dotQSettings.yaml",
+    "tlvf/wfa_map/tlvProfile2MetricCollectionInterval.yaml",
+    "tlvf/wfa_map/tlvProfile2RadioMetrics.yaml",
+    "tlvf/wfa_map/tlvProfile2ReasonCode.yaml",
+    "tlvf/wfa_map/tlvProfile2StatusCode.yaml",
+    "tlvf/wfa_map/tlvProfile2SteeringRequest.yaml",
+    "tlvf/wfa_map/tlvProfile2TrafficSeparationPolicy.yaml",
+    "tlvf/wfa_map/tlvProfile2UnsuccessfulAssociationPolicy.yaml",
+    "tlvf/wfa_map/tlvRadioOperationRestriction.yaml",
+    "tlvf/wfa_map/tlvSearchedService.yaml",
+    "tlvf/wfa_map/tlvStaMacAddressType.yaml",
+    "tlvf/wfa_map/tlvSteeringBTMReport.yaml",
+    "tlvf/wfa_map/tlvSteeringPolicy.yaml",
+    "tlvf/wfa_map/tlvSteeringRequest.yaml",
+    "tlvf/wfa_map/tlvSupportedService.yaml",
+    "tlvf/wfa_map/tlvTimestamp.yaml",
+    "tlvf/wfa_map/tlvTransmitPowerLimit.yaml",
+    "tlvf/wfa_map/tlvTunnelledData.yaml",
+    "tlvf/wfa_map/tlvTunnelledProtocolType.yaml",
+    "tlvf/wfa_map/tlvTunnelledSourceInfo.yaml",
+    "tlvf/wfa_map/tlvProfile2ErrorCode.yaml",
+    "tlvf/wfa_map/tlvProfile2MultiApProfile.yaml",
+    "tlvf/wfa_map/tlvApExtendedMetrics.yaml",
+    "tlvf/wfa_map/tlvDeviceInventory.yaml",
+    "tlvf/wfa_map/tlvBackhaulStaRadioCapabilities.yaml",
+    "tlvf/wfa_map/tlvServicePrioritizationRule.yaml",
+    "tlvf/wfa_map/tlvDscpMappingTable.yaml",
+    "tlvf/wfa_map/tlvAssociatedWiFi6StaStatusReport.yaml"
+}
+
+# Relative to tlvf.py src_path variable
+source_license_header: "intel/license.txt"
+
+debug:
+  log_file: "tlvf.log"
+  log_format: "%(levelname)s %(funcName)s(%(lineno)d): %(message)s"
+  log_level: "DEBUG" #"INFO", "WARNING", "ERROR", "OFF"
+  keep_source_marker: false #true
+  dump_include_files: false
+  dump_yaml: true
+  dump_db: true
+  dump_stack: true

@@ -1,0 +1,51 @@
+#
+---
+_namespace: wfa_map
+
+tlvDeviceInventory:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_DEVICE_INVENTORY
+  length: uint16_t
+  serial_number_length:
+    _type: uint8_t
+    _length_var: True
+    _comment: Shall be less than or equal to 64 octets
+  serial_number:
+    _type: char
+    _length: [ serial_number_length ]
+  software_version_length:
+    _type: uint8_t
+    _length_var: True
+    _comment: Shall be less than or equal to 64 octets
+  software_version:
+    _type: char
+    _length: [ software_version_length ]
+  execution_environment_length:
+    _type: uint8_t
+    _length_var: True
+    _comment: Shall be less than or equal to 64 octets
+  execution_environment:
+    _type: char
+    _length: [ execution_environment_length ]
+  number_of_radios:
+    _type: uint8_t
+    _length_var: True
+    _comment: Shall be at least 1 element
+  radios_vendor_info:
+    _type: cRadioVendorInfo
+    _length: [ number_of_radios ]
+
+cRadioVendorInfo:
+  _type: class
+  ruid: sMacAddr
+  chipset_vendor_length:
+    _type: uint8_t
+    _length_var: True
+    _comment: Shall be less than 65 octets
+  chipset_vendor:
+    _type: char
+    _length: [ chipset_vendor_length ]
+    _comment: Shall be less than or equal to 64 octets

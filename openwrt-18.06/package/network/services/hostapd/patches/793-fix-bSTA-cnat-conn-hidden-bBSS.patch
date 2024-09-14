@@ -1,0 +1,14 @@
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/config_file.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/config_file.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/config_file.c
+@@ -1601,6 +1601,9 @@ int wpa_config_write(const char *name, s
+ 		if (wpa_key_mgmt_wpa_psk(ssid->key_mgmt) && !ssid->psk_set &&
+ 		    !ssid->passphrase)
+ 			continue; /* do not save invalid network */
++        // If is a bSTA, scan with given ssid.
++        if (ssid->multi_ap_backhaul_sta)
++            ssid->scan_ssid = 1;
+ 		fprintf(f, "\nnetwork={\n");
+ 		wpa_config_write_network(f, ssid);
+ 		fprintf(f, "}\n");

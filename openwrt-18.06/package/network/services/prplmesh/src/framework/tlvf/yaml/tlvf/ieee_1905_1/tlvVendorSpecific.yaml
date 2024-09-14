@@ -1,0 +1,22 @@
+#
+---
+_namespace: ieee1905_1
+
+tlvVendorSpecific:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvType
+    _value_const: TLV_VENDOR_SPECIFIC
+  length: uint16_t
+  vendor_oui:
+    _type: sVendorOUI
+  payload:
+    _type: uint8_t
+    _length: [ ]
+
+eVendorOUI:
+  _type: enum
+  _enum_storage: uint32_t
+  OUI_BYTES: 3
+  OUI_INTEL: 0x470300

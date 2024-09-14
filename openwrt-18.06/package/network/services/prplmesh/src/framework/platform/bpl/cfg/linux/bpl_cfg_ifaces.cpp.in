@@ -1,0 +1,40 @@
+/* SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+ * SPDX-FileCopyrightText: 2019-2020 the prplMesh contributors (see AUTHORS.md)
+ *
+ * This code is subject to the terms of the BSD+Patent license.
+ * See LICENSE file for more details.
+ */
+
+ #include <string>
+
+namespace beerocks {
+namespace bpl {
+
+/**
+ * @brief Return name of wireless interface by number of radio
+ *
+ * @details Usually Linux expects to receive name in "wlanX" format
+ * but in case of RDKB (OE 3.1) the wireless ifaces has names like:
+ * wifi0, wifi1, etc.
+ * This function depends on BEEROCKS_WLAN..._IFACE config variables to
+ * handle such situations
+ *
+ * @param[in]  radio_num Number of radio - 0, 1 or 2
+ * @param[out] iface_str Name of iface will be stored in this string
+ * @return True on success and false if accepted radio number equal
+ *         to non allowed value
+ */
+bool radio_num_to_wlan_iface_name(const int32_t radio_num, std::string& iface_str)
+{
+    switch (radio_num) {
+        case 0: iface_str = "@BEEROCKS_WLAN1_IFACE@"; break;
+        case 1: iface_str = "@BEEROCKS_WLAN2_IFACE@"; break;
+        default:
+            return false;
+    }
+    return true;
+}
+
+} // namespace bpl
+} // namespace beerocks

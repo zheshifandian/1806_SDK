@@ -1,0 +1,191 @@
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/ubus.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/ubus.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/ubus.c
+@@ -143,12 +143,39 @@ wpas_bss_wps_cancel(struct ubus_context
+ 
+ 	return 0;
+ }
++
++static int
++wpas_bss_wps_state(struct ubus_context *ctx, struct ubus_object *obj,
++        struct ubus_request_data *req, const char *method,
++        struct blob_attr *msg)
++{
++    struct wpa_supplicant *wpa_s = get_wpas_from_object(obj);
++    char * state;
++
++    if (wpa_s->current_wps_state == 1)
++        state = "Enabled";
++    else if (wpa_s->current_wps_state == 2)
++        state = "Completed";
++    else if (wpa_s->current_wps_state == 3)
++        state = "Timeout";
++    else if (wpa_s->current_wps_state == 4)
++        state = "Overlap";
++    else
++        state = "Disabled";
++
++    blob_buf_init(&b, 0);
++    blobmsg_add_string(&b, "wps state", state);
++    ubus_send_reply(ctx, req, b.head);
++
++    return 0;
++}
+ #endif
+ 
+ static const struct ubus_method bss_methods[] = {
+ #ifdef CONFIG_WPS
+ 	UBUS_METHOD_NOARG("wps_start", wpas_bss_wps_start),
+ 	UBUS_METHOD_NOARG("wps_cancel", wpas_bss_wps_cancel),
++	UBUS_METHOD_NOARG("wps_state", wpas_bss_wps_state),
+ #endif
+ 	UBUS_METHOD_NOARG("get_features", wpas_bss_get_features),
+ };
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wpa_supplicant.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/wpa_supplicant.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wpa_supplicant.c
+@@ -899,6 +899,9 @@ void wpa_supplicant_set_state(struct wpa
+ 		wpa_supplicant_state_txt(wpa_s->wpa_state),
+ 		wpa_supplicant_state_txt(state));
+ 
++   if (state == WPA_COMPLETED)
++       wpa_s->current_wps_state = 2;
++
+ 	if (state == WPA_COMPLETED &&
+ 	    os_reltime_initialized(&wpa_s->roam_start)) {
+ 		os_reltime_age(&wpa_s->roam_start, &wpa_s->roam_time);
+@@ -5752,6 +5755,8 @@ static int wpa_supplicant_init_iface(str
+ 		wpa_s->conf = wpa_config_alloc_empty(iface->ctrl_interface,
+ 						     iface->driver_param);
+ 
++   wpa_s->current_wps_state = 0;
++
+ 	if (wpa_s->conf == NULL) {
+ 		wpa_printf(MSG_ERROR, "\nNo configuration found.");
+ 		return -1;
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wps_supplicant.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/wps_supplicant.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wps_supplicant.c
+@@ -1029,6 +1029,7 @@ static void wpas_wps_timeout(void *eloop
+ 
+ 	wpa_msg(wpa_s, MSG_INFO, WPS_EVENT_TIMEOUT "Requested operation timed "
+ 		"out");
++    wpa_s->current_wps_state = 3;
+ 	os_memset(&data, 0, sizeof(data));
+ 	data.fail.config_error = WPS_CFG_MSG_TIMEOUT;
+ 	data.fail.error_indication = WPS_EI_NO_ERROR;
+@@ -1239,6 +1240,7 @@ int wpas_wps_start_pbc(struct wpa_suppli
+ 	wpa_supplicant_wps_event(wpa_s, WPS_EV_PBC_ACTIVE, NULL);
+ 	eloop_register_timeout(WPS_PBC_WALK_TIME, 0, wpas_wps_timeout,
+ 			       wpa_s, NULL);
++    wpa_s->current_wps_state = 1;
+ 	wpas_wps_reassoc(wpa_s, ssid, bssid, 0);
+ 	return 0;
+ }
+@@ -1352,6 +1354,7 @@ void wpas_wps_pbc_overlap(struct wpa_sup
+ {
+ 	union wps_event_data data;
+ 
++    wpa_s->current_wps_state = 4;
+ 	os_memset(&data, 0, sizeof(data));
+ 	data.fail.config_error = WPS_CFG_MULTIPLE_PBC_DETECTED;
+ 	data.fail.error_indication = WPS_EI_NO_ERROR;
+@@ -1394,6 +1397,8 @@ int wpas_wps_cancel(struct wpa_supplican
+ 			wpas_clear_wps(wpa_s);
+ 	}
+ 
++    if (wpa_s->current_wps_state != 2)
++        wpa_s->current_wps_state = 0;
+ 	wpa_s->after_wps = 0;
+ 
+ 	return 0;
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wpa_supplicant_i.h
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/wpa_supplicant_i.h
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wpa_supplicant_i.h
+@@ -1263,6 +1263,7 @@ struct wpa_supplicant {
+ 	unsigned int ieee80211ac:1;
+ 	unsigned int enabled_4addr_mode:1;
+ 	unsigned int multi_bss_support:1;
++   unsigned int current_wps_state;
+ };
+ 
+ 
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/ubus.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/ubus.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/ubus.c
+@@ -373,6 +373,34 @@ hostapd_bss_wps_cancel(struct ubus_conte
+ }
+ 
+ static int
++hostapd_bss_wps_state(struct ubus_context *ctx, struct ubus_object *obj,
++        struct ubus_request_data *req, const char *method,
++        struct blob_attr *msg)
++{
++	struct hostapd_data *hapd = container_of(obj, struct hostapd_data, ubus.obj);
++    char * state;
++
++    if (hapd->wps_stats.status == WPS_STATUS_SUCCESS)
++        state = "Completed";
++    else if (hapd->wps_stats.status == WPS_STATUS_FAILURE)
++        state = "Failure";
++    else if (hapd->wps_stats.pbc_status == WPS_PBC_STATUS_ACTIVE)
++        state = "Enabled";
++    else if (hapd->wps_stats.pbc_status == WPS_PBC_STATUS_TIMEOUT)
++        state = "Timeout";
++    else if (hapd->wps_stats.pbc_status == WPS_PBC_STATUS_OVERLAP)
++        state = "Overlap";
++    else
++        state = "Disabled";
++
++    blob_buf_init(&b, 0);
++    blobmsg_add_string(&b, "wps state", state);
++    ubus_send_reply(ctx, req, b.head);
++
++    return 0;
++}
++
++static int
+ hostapd_sta_deauth(struct ubus_context *ctx, struct ubus_object *obj,
+ 			struct ubus_request_data *req, const char *method,
+ 			struct blob_attr *msg)
+@@ -1117,6 +1145,7 @@ static const struct ubus_method bss_meth
+ 	UBUS_METHOD_NOARG("list_bans", hostapd_bss_list_bans),
+ 	UBUS_METHOD_NOARG("wps_start", hostapd_bss_wps_start),
+ 	UBUS_METHOD_NOARG("wps_cancel", hostapd_bss_wps_cancel),
++	UBUS_METHOD_NOARG("wps_state", hostapd_bss_wps_state),
+ 	UBUS_METHOD_NOARG("deauth", hostapd_sta_deauth),
+ 	UBUS_METHOD_NOARG("update_beacon", hostapd_bss_update_beacon),
+ 	UBUS_METHOD_NOARG("get_features", hostapd_bss_get_features),
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/wps_hostapd.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/wps_hostapd.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/wps_hostapd.c
+@@ -810,6 +810,7 @@ static void hostapd_wps_event_fail(struc
+ 				   struct wps_event_fail *fail)
+ {
+ 	/* Update WPS status - Failure */
++	hapd->wps_stats.pbc_status = WPS_PBC_STATUS_DISABLE;
+ 	hapd->wps_stats.status = WPS_STATUS_FAILURE;
+ 	os_memcpy(hapd->wps_stats.peer_addr, fail->peer_macaddr, ETH_ALEN);
+ 
+@@ -840,6 +841,7 @@ static void hostapd_wps_event_cb(void *c
+ 		break;
+ 	case WPS_EV_FAIL:
+ 		hostapd_wps_event_fail(hapd, &data->fail);
++		wpa_msg(hapd->msg_ctx, MSG_INFO, WPS_EVENT_FAIL);
+ 		break;
+ 	case WPS_EV_SUCCESS:
+ 		hostapd_wps_event_success(hapd, &data->success);
+@@ -1464,6 +1466,7 @@ static int wps_button_pushed(struct host
+ 
+ 	if (hapd->wps) {
+ 		data->count++;
++        hapd->wps_stats.status = 0;
+ 		return wps_registrar_button_pushed(hapd->wps->registrar,
+ 						   data->p2p_dev_addr);
+ 	}

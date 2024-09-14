@@ -1,0 +1,265 @@
+ <!--页面开头必须引用header,否则点击选项后弹出的页面不会有页面顶部导航栏-->
+<%+header%>
+<!--fieldset标签固定为表单内相关元素分组，并绘制边框-->
+<fieldset>
+	<legend><%:device limit%></legend><!--新菜单项名称-->
+	<li class="border-line"></li>
+	<table class="tb-no-border">
+		<tr><td class="mac-td-left"><input id="limit-mode" type="checkbox" size="0"></td>
+			<td class="mac-td-right"><%:enable device limit%></td>
+		</tr>
+		<tr>
+			<td class="mac-td-left"><%:alter time%></td>
+			<td class="mac-td-right">
+				<select id="start-time">
+					<option value="1"><%:1:00%></option>
+					<option value="2"><%:2:00%></option>
+					<option value="3"><%:3:00%></option>
+					<option value="4"><%:4:00%></option>
+					<option value="5"><%:5:00%></option>
+					<option value="6"><%:6:00%></option>
+					<option value="7"><%:7:00%></option>
+					<option value="8"><%:8:00%></option>
+					<option value="9"><%:9:00%></option>
+					<option value="10"><%:10:00%></option>
+					<option value="11"><%:11:00%></option>
+					<option value="12"><%:12:00%></option>
+					<option value="13"><%:13:00%></option>
+					<option value="14"><%:14:00%></option>
+					<option value="15"><%:15:00%></option>
+					<option value="16"><%:16:00%></option>
+					<option value="17"><%:17:00%></option>
+					<option value="18"><%:18:00%></option>
+					<option value="19"><%:19:00%></option>
+					<option value="20"><%:20:00%></option>
+					<option value="21"><%:21:00%></option>
+					<option value="22"><%:22:00%></option>
+					<option value="23"><%:23:00%></option>
+					<option value="24"><%:24:00%></option>
+				</select><%:to%>
+				<select id="end-time">
+					<option value="1"><%:1:00%></option>
+					<option value="2"><%:2:00%></option>
+					<option value="3"><%:3:00%></option>
+					<option value="4"><%:4:00%></option>
+					<option value="5"><%:5:00%></option>
+					<option value="6"><%:6:00%></option>
+					<option value="7"><%:7:00%></option>
+					<option value="8"><%:8:00%></option>
+					<option value="9"><%:9:00%></option>
+					<option value="10"><%:10:00%></option>
+					<option value="11"><%:11:00%></option>
+					<option value="12"><%:12:00%></option>
+					<option value="13"><%:13:00%></option>
+					<option value="14"><%:14:00%></option>
+					<option value="15"><%:15:00%></option>
+					<option value="16"><%:16:00%></option>
+					<option value="17"><%:17:00%></option>
+					<option value="18"><%:18:00%></option>
+					<option value="19"><%:19:00%></option>
+					<option value="20"><%:20:00%></option>
+					<option value="21"><%:21:00%></option>
+					<option value="22"><%:22:00%></option>
+					<option value="23"><%:23:00%></option>
+					<option value="24"><%:24:00%></option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="mac-td-left"><%:limit speed%></td><td class="mac-td-right"><input id="limit-speed" type="text" onkeyup="numLimit0(this)" maxlength="15">KB/s</td>
+		</tr>
+		<tr>
+			<td></td><td class="mac-td-right">
+				<button onclick="setLimit()"><%:save%></button>
+				<i id="saveLimitTip" class="hsSubLoading saving" style="display: none"></i>
+				<i id="saveLimitTipSucess" class="hsSubLoading save-suc" style="display: none"></i>
+			</td>
+		</tr>
+	</table>
+	<table id="limit-device">
+	</table>
+	<div id="waiting" style="display: none">
+		<div class="LoadConCover">
+			<div class="coverLoadCon">
+				<div class="coverLoad">
+					<i class="coverLoadClose" onclick="coverClose()"></i>
+					<i class="coverLoading" ></i>
+					<p class="coverLoadNote"><%:Setting up，please wait a moment...%></p>
+				</div>
+			</div>
+		</div>
+	</div>
+</fieldset>
+<!--页面结尾必须引用header,否则点击选项后弹出的页面不会有页面底部信息栏-->
+<%+footer%>
+<script>
+// global vars
+var checkEnable = false;
+var device;
+
+// page load functions
+getLimit();
+
+// router get interfaces
+function getLimit() {
+	XHR.get('<%=luci.dispatcher.build_url("admin", "systemnew","get_limit_mode_enable")%>', null,
+			function(x, result) {
+				console.log(result);
+				if (result==null) {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					err.style.visibility = 'visible';
+					text.innerText = '<%:router connection failure%>';
+				}else if(result!=null&&result.code == 0) {
+					if (result.enable == 1){
+						document.getElementById('limit-mode').checked = true;
+						document.getElementById('limit-device').style.display = '';
+						getLimitDevice();
+					}else{
+						document.getElementById('limit-mode').checked = false;
+						document.getElementById('limit-device').style.display = 'none';
+					}
+				}else {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+	});
+	XHR.get('<%=luci.dispatcher.build_url("admin", "systemnew","get_limit_mode_config")%>', null,
+			function(x, result) {
+				console.log(result);
+				if (result==null) {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					err.style.visibility = 'visible';
+					text.innerText = '<%:router connection failure%>';
+				}else if(result!=null&&result.code == 0) {
+					console.log(result);
+					var startTime = document.getElementById('start-time');
+					selectText(startTime,result.start_time);
+					var endTime = document.getElementById('end-time');
+					selectText(endTime,result.end_time);
+					document.getElementById('limit-speed').value = result.limit;
+				}else {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+	});
+}
+
+function selectText(selectId,optionText){
+	var ops = selectId.options;
+	for(var i = 0; i < ops.length; i++){
+		var tempText = ops[i].text;
+		if ( tempText == optionText){
+			ops[i].selected = true;
+		}
+	}
+}
+// router set interfaces
+function setLimit() {
+    var enable = document.getElementById('limit-mode').checked?1:0;
+	var params = {'enable':enable};
+	console.log(params);
+	document.getElementById("saveLimitTip").style.display='';
+	document.getElementById("saveLimitTipSucess").style.display='none';
+	XHR.post('<%=luci.dispatcher.build_url("admin", "systemnew","set_limit_mode_enable")%>', params,
+			function(x, result){
+				console.log(result);
+				var err = document.getElementById('Error');
+				var text = err.getElementsByTagName('span')[0];
+				if (result==null) {
+					err.style.visibility = 'visible';
+					text.innerText = '<%:router connection failure%>';
+				}else if (result!=null&&result.code == 0) {
+					getLimit();
+				}else {
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+	});
+
+	var limit = document.getElementById('limit-speed').value;
+	var startSelect = document.getElementById('start-time');
+	var startTime = startSelect.options[startSelect.selectedIndex].text;
+	var endSelect = document.getElementById('end-time');
+	var endTime = endSelect.options[endSelect.selectedIndex].text;
+
+	params = {'start_time':startTime,'end_time':endTime, 'limit':limit};
+	console.log(params);
+	XHR.post('<%=luci.dispatcher.build_url("admin", "systemnew","set_limit_mode_config")%>', params,
+			function(x, result){
+				console.log(result);
+				document.getElementById("saveLimitTip").style.display='none';
+				var err = document.getElementById('Error');
+				var text = err.getElementsByTagName('span')[0];
+				if (result==null) {
+					err.style.visibility = 'visible';
+					text.innerText = '<%:router connection failure%>';
+				}else if (result!=null&&result.code == 0) {
+					document.getElementById("saveLimitTipSucess").style.display='';
+					setTimeout(function () {
+						document.getElementById("saveLimitTipSucess").style.display='none';
+					},"2000");
+				}else {
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+	});
+}
+function getLimitDevice() {
+	document.getElementById('limit-device').style.display = '';
+	XHR.get('<%=luci.dispatcher.build_url("admin", "systemnew","get_limit_mode_device")%>', null,
+			function(x, result) {
+				console.log(result);
+				if (result==null) {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					err.style.visibility = 'visible';
+					text.innerText = '<%:router connection failure%>';
+				}else if(result!=null&&result.code == 0) {
+					device = result.device;
+					var table = document.getElementById('limit-device');
+					var html = '<tr><th><%:MAC address%></th><th><%:host name%></th><th><%:remove%></th></tr>';
+					var mac;
+					for (mac in device){
+						html += '<tr><td>' + mac + '</td><td>' + device[mac] + '</td><td><button onclick="removeLimitDevice(\'' + mac + '\');"><%:remove%></button></td></tr>';
+					}
+					setTableInnerHTML(table,html);
+				}else {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+	});
+}
+function removeLimitDevice(mac) {
+	var params1 = {};
+	params1[mac] = device[mac];
+	var params = {device: params1};
+	document.getElementById('waiting').style.display = '';
+	XHR.post('<%=luci.dispatcher.build_url("admin", "systemnew","remove_limit_mode_device")%>', params,
+			function(x, result) {
+				console.log(result);
+				document.getElementById('waiting').style.display = 'none';
+				if (result==null) {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					err.style.visibility = 'visible';
+					text.innerText = '<%:router connection failure%>';
+				}else if(result!=null&&result.code == 0) {
+					getLimitDevice();
+				}else {
+					var err = document.getElementById('Error');
+					var text = err.getElementsByTagName('span')[0];
+					text.innerText = result.msg;
+					err.style.visibility = 'visible';
+				}
+	});
+}
+
+</script>

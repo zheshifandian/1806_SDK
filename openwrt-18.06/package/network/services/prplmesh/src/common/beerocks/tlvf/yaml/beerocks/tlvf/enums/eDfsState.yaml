@@ -1,0 +1,19 @@
+#
+---
+
+_namespace: beerocks_message
+
+eDfsState:
+  _type: enum
+  _enum_storage: uint8_t
+  _comment: |
+    Channel states used by the DFS code.
+    USABLE: The channel can be used, but channel availability check (CAC) must be preformed before
+      using it.
+    UNAVAILABLE: A radar has been detected on this channel and it cannot be used.
+    AVAILABLE: The channel passed CAC. It is possible to switch to this channel without CAC.
+    NOT_DFS: The channel is not subject to DFS.
+  USABLE: 0
+  UNAVAILABLE: 1
+  AVAILABLE: 2
+  NOT_DFS: 3

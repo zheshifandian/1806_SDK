@@ -1,0 +1,47 @@
+Source-Makefile: feeds/packages/libs/libimobiledevice/Makefile
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:gettext
+
+Package: libimobiledevice
+Version: 2019-02-16-0584aa90c93ff6ce46927b8d67887cb987ab9545-2
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +libplist +libusbmuxd +libopenssl
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: A library that talks to Apple devices.
+Maintainer: 
+Source: libimobiledevice-2019-02-16.tar.gz
+License: LGPL-2.1-or-later
+LicenseFiles: COPYING.LESSER
+Type: ipkg
+Description:     libimobiledevice is a software library that talks the protocols to support
+  iPhone®, iPod Touch®, iPad® and Apple TV® devices.
+https://www.libimobiledevice.org/
+
+@@
+
+Package: libimobiledevice-utils
+Version: 2019-02-16-0584aa90c93ff6ce46927b8d67887cb987ab9545-2
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libimobiledevice
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: A library that talks to Apple devices.
+Maintainer: 
+Source: libimobiledevice-2019-02-16.tar.gz
+License: LGPL-2.1-or-later
+LicenseFiles: COPYING.LESSER
+Type: ipkg
+Description:     libimobiledevice is a software library that talks the protocols to support
+  iPhone®, iPod Touch®, iPad® and Apple TV® devices.
+  This package contains the libimobiledevice utilities.
+https://www.libimobiledevice.org/
+
+@@
+
+

@@ -1,0 +1,93 @@
+Source-Makefile: feeds/packages/lang/python/django-constance/Makefile
+
+Package: python-django-constance
+Submenu: Python
+Version: 2.3.1-4
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +PACKAGE_python-django-constance:python python-django1
+Conflicts: 
+Menu-Depends: python-django1
+Provides: 
+Build-Variant: python
+Section: lang
+Category: Languages
+Repository: base
+Title: Django live settings with pluggable backends, including Redis.
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: django-constance-2.3.1.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:   Django live settings with pluggable backends, including Redis.
+https://github.com/jazzband/django-constance
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-django-constance-src
+Submenu: Python
+Version: 2.3.1-4
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: python-django1
+Provides: 
+Build-Variant: python
+Section: lang
+Category: Languages
+Repository: base
+Title: Django live settings with pluggable backends, including Redis. (sources)
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: django-constance-2.3.1.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:       Django live settings with pluggable backends, including Redis..
+    (Contains the Python sources for this package).
+https://github.com/jazzband/django-constance
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-django-constance
+Submenu: Python
+Version: 2.3.1-4
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +PACKAGE_python3-django-constance:python3 python3-django
+Conflicts: 
+Menu-Depends: python3-django
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: Django live settings with pluggable backends, including Redis.
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: django-constance-2.3.1.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description: 
+.
+(Variant for Python3)
+https://github.com/jazzband/django-constance
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-django-constance-src
+Submenu: Python
+Version: 2.3.1-4
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: python3-django
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: Django live settings with pluggable backends, including Redis. (sources)
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: django-constance-2.3.1.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:     
+.
+(Variant for Python3).
+    (Contains the Python3 sources for this package).
+https://github.com/jazzband/django-constance
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

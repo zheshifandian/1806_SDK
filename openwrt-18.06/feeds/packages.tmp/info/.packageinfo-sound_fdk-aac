@@ -1,0 +1,53 @@
+Source-Makefile: feeds/packages/sound/fdk-aac/Makefile
+
+Package: fdk-aac
+Version: 2.0.1-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @BUILD_PATENTED
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: nonfree
+Section: sound
+Category: Sound
+Repository: base
+Title: Fraunhofer FDK AAC Codec Library
+Maintainer: Ted Hess <thess@kitschensync.net>
+Source: fdk-aac-2.0.1.tar.gz
+License: Fraunhofer-FDK-AAC-for-Android
+LicenseFiles: NOTICE
+Type: ipkg
+Description:     Port of the Fraunhofer FDK AAC Codec Library for Android
+  This is the full patent encumbered version.
+https://sourceforge.net/projects/opencore-amr/
+Ted Hess <thess@kitschensync.net>
+@@
+Config:
+    source "feeds/packages/sound/fdk-aac/Config.in"
+@@
+
+Package: fdk-aac-free
+Version: 2.0.1-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: free
+Section: sound
+Category: Sound
+Repository: base
+Title: Fraunhofer FDK AAC Codec Library
+Maintainer: Ted Hess <thess@kitschensync.net>
+Source: fdk-aac-2.0.1.tar.gz
+License: Fraunhofer-FDK-AAC-for-Android
+LicenseFiles: NOTICE
+Type: ipkg
+Description:     Port of the Fraunhofer FDK AAC Codec Library for Android
+  This is the free version that only supports LC-AAC.
+https://sourceforge.net/projects/opencore-amr/
+Ted Hess <thess@kitschensync.net>
+@@
+Config:
+    source "feeds/packages/sound/fdk-aac/Config.in"
+@@
+
+

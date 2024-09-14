@@ -1,0 +1,23 @@
+#
+---
+_namespace: wfa_map
+
+tlvBackhaulBssConfiguration:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_BACKHAUL_BSS_CONFIGURATION
+  length: uint16_t
+  bssid : sMacAddr
+  flags : sFlags
+
+sFlags:
+  _type: struct
+  _bit_field: uint8_t
+  profile_1_bsta_disallowed:
+    _bit_range: [7,7]
+  profile_2_bsta_disallowed:
+    _bit_range: [6,6]
+  reserved:
+    _bit_range: [5,0]

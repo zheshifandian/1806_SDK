@@ -1,0 +1,37 @@
+Index: netifd-2018-12-16-2750ce2e/system-linux.c
+===================================================================
+--- netifd-2018-12-16-2750ce2e.orig/system-linux.c
++++ netifd-2018-12-16-2750ce2e/system-linux.c
+@@ -671,7 +671,7 @@ static void substr(char *dst, char *src,
+ 		strncpy(dst, (src + i + 1), (len - i - 1));
+ }
+ 
+-static int get_wan_port(int *wan_port, int *wan_vid)
++static int get_wan_port(char *wan_name, int *wan_port, int *wan_vid)
+ {
+ 	struct uci_package *pkg;
+ 	struct uci_context *ctx;
+@@ -684,7 +684,7 @@ static int get_wan_port(int *wan_port, i
+ 	uci_set_confdir(ctx, "/etc/config");
+ 	if (uci_load(ctx, "network", &pkg) == 0){
+ 
+-		wan_section = uci_lookup_section(ctx, pkg, "wan");
++		wan_section = uci_lookup_section(ctx, pkg, wan_name);
+ 		if (!wan_section)
+ 			goto err_out;
+ 
+@@ -768,7 +768,13 @@ static int cb_sf_eth_event(struct nl_msg
+ 		sprintf(ifname,"%s",nla_get_string(nla[SF_ETH_CMD_ATTR_DPS_IFNAME]));
+ 	}
+ 
+-	get_wan_port(&wan_port, &wan_vid);
++	get_wan_port("wan", &wan_port, &wan_vid);
++	if (port == wan_port) {
++		is_wan = 1;
++		vlanid = wan_vid;
++	}
++
++	get_wan_port("wwan", &wan_port, &wan_vid);
+ 	if (port == wan_port) {
+ 		is_wan = 1;
+ 		vlanid = wan_vid;

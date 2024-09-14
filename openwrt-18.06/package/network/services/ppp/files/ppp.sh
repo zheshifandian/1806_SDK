@@ -129,7 +129,7 @@ ppp_generic_setup() {
 		${autoipv6:+set AUTOIPV6=1} \
 		defaultroute \
 		usepeerdns \
-		$demand maxfail 1 \
+		$demand nopersist maxfail 1 \
 		${username:+user "$username" password "$password"} \
 		${connect:+connect "$connect"} \
 		${disconnect:+disconnect "$disconnect"} \

@@ -1,0 +1,264 @@
+From e06032e5d41f5e5f2d61eba3f9f2a61e89a62f00 Mon Sep 17 00:00:00 2001
+From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+Date: Tue, 23 Mar 2021 14:42:52 +0100
+Subject: [PATCH] ubusd: convert tx_queue to linked list
+
+ubusd maintains a per-client tx_queue containing references to message
+buffers that have not been sent yet (due to the socket blocking). This
+is a fixed-size, 64-element queue.
+
+When more than 64 elements are queued, subsequent elements are simply
+dropped. Thus, a client that is waiting for those messages will block
+indefinitely. In particular, this happens when more than +- 250 objects
+are registered on the bus and either "ubus list" or "ubus wait_for" is
+called. The responses to these requests consist of a message buffer per
+object. Since in practice, ubusd will not yield between the sends of
+these message buffers, the client has no time to process them and
+eventually the output socket blocks. After 64 more objects, the rest is
+dropped, including the final message that indicates termination. Thus,
+the client waits indefinitely for the termination message.
+
+To solve this, turn the tx_queue into a variable-sized linked list
+instead of a fixed-size queue.
+
+To maintain the linked list, an additional structure ubus_msg_buf_list
+is created. We could also have added the linked list to the ubus_msg_buf
+struct itself, but it is not relevant in the many other uses of the
+ubus_msg_buf struct so it would just complicate things.
+
+The txq_off variable was used to keep track of which part of the current
+message was already written, in case only a partial write was possible.
+We take this opportunity to also move that variable under the
+ubus_msg_buf_list structure (and rename it to "offset", and change its
+type to size_t). This makes it clearer that it is related to that
+particular queued message and not to the queue as a whole.
+
+Note that this infinite tx_queue opens the door to a DoS attack. You can
+open a client and a server connection, then send messages from the
+client to the server without ever reading anything on the server side.
+This will eventually lead to an out-of-memory. However, such a DoS
+already existed anyway, it just requires opening multiple server
+connections and filling up the fixed-size queue on each one. To protect
+against such DoS attacks, we'd need to:
+- keep a global maximum queue size that applies to all rx and tx queues
+  together;
+- stop reading from any connection when the maximum is reached;
+- close any connection when it hasn't become writeable after some
+  timeout.
+
+Fixes: https://bugs.openwrt.org/index.php?do=details&task_id=1525
+
+Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
+---
+ ubusd.c       | 30 +++++++++++++++++++++---------
+ ubusd.h       | 11 ++++++++---
+ ubusd_main.c  | 38 +++++++++++---------------------------
+ ubusd_proto.c |  1 +
+ 4 files changed, 41 insertions(+), 39 deletions(-)
+
+diff --git a/ubusd.c b/ubusd.c
+index 5993653..f8e33f8 100644
+--- a/ubusd.c
++++ b/ubusd.c
+@@ -133,24 +133,38 @@ ssize_t ubus_msg_writev(int fd, struct ubus_msg_buf *ub, size_t offset)
+ 	return ret;
+ }
+ 
+-static void ubus_msg_enqueue(struct ubus_client *cl, struct ubus_msg_buf *ub)
++void ubus_msg_list_free(struct ubus_msg_buf_list *ubl)
+ {
+-	if (cl->tx_queue[cl->txq_tail])
++	list_del_init(&ubl->list);
++	ubus_msg_free(ubl->msg);
++	free(ubl);
++}
++
++static void ubus_msg_enqueue(struct ubus_client *cl, struct ubus_msg_buf *ub,
++			     size_t offset)
++{
++	struct ubus_msg_buf_list *ubl;
++
++	ubl = calloc(1, sizeof(struct ubus_msg_buf_list));
++	if (!ubl)
+ 		return;
+ 
+-	cl->tx_queue[cl->txq_tail] = ubus_msg_ref(ub);
+-	cl->txq_tail = (cl->txq_tail + 1) % ARRAY_SIZE(cl->tx_queue);
++	INIT_LIST_HEAD(&ubl->list);
++	ubl->msg = ubus_msg_ref(ub);
++	ubl->offset = offset;
++
++	list_add_tail(&cl->tx_queue, &ubl->list);
+ }
+ 
+ /* takes the msgbuf reference */
+ void ubus_msg_send(struct ubus_client *cl, struct ubus_msg_buf *ub)
+ {
+-	ssize_t written;
++	ssize_t written = 0;
+ 
+ 	if (ub->hdr.type != UBUS_MSG_MONITOR)
+ 		ubusd_monitor_message(cl, ub, true);
+ 
+-	if (!cl->tx_queue[cl->txq_cur]) {
++	if (list_empty(&cl->tx_queue)) {
+ 		written = ubus_msg_writev(cl->sock.fd, ub, 0);
+ 
+ 		if (written < 0)
+@@ -159,10 +173,8 @@ void ubus_msg_send(struct ubus_client *cl, struct ubus_msg_buf *ub)
+ 		if (written >= (ssize_t) (ub->len + sizeof(ub->hdr)))
+ 			return;
+ 
+-		cl->txq_ofs = written;
+-
+ 		/* get an event once we can write to the socket again */
+ 		uloop_fd_add(&cl->sock, ULOOP_READ | ULOOP_WRITE | ULOOP_EDGE_TRIGGER);
+ 	}
+-	ubus_msg_enqueue(cl, ub);
++	ubus_msg_enqueue(cl, ub, written);
+ }
+diff --git a/ubusd.h b/ubusd.h
+index 923e43d..e20e55a 100644
+--- a/ubusd.h
++++ b/ubusd.h
+@@ -23,7 +23,6 @@
+ #include "ubusmsg.h"
+ #include "ubusd_acl.h"
+ 
+-#define UBUSD_CLIENT_BACKLOG	32
+ #define UBUS_OBJ_HASH_BITS	4
+ 
+ extern struct blob_buf b;
+@@ -36,6 +35,12 @@ struct ubus_msg_buf {
+ 	int len;
+ };
+ 
++struct ubus_msg_buf_list {
++	struct list_head list;
++	struct ubus_msg_buf *msg;
++	size_t offset;
++};
++
+ struct ubus_client {
+ 	struct ubus_id id;
+ 	struct uloop_fd sock;
+@@ -48,8 +53,7 @@ struct ubus_client {
+ 
+ 	struct list_head objects;
+ 
+-	struct ubus_msg_buf *tx_queue[UBUSD_CLIENT_BACKLOG];
+-	unsigned int txq_cur, txq_tail, txq_ofs;
++	struct list_head tx_queue;
+ 
+ 	struct ubus_msg_buf *pending_msg;
+ 	struct ubus_msg_buf *retmsg;
+@@ -72,6 +76,7 @@ struct ubus_msg_buf *ubus_msg_new(void *data, int len, bool shared);
+ void ubus_msg_send(struct ubus_client *cl, struct ubus_msg_buf *ub);
+ ssize_t ubus_msg_writev(int fd, struct ubus_msg_buf *ub, size_t offset);
+ void ubus_msg_free(struct ubus_msg_buf *ub);
++void ubus_msg_list_free(struct ubus_msg_buf_list *ubl);
+ struct blob_attr **ubus_parse_msg(struct blob_attr *msg, size_t len);
+ 
+ struct ubus_client *ubusd_proto_new_client(int fd, uloop_fd_handler cb);
+diff --git a/ubusd_main.c b/ubusd_main.c
+index c3d8049..78cec37 100644
+--- a/ubusd_main.c
++++ b/ubusd_main.c
+@@ -17,28 +17,11 @@
+ 
+ #include "ubusd.h"
+ 
+-static struct ubus_msg_buf *ubus_msg_head(struct ubus_client *cl)
+-{
+-	return cl->tx_queue[cl->txq_cur];
+-}
+-
+-static void ubus_msg_dequeue(struct ubus_client *cl)
+-{
+-	struct ubus_msg_buf *ub = ubus_msg_head(cl);
+-
+-	if (!ub)
+-		return;
+-
+-	ubus_msg_free(ub);
+-	cl->txq_ofs = 0;
+-	cl->tx_queue[cl->txq_cur] = NULL;
+-	cl->txq_cur = (cl->txq_cur + 1) % ARRAY_SIZE(cl->tx_queue);
+-}
+-
+ static void handle_client_disconnect(struct ubus_client *cl)
+ {
+-	while (ubus_msg_head(cl))
+-		ubus_msg_dequeue(cl);
++	struct ubus_msg_buf_list *ubl, *ubl2;
++	list_for_each_entry_safe(ubl, ubl2, &cl->tx_queue, list)
++		ubus_msg_list_free(ubl);
+ 
+ 	ubusd_monitor_disconnect(cl);
+ 	ubusd_proto_free_client(cl);
+@@ -55,6 +38,7 @@ static void client_cb(struct uloop_fd *sock, unsigned int events)
+ 	uint8_t fd_buf[CMSG_SPACE(sizeof(int))] = { 0 };
+ 	struct msghdr msghdr = { 0 };
+ 	struct ubus_msg_buf *ub;
++	struct ubus_msg_buf_list *ubl, *ubl2;
+ 	static struct iovec iov;
+ 	struct cmsghdr *cmsg;
+ 	int *pfd;
+@@ -73,10 +57,10 @@ static void client_cb(struct uloop_fd *sock, unsigned int events)
+ 	msghdr.msg_controllen = cmsg->cmsg_len;
+ 
+ 	/* first try to tx more pending data */
+-	while ((ub = ubus_msg_head(cl))) {
++	list_for_each_entry_safe(ubl, ubl2, &cl->tx_queue, list) {
+ 		ssize_t written;
+ 
+-		written = ubus_msg_writev(sock->fd, ub, cl->txq_ofs);
++		written = ubus_msg_writev(sock->fd, ubl->msg, ubl->offset);
+ 		if (written < 0) {
+ 			switch(errno) {
+ 			case EINTR:
+@@ -88,16 +72,16 @@ static void client_cb(struct uloop_fd *sock, unsigned int events)
+ 			break;
+ 		}
+ 
+-		cl->txq_ofs += written;
+-		if (cl->txq_ofs < ub->len + sizeof(ub->hdr))
++		ubl->offset += written;
++		if (ubl->offset < ubl->msg->len + sizeof(ubl->msg->hdr))
+ 			break;
+ 
+-		ubus_msg_dequeue(cl);
++		ubus_msg_list_free(ubl);
+ 	}
+ 
+ 	/* prevent further ULOOP_WRITE events if we don't have data
+ 	 * to send anymore */
+-	if (!ubus_msg_head(cl) && (events & ULOOP_WRITE))
++	if (list_empty(&cl->tx_queue) && (events & ULOOP_WRITE))
+ 		uloop_fd_add(sock, ULOOP_READ | ULOOP_EDGE_TRIGGER);
+ 
+ retry:
+@@ -171,7 +155,7 @@ retry:
+ 	}
+ 
+ out:
+-	if (!sock->eof || ubus_msg_head(cl))
++	if (!sock->eof || !list_empty(&cl->tx_queue))
+ 		return;
+ 
+ disconnect:
+diff --git a/ubusd_proto.c b/ubusd_proto.c
+index 4746605..b20f91c 100644
+--- a/ubusd_proto.c
++++ b/ubusd_proto.c
+@@ -495,6 +495,7 @@ struct ubus_client *ubusd_proto_new_client(int fd, uloop_fd_handler cb)
+ 		goto free;
+ 
+ 	INIT_LIST_HEAD(&cl->objects);
++	INIT_LIST_HEAD(&cl->tx_queue);
+ 	cl->sock.fd = fd;
+ 	cl->sock.cb = cb;
+ 	cl->pending_msg_fd = -1;
+-- 
+2.30.2
+

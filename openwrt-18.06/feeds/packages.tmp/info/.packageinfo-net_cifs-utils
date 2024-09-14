@@ -1,0 +1,43 @@
+Source-Makefile: feeds/packages/net/cifs-utils/Makefile
+
+Package: cifsmount
+Version: 6.9-2
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-fs-cifs
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: CIFS mount
+Maintainer: Florian Fainelli <florian@openwrt.org>
+Source: cifs-utils-6.9.tar.bz2
+License: GPL-3.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: CIFS mount
+https://wiki.samba.org/index.php/LinuxCIFS_utils
+Florian Fainelli <florian@openwrt.org>
+@@
+
+Package: smbinfo
+Version: 6.9-2
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-fs-cifs
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: SMB info
+Maintainer: Florian Fainelli <florian@openwrt.org>
+Source: cifs-utils-6.9.tar.bz2
+License: GPL-3.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: SMB info
+https://wiki.samba.org/index.php/LinuxCIFS_utils
+Florian Fainelli <florian@openwrt.org>
+@@
+
+

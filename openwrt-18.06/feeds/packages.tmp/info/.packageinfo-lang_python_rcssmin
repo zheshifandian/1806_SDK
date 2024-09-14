@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/python/rcssmin/Makefile
+
+Package: rcssmin
+Submenu: Python
+Version: 1.0.6-2
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Fast CSS minifier for Python
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: rcssmin-1.0.6.tar.gz
+License: Apache-2.0
+Type: ipkg
+Description:     Fast CSS minifier for Python
+http://opensource.perlig.de/rcssmin/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

@@ -1,0 +1,19 @@
+--- a/src/odhcpd.h
++++ b/src/odhcpd.h
+@@ -41,6 +41,7 @@
+ struct interface;
+ struct nl_sock;
+ extern struct list_head leases;
++extern struct config config;
+ 
+ struct odhcpd_event {
+ 	struct uloop_fd uloop;
+@@ -129,7 +130,7 @@ struct config {
+ 	char *dhcp_cb;
+ 	char *dhcp_statefile;
+ 	int log_level;
+-} config;
++};
+ 
+ 
+ struct lease {

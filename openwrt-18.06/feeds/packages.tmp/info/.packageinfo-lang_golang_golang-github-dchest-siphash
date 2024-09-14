@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/lang/golang/golang-github-dchest-siphash/Makefile
+Build-Depends: golang/host
+
+Package: golang-github-dchest-siphash-dev
+Submenu: Go
+Version: 1.2.1-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Go implementation of SipHash-2-4
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: golang-github-dchest-siphash-1.2.1.tar.gz
+License: CC0-1.0
+LicenseFiles: README.md
+Type: ipkg
+Description: SipHash-2-4 is a pseudorandom function (a.k.a. keyed hash function)
+optimized for speed on short messages.
+https://github.com/dchest/siphash
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

@@ -1,0 +1,32 @@
+#
+---
+_namespace: wfa_map
+
+tlvProfile2AssociationStatusNotification:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_ASSOCIATION_STATUS_NOTIFICATION
+  length: uint16_t
+  bssid_status_list_length:
+    _type: uint8_t
+    _length_var: True
+  bssid_status_list: 
+    _type: sBssidStatus
+    _length: [ bssid_status_list_length ]
+
+eAssociationAllowanceStatus:
+  _type: enum
+  _enum_storage: uint8_t
+  NO_MORE_ASSOCIATIONS_ALLOWED: 0x00
+  ASSOCIATIONS_ALLOWED: 0x01
+
+sBssidStatus:
+  _type: struct
+  bssid: sMacAddr
+  association_allowance_status:
+    _type:  eAssociationAllowanceStatus
+    _comment: |
+      The status of allowance of new client device associations on the BSSs specified by the BSSIDs
+      in this TLV.

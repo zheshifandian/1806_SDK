@@ -1,10 +1,3 @@
-#
-# Copyright (C) 2008-2010 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sf_eswitch
@@ -51,32 +44,24 @@ EXTRA_KCONFIG += CONFIG_SFAX8_ESWITCH_LIGHT=y
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_ESWITCH_LIGHT
 endif
 
-SFAX8_KO_NAME="sf_eswitch.ko"
-
-
-ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="sf_eswitch_s.ko"
-endif
-
-ifneq ($(findstring NAND,$(PROFILE)),)
-SFAX8_KO_NAME="sf_eswitch_nand.ko"
-endif
-
-ifneq ($(findstring EVB,$(PROFILE)),)
-SFAX8_KO_NAME="sf_eswitch_evb.ko"
-endif
-
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="sf_eswitch_yts.ko"
-endif
+NOSTDINC_FLAGS += -I$(PKG_BUILD_DIR)/an8855_src/api/inc \
+				  -I$(PKG_BUILD_DIR)/an8855_src/core
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./* $(PKG_BUILD_DIR)/
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
 endef
 
 define Build/Compile
-$(CP) ./$(SFAX8_KO_NAME) $(PKG_BUILD_DIR)/sf_eswitch.ko
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
+	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+		ARCH="$(LINUX_KARCH)" \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
+		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+		$(EXTRA_KCONFIG)  \
+		modules
 endef
 
 $(eval $(call KernelPackage,sf_eswitch))

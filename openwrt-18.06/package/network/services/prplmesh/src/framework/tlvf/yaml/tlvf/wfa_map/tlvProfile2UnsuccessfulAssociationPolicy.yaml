@@ -1,0 +1,26 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.58 Unsuccessful Association Policy TLV format
+
+tlvProfile2UnsuccessfulAssociationPolicy:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_UNSUCCESSFUL_ASSOCIATION_POLICY  # line 1 (value)
+  length: uint16_t                                              # line 2 
+  report_unsuccessful_associations: sUnsuccessfulAssociations
+  maximum_reporting_rate: uint32_t                              # line 5
+
+sUnsuccessfulAssociations:
+  _type: struct
+  _bit_field: uint8_t
+  report:
+    _bit_range: [7,7]  # line 3
+  reserved:
+    _bit_range: [6,0]  # line 4
+    _value: 0
+

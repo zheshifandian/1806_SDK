@@ -1,0 +1,25 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.47 eMultiApProfile
+
+tlvProfile2MultiApProfile:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_MULTIAP_PROFILE
+  length: uint16_t
+  profile: 
+    _type: eMultiApProfile
+    _value: eMultiApProfile::MULTIAP_PROFILE_3
+
+eMultiApProfile:
+  _type: enum
+  _enum_storage: uint8_t
+  PRPLMESH_PROFILE_UNKNOWN: 0x0
+  MULTIAP_PROFILE_1: 0x1
+  MULTIAP_PROFILE_2: 0x2
+  MULTIAP_PROFILE_3: 0x3

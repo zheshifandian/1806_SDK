@@ -1,0 +1,56 @@
+#
+---
+_include:
+  { bcl/beerocks_message_structs.h, beerocks/tlvf/beerocks_message_action.h }
+
+_namespace: beerocks_message
+
+_multi_class: True
+_multi_class_auto_insert:
+  action_op:
+    _type: eActionOp_1905_VS
+    _value_const: ACTION_TLV_VENDOR_SPECIFIC
+    _class_const: True
+
+#################################################
+#################################################
+
+tlvVsClientAssociationEvent:
+  _type: class
+  _comment: TOPOLOGY_NOTIFICATION_MESSAGE
+  mac: sMacAddr
+  bssid: sMacAddr
+  vap_id: int8_t
+  capabilities:
+    _type: beerocks::message::sRadioCapabilities
+    _comment: relevant only on connect event
+  disconnect_reason:
+    _type: uint8_t
+    _comment: relevant only on disconnect event
+  disconnect_source:
+    _type: uint8_t
+    _comment: relevant only on disconnect event
+  disconnect_type:
+    _type: uint8_t
+    _comment: relevant only on disconnect event
+
+sScanRequestExtension:
+  _type: struct
+  radio_mac: sMacAddr
+  dwell_time_ms:
+    _type: uint32_t
+  _value: 0
+  _comment: time interval (msec) between channels during scan
+
+tlvVsChannelScanRequestExtension:
+  _type: class
+  scan_requests_list_length:
+    _type: uint8_t
+    _length_var: True
+  scan_requests_list:
+    _type: sScanRequestExtension
+    _length: [ scan_requests_list_length ]
+
+tlvVsChannelScanReportDone:
+  _type: class
+  report_done: uint8_t #bool

@@ -1,0 +1,21 @@
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/ubus.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/ubus.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/ubus.c
+@@ -377,6 +377,7 @@ hostapd_bss_wps_state(struct ubus_contex
+         struct ubus_request_data *req, const char *method,
+         struct blob_attr *msg)
+ {
++#ifdef CONFIG_WPS
+ 	struct hostapd_data *hapd = container_of(obj, struct hostapd_data, ubus.obj);
+     char * state;
+ 
+@@ -396,7 +397,7 @@ hostapd_bss_wps_state(struct ubus_contex
+     blob_buf_init(&b, 0);
+     blobmsg_add_string(&b, "wps state", state);
+     ubus_send_reply(ctx, req, b.head);
+-
++#endif
+     return 0;
+ }
+ 

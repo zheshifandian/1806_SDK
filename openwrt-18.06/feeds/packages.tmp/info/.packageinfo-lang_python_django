@@ -1,0 +1,51 @@
+Source-Makefile: feeds/packages/lang/python/django/Makefile
+
+Package: python3-django
+Menu: 1
+Submenu: Python
+Version: 2.2.7-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +PACKAGE_python3-django:python3 +PACKAGE_python3-django:python3-pytz +PACKAGE_python3-django:python3-sqlparse
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: The web framework for perfectionists with deadlines.
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Django-2.2.7.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE LICENSE.python
+Type: ipkg
+Description:     The web framework for perfectionists with deadlines (LTS 2.2 series).
+    Python3 only.
+https://www.djangoproject.com/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-django-src
+Submenu: Python
+Version: 2.2.7-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: The web framework for perfectionists with deadlines. (sources)
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Django-2.2.7.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE LICENSE.python
+Type: ipkg
+Description:         The web framework for perfectionists with deadlines (LTS 2.2 series).
+    Python3 only..
+    (Contains the Python3 sources for this package).
+https://www.djangoproject.com/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

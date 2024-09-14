@@ -1,0 +1,28 @@
+#
+---
+_namespace: ieee1905_1
+
+tlv1905NeighborDevice:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvType
+    _value_const: TLV_1905_NEIGHBOR_DEVICE
+  length:
+    _type: uint16_t
+  mac_local_iface: sMacAddr
+  mac_al_1905_device:
+    _type: sMacAl1905Device
+    _length: []
+
+eBridgesExist:
+  _type: enum
+  _enum_storage: uint8_t
+  NO_BRIDGES_EXIST: 0x00
+  AT_LEAST_ONE_BRIDGES_EXIST: 0x80
+
+sMacAl1905Device:
+  _type: struct
+  mac: sMacAddr
+  bridges_exist: eBridgesExist
+

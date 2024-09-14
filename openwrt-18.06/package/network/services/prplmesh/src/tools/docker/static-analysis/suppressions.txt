@@ -1,0 +1,15 @@
+// Suppress warning: Member variable 'X' is not initialized in the constructor.
+uninitMemberVar
+
+// Suppress performance: Variable 'X' is assigned in constructor body. Consider performing initialization in initialization list.
+useInitializationList
+
+// Suppress style: Consider using std::find_if algorithm instead of a raw loop.
+useStlAlgorithm
+
+// Suppress warning: Redundant assignment of '*(volatile char*)pass' to itself.
+// The code causing this issue is used for zeroing out passwords in memory.
+selfAssignment:agent/src/beerocks/slave/platform_manager/platform_manager.cpp
+
+// Suppress error: syntax error.
+syntaxError:agent/src/beerocks/slave/gate/unit_tests/gate_test.cpp

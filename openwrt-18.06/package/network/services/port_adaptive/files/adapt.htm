@@ -1,0 +1,106 @@
+<%+header%>
+<fieldset class="dmz">
+	<legend><%:手动配置%></legend>
+    <ul><li class="border-line"></li></ul>
+	<table class="tb-no-border">
+		<tbody>
+		<tr>
+			<td class="wan-td-left" id="p1" >未连接</button></td>
+			<td class="wan-td-left" id="p2" >未连接</button></td>
+			<td class="wan-td-left" id="p3" >未连接</button></td>
+			<td class="wan-td-left" id="p4" >未连接</button></td>
+			<td class="wan-td-left" id="p5" >未连接</button></td>
+		</tr>
+		<tr>
+			<td class="wan-td-left" ><button onclick="set_auto_adapt(1)" id="b1" >lan</button></td>
+			<td class="wan-td-left" ><button onclick="set_auto_adapt(2)" id="b2" >lan</button></td>
+			<td class="wan-td-left" ><button onclick="set_auto_adapt(3)" id="b3" >lan</button></td>
+			<td class="wan-td-left" ><button onclick="set_auto_adapt(4)" id="b4" >lan</button></td>
+			<td class="wan-td-left" ><button onclick="set_auto_adapt(5)" id="b5" >lan</button></td>
+		</tr>
+		</tbody>
+	</table>
+
+	<ul><li class="border-line"></li></ul>
+	<legend><%:自动配置%></legend>
+	<div class="bWlSwitchCon dhcp">
+		<div><button id="set_now" onclick="set_auto_adapt('start')" >立即配置</button></div>
+	</div>
+	<ul><li class="border-line"></li></ul>
+
+	<ul><li class="border-line"></li></ul>
+	<legend><%:开机自启动%></legend>
+	<i class="helpBtn" helpstr="dynamicIpHelp"></i>
+    <div class="bWlSwitchCon dhcp">
+        <div id="switchCon" class="switchCon" onclick="switchChangqe()">
+            <i class="switchBg"></i>
+            <i id="switchOn" class="switchBall" style=""></i>
+            <i id="switchOff" class="switchBallOff" style="display: none;"></i>
+        </div>
+        <span id="switchSpan" class="bWlSwitchOff"><%:disabled%></span>
+    </div>
+	<ul><li class="border-line"></li></ul>
+</fieldset>
+<%+footer%>
+<script>
+var auto_en = 0;
+
+function get_auto_adapt() {
+	var params = {'cmd':'get'};
+	XHR.post('<%=luci.dispatcher.build_url("admin", "advancednew","set_port")%>', params,function(x, result){
+			if (result) {
+				var connect = result.connect;
+				for(var i=0;i<connect.length;i++){
+					var pi = document.getElementById('p'+connect[i]);
+					pi.innerHTML="已连接";
+				}
+				var id_num = Number(result.wan) + 1;
+				for(var i=1;i<6;i++){
+					if (i==id_num) {
+						document.getElementById('b'+i).innerHTML="wan";
+					} else{
+						document.getElementById('b'+i).innerHTML="lan";
+					}
+				}
+				auto_en = result.enable;
+				if (auto_en ==0) {
+					document.getElementById("switchSpan").innerText = '<%:disabled%>';
+					document.getElementById("switchSpan").className = "bWlSwitchOff";
+					document.getElementById("switchOn").style.display = "none";
+					document.getElementById("switchOff").style.display = "";
+				} else {
+					document.getElementById("switchSpan").innerText = '<%:enabled%>';
+					document.getElementById("switchSpan").className = "bWlSwitchOff spanSwitchOn";
+					document.getElementById("switchOn").style.display = "";
+					document.getElementById("switchOff").style.display = "none"
+				}
+			}
+		});
+}
+
+function set_auto_adapt(n) {
+	var params = {'cmd':n};
+	XHR.post('<%=luci.dispatcher.build_url("admin", "advancednew","set_port")%>', params,function(x, result){
+			if (result) {
+				get_auto_adapt();
+			}
+	});
+}
+
+function switchChangqe(){
+	var cmd;
+	if (auto_en == 0) {
+		cmd = 'enable';
+	} else {
+		cmd = 'disable';
+	}
+	var params = {'cmd':cmd};
+	XHR.post('<%=luci.dispatcher.build_url("admin", "advancednew","set_port")%>', params,function(x, result){
+			if (result) {
+				get_auto_adapt();
+			}
+	});
+}
+
+get_auto_adapt()
+</script>

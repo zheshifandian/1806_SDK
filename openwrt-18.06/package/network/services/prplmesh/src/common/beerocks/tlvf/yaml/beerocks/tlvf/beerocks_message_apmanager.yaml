@@ -1,0 +1,251 @@
+#
+---
+_include:
+  {
+    beerocks/tlvf/beerocks_message_common.h,
+    classes/ChannelList.h,
+    structs/sCacStartedNotificationParams.h,
+    tlvf/WSC/WSC_Attributes.h,
+  }
+
+_namespace: beerocks_message
+_multi_class: True
+_multi_class_auto_insert:
+  action_op:
+    _type: eActionOp_APMANAGER
+    _value_const: [_auto_value_by_name, 1]
+    _class_const: True
+
+#################################################
+#################################################
+
+cACTION_APMANAGER_UP_NOTIFICATION:
+  _type: class
+  iface_name_length:
+    _type: uint8_t
+    _length_var: True
+  iface_name:
+    _type: char
+    _length: [iface_name_length]
+
+cACTION_APMANAGER_CONFIGURE:
+  _type: class
+  channel: uint8_t
+
+cACTION_APMANAGER_JOINED_NOTIFICATION:
+  _type: class
+  params: sNodeHostap
+  cs_params: sApChannelSwitch
+  channel_list: cChannelList
+  vap_list: sVapsList
+
+cACTION_APMANAGER_ENABLE_APS_REQUEST:
+  _type: class
+  channel: uint8_t
+  bandwidth: beerocks::eWiFiBandwidth
+  center_channel: uint8_t
+
+cACTION_APMANAGER_ENABLE_APS_RESPONSE:
+  _type: class
+  success: uint8_t
+
+cACTION_APMANAGER_HOSTAP_SET_RESTRICTED_FAILSAFE_CHANNEL_REQUEST:
+  _type: class
+  params: sApSetRestrictedFailsafe
+
+cACTION_APMANAGER_HOSTAP_SET_RESTRICTED_FAILSAFE_CHANNEL_RESPONSE:
+  _type: class
+  success: uint8_t
+
+cACTION_APMANAGER_HOSTAP_AP_DISABLED_NOTIFICATION:
+  _type: class
+  vap_id: int8_t
+
+cACTION_APMANAGER_HOSTAP_AP_ENABLED_NOTIFICATION:
+  _type: class
+  vap_id: int8_t
+  vap_info: sVapInfo
+
+cACTION_APMANAGER_HOSTAP_VAPS_LIST_UPDATE_REQUEST:
+  _type: class
+
+cACTION_APMANAGER_HOSTAP_GENERATE_CLIENT_ASSOCIATION_NOTIFICATIONS_REQUEST:
+  _type: class
+
+cACTION_APMANAGER_HOSTAP_VAPS_LIST_UPDATE_NOTIFICATION:
+  _type: class
+  params: sVapsList
+
+cACTION_APMANAGER_HOSTAP_CHANNEL_SWITCH_ACS_START:
+  _type: class
+  cs_params: sApChannelSwitch
+  tx_limit: int8_t
+  tx_limit_valid: uint8_t #bool
+
+cACTION_APMANAGER_HOSTAP_CANCEL_ACTIVE_CAC_REQUEST:
+  _type: class
+  cs_params: sApChannelSwitch
+
+cACTION_APMANAGER_HOSTAP_CANCEL_ACTIVE_CAC_RESPONSE:
+  _type: class
+  success: uint8_t # bool
+
+cACTION_APMANAGER_HOSTAP_CSA_ERROR_NOTIFICATION:
+  _type: class
+  cs_params: sApChannelSwitch
+
+cACTION_APMANAGER_HOSTAP_CSA_NOTIFICATION:
+  _type: class
+  cs_params: sApChannelSwitch
+
+cACTION_APMANAGER_HOSTAP_ACS_NOTIFICATION:
+  _type: class
+  cs_params: sApChannelSwitch
+
+cACTION_APMANAGER_HOSTAP_DFS_CAC_STARTED_NOTIFICATION:
+  _type: class
+  params: sCacStartedNotificationParams
+
+cACTION_APMANAGER_HOSTAP_DFS_CAC_COMPLETED_NOTIFICATION:
+  _type: class
+  params: sDfsCacCompleted
+
+cACTION_APMANAGER_HOSTAP_DFS_CHANNEL_AVAILABLE_NOTIFICATION:
+  _type: class
+  params: sDfsChannelAvailable
+
+cACTION_APMANAGER_HOSTAP_SET_NEIGHBOR_11K_REQUEST:
+  _type: class
+  params: sNeighborSetParams11k
+
+cACTION_APMANAGER_HOSTAP_REMOVE_NEIGHBOR_11K_REQUEST:
+  _type: class
+  params: sNeighborRemoveParams11k
+
+cACTION_APMANAGER_HOSTAP_ZWDFS_ANT_CHANNEL_SWITCH_REQUEST:
+  _type: class
+  ant_switch_on: uint8_t #bool
+  channel: uint8_t
+  bandwidth: beerocks::eWiFiBandwidth
+  center_frequency: uint32_t
+
+cACTION_APMANAGER_HOSTAP_ZWDFS_ANT_CHANNEL_SWITCH_RESPONSE:
+  _type: class
+  success: uint8_t #bool
+
+cACTION_APMANAGER_HOSTAP_SET_PRIMARY_VLAN_ID_REQUEST:
+  _type: class
+  primary_vlan_id: uint16_t
+
+cACTION_APMANAGER_CLIENT_ASSOCIATED_NOTIFICATION:
+  _type: class
+  mac: sMacAddr
+  bssid: sMacAddr
+  capabilities: beerocks::message::sRadioCapabilities
+  vap_id: int8_t
+  multi_ap_profile:
+    _type: uint8_t
+    _comment: |
+      0 - Not Multi-AP station
+      1 - Profile 1 Agent
+      2 - Profile 2 Agent
+  association_frame:
+    _type: uint8_t
+    _length: []
+
+cACTION_APMANAGER_CLIENT_DISCONNECTED_NOTIFICATION:
+  _type: class
+  params: sClientDisconnectionParams
+
+cACTION_APMANAGER_CLIENT_DISCONNECT_REQUEST:
+  _type: class
+  mac: sMacAddr
+  vap_id: int8_t
+  type: eDisconnectType
+  reason: uint32_t
+
+cACTION_APMANAGER_CLIENT_DISCONNECT_RESPONSE:
+  _type: class
+  params: sClientDisconnectResponse
+
+cACTION_APMANAGER_CLIENT_DISALLOW_REQUEST:
+  _type: class
+  mac: sMacAddr
+  bssid: sMacAddr
+  validity_period_sec: uint16_t
+
+cACTION_APMANAGER_CLIENT_ALLOW_REQUEST:
+  _type: class
+  mac: sMacAddr
+  bssid: sMacAddr
+
+cACTION_APMANAGER_CLIENT_RX_RSSI_MEASUREMENT_REQUEST:
+  _type: class
+  params: sNodeRssiMeasurementRequest
+
+cACTION_APMANAGER_CLIENT_RX_RSSI_MEASUREMENT_RESPONSE:
+  _type: class
+  params: sNodeRssiMeasurement
+
+cACTION_APMANAGER_ACK:
+  _type: class
+  reason: uint8_t
+  sta_mac: sMacAddr
+
+cACTION_APMANAGER_CLIENT_BSS_STEER_REQUEST:
+  _type: class
+  params: sNodeBssSteerRequest
+
+cACTION_APMANAGER_CLIENT_BSS_STEER_RESPONSE:
+  _type: class
+  params: sNodeBssSteerResponse
+
+cACTION_APMANAGER_CLIENT_RX_RSSI_MEASUREMENT_CMD_RESPONSE:
+  _type: class
+  mac: sMacAddr
+
+cACTION_APMANAGER_STEERING_CLIENT_SET_REQUEST:
+  _type: class
+  params: sSteeringClientSetRequest
+
+cACTION_APMANAGER_STEERING_CLIENT_SET_RESPONSE:
+  _type: class
+  params: sSteeringClientSetResponse
+
+cACTION_APMANAGER_STEERING_EVENT_PROBE_REQ_NOTIFICATION:
+  _type: class
+  params: sSteeringEvProbeReq
+
+cACTION_APMANAGER_STEERING_EVENT_AUTH_FAIL_NOTIFICATION:
+  _type: class
+  params: sSteeringEvAuthFail
+
+cACTION_APMANAGER_WIFI_CREDENTIALS_UPDATE_REQUEST:
+  _type: class
+  wifi_credentials_size:
+    _type: uint8_t
+    _length_var: True
+  wifi_credentials:
+    _type: WSC::cConfigData
+    _length: [wifi_credentials_size]
+
+cACTION_APMANAGER_START_WPS_PBC_REQUEST:
+  _type: class
+
+cACTION_APMANAGER_SET_ASSOC_DISALLOW_REQUEST:
+  _type: class
+  enable: uint8_t #bool
+  bssid: sMacAddr
+
+cACTION_APMANAGER_RADIO_DISABLE_REQUEST:
+  _type: class
+
+cACTION_APMANAGER_HEARTBEAT_NOTIFICATION:
+  _type: class
+
+cACTION_APMANAGER_CHANNELS_LIST_REQUEST:
+  _type: class
+
+cACTION_APMANAGER_CHANNELS_LIST_RESPONSE:
+  _type: class
+  channel_list: cChannelList

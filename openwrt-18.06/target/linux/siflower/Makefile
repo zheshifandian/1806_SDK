@@ -8,10 +8,11 @@ include $(TOPDIR)/rules.mk
 
 ARCH:=mipsel
 BOARD:=siflower
-BOARDNAME:=MIPS Siflower board
-SUBTARGETS:=sf16a18-fullmask sf19a28-mpw1 sf19a28-fullmask
+BOARDNAME:=Siflower board
+SUBTARGETS:=sf19a28-fullmask
 INITRAMFS_EXTRA_FILES:=
 MAINTAINER:=Shanghai Siflower Communication Technology Co., Ltd.
+FEATURES:=fpu usb cpiogz gpio ramdisk squashfs targz separate_ramdisk
 
 KERNEL_PATCHVER:=4.14
 

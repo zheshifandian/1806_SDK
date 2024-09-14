@@ -167,7 +167,6 @@ MAKE_FLAGS := \
 define Package/dnsmasq/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/dnsmasq $(1)/usr/sbin/
-	$(INSTALL_BIN) ./files/sf_dnsmasq $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/lib/netifd/
 	$(INSTALL_BIN) ./files/dhcplease $(1)/lib/netifd/
 	$(INSTALL_DIR) $(1)/etc/config

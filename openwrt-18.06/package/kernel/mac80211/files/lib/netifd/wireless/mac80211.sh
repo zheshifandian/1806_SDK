@@ -25,7 +25,7 @@ drv_mac80211_init_device_config() {
 	config_add_string hwmode band
 	config_add_int beacon_int chanbw frag rts max_all_num_sta
 	config_add_int rxantenna txantenna antenna_gain txpower txpower_lvl distance
-	config_add_boolean noscan ht_coex
+	config_add_boolean noscan ht_coex hb_priority
 	config_add_array ht_capab
 	config_add_array channels
 	config_add_boolean \
@@ -96,8 +96,11 @@ mac80211_hostapd_setup_base() {
 	[ "$auto_channel" -gt 0 ] && channel=acs_survey
 	[ "$auto_channel" -gt 0 ] && json_get_values channel_list channels
 
-	json_get_vars noscan ht_coex max_all_num_sta
+	json_get_vars noscan ht_coex max_all_num_sta hb_priority
 	json_get_values ht_capab_list ht_capab
+
+	set_default hb_priority 0
+	append base_cfg "hb_priority=$hb_priority" "$N"
 
 	ieee80211n=1
 	ht_capab=
@@ -106,17 +109,10 @@ mac80211_hostapd_setup_base() {
 		HT40*|VHT40|VHT80|VHT160)
 			case "$hwmode" in
 				a)
-                    if [ "$channel" -eq 179 ] || [ "$channel" -eq 181 ]; then
-                        case "$(( ($channel / 4) % 2 ))" in
-                            0) ht_capab="[HT40+]";;
-                            1) ht_capab="[HT40-]";;
-                        esac
-                    else
-                        case "$(( ($channel / 4) % 2 ))" in
-                            1) ht_capab="[HT40+]";;
-                            0) ht_capab="[HT40-]";;
-                        esac
-                    fi
+					case "$(( ($channel / 4) % 2 ))" in
+						1) ht_capab="[HT40+]";;
+						0) ht_capab="[HT40-]";;
+					esac
 				;;
 				*)
 					case "$htmode" in
@@ -188,11 +184,6 @@ mac80211_hostapd_setup_base() {
 				1) idx=$(($channel + 2));;
 				0) idx=$(($channel - 2));;
 			esac
-            if [ "$channel" -eq 175 ] || [ "$channel" -eq 177 ]; then
-                idx=176
-            elif [ "$channel" -eq 179 ] || [ "$channel" -eq 181 ]; then
-                idx=180
-            fi
 			enable_ac=1
 			append base_cfg "vht_oper_chwidth=0" "$N"
 			if [ "$band" = "5G" ]; then
@@ -206,12 +197,6 @@ mac80211_hostapd_setup_base() {
 				3) idx=$(($channel - 2));;
 				0) idx=$(($channel - 6));;
 			esac
-            if [ "$channel" -eq 175 ] || [ "$channel" -eq 177 ] ||[ "$channel" -eq 179 ] || [ "$channel" -eq 181 ]; then
-                idx=178
-            fi
-            if [ "$channel" -eq 188 ] || [ "$channel" -eq 192 ] ||[ "$channel" -eq 196 ] || [ "$channel" -eq 200 ]; then
-                idx=194
-            fi
 			enable_ac=1
 			append base_cfg "vht_oper_chwidth=1" "$N"
 			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
@@ -720,9 +705,7 @@ mac80211_setup_mesh() {
 		;;
 		*) mesh_htmode="NOHT" ;;
 	esac
-	iw dev "$ifname" mesh join "$ssid" freq $freq $mesh_htmode \
-		${mcval:+mcast-rate $mcval} \
-		beacon-interval $beacon_int
+	iw dev "$ifname" mesh join "$ssid" ${mcval:+mcast-rate $mcval}
 }
 
 mac80211_setup_vif() {
@@ -843,6 +826,7 @@ drv_mac80211_repup() {
 	wireless_set_up_wpas
 }
 
+
 mac80211_rm_conf_file() {
 	json_select config
 	json_get_vars ifname mode
@@ -866,9 +850,8 @@ mac80211_rm_conf_file() {
 	esac
 }
 
-
 drv_mac80211_repdown() {
-	# wireless_process_kill_wpas
+#	wireless_process_kill_wpas
 
 	json_select data
 	json_get_vars phy
@@ -958,15 +941,15 @@ drv_mac80211_setup() {
 
 	for_each_interface "ap wds-ap" mac80211_prepare_vif
 
-	# [ -n "$hostapd_ctrl" ] && {
-	# 	/usr/sbin/hostapd -s -P /var/run/wifi-$phy.pid -B "$hostapd_conf_file"
-	# 	ret="$?"
-	# 	wireless_add_process "$(cat /var/run/wifi-$phy.pid)" "/usr/sbin/hostapd" 1
-	# 	[ "$ret" != 0 ] && {
-	# 		wireless_setup_failed HOSTAPD_START_FAILED
-	# 		return
-	# 	}
-	# }
+#	[ -n "$hostapd_ctrl" ] && {
+#		/usr/sbin/hostapd -s -P /var/run/wifi-$phy.pid -B "$hostapd_conf_file"
+#		ret="$?"
+#		wireless_add_process "$(cat /var/run/wifi-$phy.pid)" "/usr/sbin/hostapd" 1
+#		[ "$ret" != 0 ] && {
+#			wireless_setup_failed HOSTAPD_START_FAILED
+#			return
+#		}
+#	}
 
 	for_each_interface "ap wds-ap" mac80211_setup_vif
 
@@ -983,7 +966,7 @@ list_phy_interfaces() {
 }
 
 drv_mac80211_teardown() {
-	# wireless_process_kill_all
+#	wireless_process_kill_all
 
 	json_select data
 	json_get_vars phy

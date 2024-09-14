@@ -30,35 +30,22 @@ NOSTDINC_FLAGS += -DCONFIG_SEND_ERR
 EXTRA_KCONFIG += CONFIG_SEND_ERR=y
 endif
 
-SFAX8_KO_NAME="sfax8_netlink.ko"
-
-ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_netlink_s.ko"
-endif
-
-ifneq ($(findstring NAND,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_netlink_nand.ko"
-endif
-
-ifneq ($(findstring EVB,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_netlink_evb.ko"
-endif
-
-ifneq ($(findstring PHY,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_netlink_p.ko"
-endif
-
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_netlink_yts.ko"
-endif
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./* $(PKG_BUILD_DIR)/
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
 endef
 
 define Build/Compile
-$(CP) ./$(SFAX8_KO_NAME) $(PKG_BUILD_DIR)/sfax8_netlink.ko
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
+	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+		ARCH="$(LINUX_KARCH)" \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
+		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+		$(EXTRA_KCONFIG)  \
+		modules
 endef
 
 $(eval $(call KernelPackage,sf_netlink))

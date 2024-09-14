@@ -1,0 +1,26 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.43 CAC Termination TLV format
+
+tlvProfile2CacTermination:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_CAC_TERMINATION                  # line 1 (value)
+  length: uint16_t                                              # line 2 
+  number_of_cac_radios:                                         # line 3
+    _type: uint8_t
+    _length_var: True
+  cac_radios:                                                   # line 7
+    _type: sCacTerminationRadio
+    _length: [ number_of_cac_radios ]
+
+sCacTerminationRadio:
+  _type: struct
+  radio_uid: sMacAddr           # line 4
+  operating_class: uint8_t      # line 5
+  channel: uint8_t              # line 6

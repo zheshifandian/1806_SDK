@@ -1,0 +1,13 @@
+#
+---
+_include:
+  { bcl/beerocks_defines.h }
+
+_namespace: beerocks_message
+
+sCacStartedNotificationParams:
+  _type: struct
+  channel: uint8_t
+  secondary_channel: uint8_t
+  bandwidth: beerocks::eWiFiBandwidth
+  cac_duration_sec: uint16_t

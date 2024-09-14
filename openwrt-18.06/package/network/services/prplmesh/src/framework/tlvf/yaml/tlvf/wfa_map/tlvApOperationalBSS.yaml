@@ -1,0 +1,35 @@
+#
+---
+_namespace: wfa_map
+
+tlvApOperationalBSS:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_AP_OPERATIONAL_BSS
+  length: uint16_t
+  radio_list_length:
+    _type: uint8_t
+    _length_var: True
+  radio_list:
+    _type: cRadioInfo
+    _length: [ radio_list_length ]
+
+cRadioInfo:
+  _type: class
+  radio_uid: sMacAddr
+  radio_bss_list_length:
+    _type: uint8_t
+    _length_var: True
+  radio_bss_list:
+    _type: cRadioBssInfo
+    _length: [ radio_bss_list_length ]
+
+cRadioBssInfo:
+  _type: class
+  radio_bssid: sMacAddr
+  ssid_length: uint8_t
+  ssid:
+    _type: char
+    _length: [ssid_length]

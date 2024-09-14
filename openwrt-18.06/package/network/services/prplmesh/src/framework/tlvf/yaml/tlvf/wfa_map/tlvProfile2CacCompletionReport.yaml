@@ -1,0 +1,61 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.44 CAC Completion Report TLV
+
+tlvProfile2CacCompletionReport:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_CAC_COMPLETION_REPORT            # line 1 (value)
+  length: uint16_t                                              # line 2 
+  number_of_cac_radios:                                         # line 3
+    _type: uint8_t
+    _length_var: True
+  cac_radios:                                                   # line 12
+    _type: cCacCompletionReportRadio
+    _length: [ number_of_cac_radios ]
+
+cCacCompletionReportRadio:
+  _type: class
+  radio_uid: sMacAddr               # line 4
+  operating_class: uint8_t          # line 5
+  channel: uint8_t                  # line 6
+  cac_completion_status:            # line 7
+    _type: eCompletionStatus
+    _value: NOT_PERFORMED
+  number_of_detected_pairs:                                   # line 8
+    _type: uint8_t
+    _length_var: True
+  detected_pairs:                                             # line 11 
+    _type: sCacDetectedPair
+    _length: [ number_of_detected_pairs ]
+  
+sCacDetectedPair:
+  _type: struct
+  operating_class_detected: uint8_t     # line 9
+  channel_detected: uint8_t             # line 10
+
+eCompletionStatus:
+    _type : enum
+    _comment: |
+      From the Spec:
+      0x00: Successful
+      0x01: Radar detected
+      0x02: CAC not supported as requested (capability mismatch)
+      0x03: Radio too busy to perform CAC
+      0x04: Request was considered to be non-conformant to regulations in the country in which the Multi-AP Agent is operating
+      0x05: Other error
+      0x06-0xFF: Reserved
+      0xFF: prplmesh addition - CAC was not performed
+    _enum_storage: uint8_t
+    SUCCESSFUL:              0x00
+    RADAR_DETECTED:          0x01
+    CAC_NOT_SUPPORTED:       0x02
+    RADIO_TOO_BUSY:          0x03
+    NOT_UNDER_REGULATION:    0x04
+    OTHER_ERROR:             0x05 
+    NOT_PERFORMED:           0xFF

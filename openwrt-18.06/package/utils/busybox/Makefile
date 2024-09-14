@@ -95,6 +95,7 @@ MAKE_FLAGS += \
 	EXTRA_LDFLAGS="$(TARGET_LDFLAGS)" \
 	LDLIBS="$(LDLIBS)" \
 	LD="$(TARGET_CC)" \
+	AR="$(TARGET_CROSS)gcc-ar" \
 	SKIP_STRIP=y
 ifneq ($(findstring c,$(OPENWRT_VERBOSE)),)
   MAKE_FLAGS += V=1

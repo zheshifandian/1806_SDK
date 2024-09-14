@@ -7,6 +7,23 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
+ifeq ($(SUBTARGET),sf23a2892-mpw0)
+define Device/Default
+  PROFILES = Default $$(DEVICE_NAME)
+  KERNEL_INITRAMFS = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL = kernel-bin | lzma
+  FILESYSTEMS := squashfs
+  DEVICE_DTS_DIR := $(DTS_DIR)
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin = append-kernel | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | append-rootfs | pad-rootfs | append-metadata
+endef
+
+include $(SUBTARGET).mk
+
+define Image/Build
+	$(call Image/Build/$(1),$(1))
+endef
+else
 define get_kernel_entry
 0x$(shell $(TARGET_CROSS)nm $(1) 2>/dev/null | grep " kernel_entry" | cut -f1 -d ' ')
 endef
@@ -73,5 +90,6 @@ define Image/Build
 	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-root.$(1) bs=128k conv=sync
 	$(call Image/MakeSysupgradeBinary)
 endef
+endif
 
 $(eval $(call BuildImage))

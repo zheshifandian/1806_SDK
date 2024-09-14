@@ -1,0 +1,9 @@
+common/beerocks/bcl/include/bcl/beerocks_logging.h: style: Class 'logging' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]    logging(const std::string &module_name, const std::string &config_path = std::string(),
+common/beerocks/bcl/source/beerocks_logging.cpp: style: The class 'NetLogger' does not have a constructor although it has private member variables. [noConstructor]class NetLogger : public el::LogDispatchCallback {
+common/beerocks/bwl/dwpal/ap_wlan_hal_dwpal.cpp: information: This file is not analyzed. Cppcheck failed to extract a valid configuration. Use -v for more details. [noValidConfiguration]
+common/beerocks/bwl/shared/netlink_socket.cpp: style: Local variable 'rc' shadows outer variable [shadowVariable]        int rc = nl_recvmsgs(m_nl_socket.get(), nl_callback.get());
+common/beerocks/bwl/shared/nl80211_socket.cpp: style: The if condition is the same as the previous if condition [duplicateCondition]    if (result) {
+common/beerocks/tlvf/src/src/beerocks_message.cpp: style: Parameter 'cmdu_rx' can be declared with const [constParameter]bool message_com::forward_cmdu_to_uds(Socket *sd, ieee1905_1::CmduMessageRx &cmdu_rx,
+controller/src/beerocks/master/tasks/load_balancer_task.cpp: style: The scope of the variable 'chosen_hostap_bytes_per_second_gained' can be reduced. [variableScope]        int chosen_hostap_bytes_per_second_gained = INT32_MIN;
+controller/src/beerocks/master/tasks/network_health_check_task.cpp: style: Redundant checking of STL container element existence before removing it. [redundantIfRemove]            if (suspected_dis_clients.find(pending_node) != suspected_dis_clients.end()) {
+framework/platform/bpl/db/linux/bpl_db.cpp: style: Parameter 'nested_params' can be declared with const [constParameter]    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> &nested_params)

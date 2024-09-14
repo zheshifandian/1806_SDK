@@ -124,10 +124,14 @@ endef
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
+		AR="$(TARGET_CROSS)gcc-ar" \
+		RANLIB="$(TARGET_CROSS)gcc-ranlib" \
 		PROGRAMS="dropbear dbclient dropbearkey scp" \
 		MULTI=1 SCPPROGRESS=1
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
+		AR="$(TARGET_CROSS)gcc-ar" \
+		RANLIB="$(TARGET_CROSS)gcc-ranlib" \
 		PROGRAMS="dropbearconvert"
 endef
 

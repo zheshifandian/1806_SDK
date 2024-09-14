@@ -1,0 +1,107 @@
+Index: netifd-2018-12-16-2750ce2e/bridge.c
+===================================================================
+--- netifd-2018-12-16-2750ce2e.orig/bridge.c
++++ netifd-2018-12-16-2750ce2e/bridge.c
+@@ -139,8 +139,10 @@ bridge_reset_primary(struct bridge_state
+ 		bst->primary_port = bm;
+ 		if (bm->dev.dev->settings.flags & DEV_OPT_MACADDR)
+ 			macaddr = bm->dev.dev->settings.macaddr;
++
+ 		else
+ 			macaddr = bm->dev.dev->orig_settings.macaddr;
++
+ 		memcpy(bst->dev.settings.macaddr, macaddr, 6);
+ 		bst->dev.settings.flags |= DEV_OPT_MACADDR;
+ 		return;
+Index: netifd-2018-12-16-2750ce2e/system-linux.c
+===================================================================
+--- netifd-2018-12-16-2750ce2e.orig/system-linux.c
++++ netifd-2018-12-16-2750ce2e/system-linux.c
+@@ -56,6 +56,9 @@
+ #define IFA_FLAGS (IFA_MULTICAST + 1)
+ #endif
+
++#define MAC2STR(a) (a)[0], (a)[1], (a)[2], (a)[3], (a)[4], (a)[5]
++#define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
++
+ #include <string.h>
+ #include <fcntl.h>
+ #include <glob.h>
+@@ -73,6 +76,8 @@
+ #include "device.h"
+ #include "system.h"
+
++extern uint8_t rewrite_macaddr[6];
++
+ struct event_socket {
+ 	struct uloop_fd uloop;
+ 	struct nl_sock *sock;
+@@ -1598,6 +1603,9 @@ system_if_get_settings(struct device *de
+ 	}
+
+ 	if (ioctl(sock_ioctl, SIOCGIFHWADDR, &ifr) == 0) {
++		if(!strcmp(dev->ifname, "eth0.1")) {
++			memcpy(&ifr.ifr_hwaddr.sa_data, rewrite_macaddr, 6);
++		}
+ 		memcpy(s->macaddr, &ifr.ifr_hwaddr.sa_data, sizeof(s->macaddr));
+ 		s->flags |= DEV_OPT_MACADDR;
+ 	}
+@@ -1693,10 +1701,14 @@ system_if_apply_settings(struct device *
+ 			s->flags &= ~DEV_OPT_TXQUEUELEN;
+ 	}
+ 	if ((s->flags & DEV_OPT_MACADDR & apply_mask) && !dev->external) {
++		if(!strcmp(dev->ifname, "eth0.1")) {
++			memcpy(s->macaddr, rewrite_macaddr, 6);
++		}
+ 		ifr.ifr_hwaddr.sa_family = ARPHRD_ETHER;
+ 		memcpy(&ifr.ifr_hwaddr.sa_data, s->macaddr, sizeof(s->macaddr));
+ 		if (ioctl(sock_ioctl, SIOCSIFHWADDR, &ifr) < 0)
+ 			s->flags &= ~DEV_OPT_MACADDR;
++
+ 	}
+ 	if (s->flags & DEV_OPT_IPV6 & apply_mask)
+ 		system_set_disable_ipv6(dev, s->ipv6 ? "0" : "1");
+Index: netifd-2018-12-16-2750ce2e/device.c
+===================================================================
+--- netifd-2018-12-16-2750ce2e.orig/device.c
++++ netifd-2018-12-16-2750ce2e/device.c
+@@ -30,6 +30,11 @@
+ #include "system.h"
+ #include "config.h"
+
++#define MAC2STR(a) (a)[0], (a)[1], (a)[2], (a)[3], (a)[4], (a)[5]
++#define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
++
++uint8_t rewrite_macaddr[6];
++
+ #define SET_IFINDEX_RETRY 10
+ static struct list_head devtypes = LIST_HEAD_INIT(devtypes);
+ static struct avl_tree devices;
+@@ -273,6 +278,8 @@ device_init_settings(struct device *dev,
+ 			memcpy(s->macaddr, ea, 6);
+ 			s->flags |= DEV_OPT_MACADDR;
+ 		}
++		if(!strcmp(dev->ifname, "eth0.1"))
++			memcpy(rewrite_macaddr, s->macaddr, 6);
+ 	}
+
+ 	if ((cur = tb[DEV_ATTR_IPV6])) {
+@@ -446,7 +453,10 @@ int device_claim(struct device_user *dep
+ 		if (!dev->ifindex)
+ 			ret = -1;
+
+-		system_if_get_settings(dev, &dev->orig_settings);
++		if (!strcmp(dev->ifname, "eth0.1"))
++			system_if_get_settings(dev, &dev->settings);
++		else
++			system_if_get_settings(dev, &dev->orig_settings);
+ 	} else {
+ 		int retry_cnt = SET_IFINDEX_RETRY;
+ 		ret = -1;
+@@ -571,6 +581,7 @@ device_create_default(const char *name,
+ 	dev->default_config = true;
+ 	if (external)
+ 		system_if_apply_settings(dev, &dev->settings, dev->settings.flags);
++
+ 	return dev;
+ }

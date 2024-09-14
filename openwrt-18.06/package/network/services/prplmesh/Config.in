@@ -1,0 +1,9 @@
+config PRPLMESH_HAS_WIRELESS_STA
+    bool "Include wireless STA support (intel_mips platforms)"
+    depends on TARGET_intel_mips
+    select WIRELESS_STA
+    default y
+    help
+        Include wireless STA support.
+        For intel_mips platforms, leave this option enabled  to have wireless station support.
+        For other platforms, the wireless station support is included by default and cannot be disabled.

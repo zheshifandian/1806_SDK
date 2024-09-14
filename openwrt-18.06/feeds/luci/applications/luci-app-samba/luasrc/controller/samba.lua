@@ -9,8 +9,8 @@ function index()
 		return
 	end
 
-	local page
+	--local page
 
-	page = entry({"admin", "services", "samba"}, cbi("samba"), _("Network Shares"))
-	page.dependent = true
+	--page = entry({"admin", "services", "samba"}, cbi("samba"), _("Network Shares"))
+	--page.dependent = true
 end

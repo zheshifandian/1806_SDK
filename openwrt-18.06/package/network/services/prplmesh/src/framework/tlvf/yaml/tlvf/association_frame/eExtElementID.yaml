@@ -1,0 +1,14 @@
+#
+---
+
+eExtElementID:
+  _type: enum
+  _enum_storage: uint8_t
+  _comment: |
+    Element ID Extension
+    (Cf. IEEE80211-2020 - Table 9-92)
+    (Cf. Draft P802.11REVme_D0.1 - Table 9-123)
+  EXTID_HE_CAPABILITIES: 35
+  _comment: |
+    Draft P802.11REVme_D0.1 
+    (9.4.2.248 HE Capabilities element(11ax))

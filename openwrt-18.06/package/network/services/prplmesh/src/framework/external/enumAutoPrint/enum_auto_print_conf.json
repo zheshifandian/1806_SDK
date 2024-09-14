@@ -1,0 +1,18 @@
+{
+    "workspaceRoot": "../../../",
+    "spaces_in_tab:": 4,
+    "test_mode_remove_out_files": false,
+    "test_mode_override_files": true,
+    "testWorkspaceRoot": "test/",
+    "formatter_open_direction": "// clang-format off",
+    "formatter_close_direction": "// clang-format on",
+    "redirect_stdout_to_log_file": true,
+    "excluded_files": [
+        "${testWorkspaceRoot}/subfolder/test.h",
+        "${workspaceRoot}/build/",
+        "${workspaceRoot}/framework/external/",
+        "${workspaceRoot}/common/",
+        "${workspaceRoot}/agent/",
+        "${workspaceRoot}/controller/"
+    ]
+}

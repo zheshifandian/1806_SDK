@@ -1,0 +1,39 @@
+top_dir = drivers/net/wireless/siflower/rf
+
+ifeq ($(CONFIG_DEBUG_FS), y)
+CONFIG_SF16A18_RF_SYSFS_DEBUG=y
+CONFIG_SF16A18_RF_RAW_CMD_DEBUG=y
+else
+CONFIG_SF16A18_RF_SYSFS_DEBUG=n
+CONFIG_SF16A18_RF_RAW_CMD_DEBUG=n
+endif
+
+#Header dir list
+ccflags-y += -I$(top_dir)
+
+#Define macro
+#ccflags-y += -Wno-unused-function
+#ccflags-y += -DBOOT_FINISH_WITH_IRQ
+#ccflags-y += -DENHANCE_LOWRATE_POWER
+ccflags-y += -DENABLE_HK
+#ccflags-y += -DUNSTANDARD_CH_ENABLE
+ccflags-$(CONFIG_UPDATE_GAIN_TABLE) += -DUPDATE_GAIN_TABLE
+#ccflags-y += -DFORCE_UPDATE_GAIN_TABLE
+
+#ifeq ($(CONFIG_SFA28_FULLMASK), y)
+ccflags-y += -DENABLE_DIGGAIN_TABLE
+#endif
+
+ccflags-$(CONFIG_SF16A18_COOLING_TEMP) += -DCOOLING_TEMP
+ccflags-$(CONFIG_DUAL_ANTENNA_CALIBRATE) += -DCFG_DUAL_ANTENNA_CALIBRATE
+ccflags-$(CONFIG_DUAL_ANTENNA_CALIBRATE_CSD) += -DCFG_DUAL_ANTENNA_CALIBRATE_CSD
+ccflags-$(CONFIG_SIWIFI_TEMPERATURE_CONTROL) += -DCONFIG_SIWIFI_TEMPERATURE_CONTROL
+
+#source files list
+sf16a18_rf-$(CONFIG_SF16A18_WIFI_IQ_TESTENGINE_ENABLE) += iq_te_core.o
+sf16a18_rf-y += rf_entry.o
+sf16a18_rf-y += rf_access.o
+sf16a18_rf-$(CONFIG_SF16A18_RF_SYSFS_DEBUG) += rf_sysfs.o
+ccflags-$(CONFIG_SF16A18_RF_SYSFS_DEBUG) += -DCONFIG_SF16A18_RF_SYSFS_DEBUG
+
+obj-$(CONFIG_SF16A18_WIFI_RF) += sf16a18_rf.o

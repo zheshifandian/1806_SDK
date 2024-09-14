@@ -1,0 +1,12 @@
+Index: hostapd-2019-08-08-ca8c2bd2/src/wps/wps_registrar.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/wps/wps_registrar.c
++++ hostapd-2019-08-08-ca8c2bd2/src/wps/wps_registrar.c
+@@ -2103,6 +2103,7 @@ static struct wpabuf * wps_build_m8(stru
+ 	wpabuf_clear_free(plain);
+ 
+ 	wps->state = RECV_DONE;
++    wps_pbc_disable_event(wps->wps->registrar->wps);
+ 	return msg;
+ }
+ 

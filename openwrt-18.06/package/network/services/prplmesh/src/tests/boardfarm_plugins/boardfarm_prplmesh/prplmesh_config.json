@@ -1,0 +1,148 @@
+{
+    "prplmesh_compose": {
+        "name": "agent",
+        "board_type": "prplmesh_compose",
+        "role": "agent",
+        "conn_cmd": "",
+        "devices": [
+            {
+                "name": "lan",
+                "type": "prplmesh_compose",
+                "role": "controller",
+                "delay": 7,
+                "conn_cmd": ""
+            },
+            {
+                "name": "lan2",
+                "type": "prplmesh_compose",
+                "role": "agent",
+                "delay": 7,
+                "conn_cmd": ""
+            },
+            {
+                "name": "wifi",
+                "type": "STA_dummy",
+                "mac": "51:a1:10:20:00:01",
+                "hostname": "wifi",
+                "ipv4": "192.168.100.101",
+                "ipv6": "fe80::0000:0000:0000:0101",
+                "conn_cmd": ""
+            },
+            {
+                "name": "wifi2",
+                "type": "STA_dummy",
+                "mac": "51:a1:10:20:00:02",
+                "hostname": "wifi2",
+                "ipv4": "192.168.100.102",
+                "ipv6": "fe80::0000:0000:0000:0102",
+                "conn_cmd": ""
+            },
+            {
+                "name": "wifi3",
+                "type": "STA_dummy",
+                "mac": "51:a1:10:20:00:03",
+                "hostname": "wifi3",
+                "ipv4": "192.168.100.103",
+                "ipv6": "fe80::0000:0000:0000:0103",
+                "conn_cmd": ""
+            }
+        ]
+    },
+    "nec-wx3000hp-1": {
+        "name": "agent-nec",
+        "board_type": "prplWRT",
+        "role": "agent",
+        "docker_network": "prplMesh-net-nec",
+        "conn_cmd": "cu -s 115200 -l /dev/nec-wx3000hp-1 -f",
+        "delay": "30",
+        "iface_to_device": "to-dut",
+        "control_ip": "192.168.200.130",
+        "devices": [
+            {
+                "name": "lan",
+                "type": "prplmesh_compose",
+                "role": "controller",
+                "docker_network": "prplMesh-net-nec-1",
+                "conn_cmd": ""
+            },
+            {
+                "name": "wifi",
+                "type": "prplWRT_STA",
+                "iface": "wlp4s0",
+                "driver": "nl80211,wext",
+                "connection_type": "local_cmd",
+                "conn_cmd": "bash",
+                "color": "yellow"
+            }
+        ]
+    },
+    "glinet-b1300-1-remote": {
+        "name": "agent-glinet",
+        "board_type": "prplWRT",
+        "role": "agent",
+        "docker_network": "prplMesh-glinet-1",
+        "conn_cmd": "cu -s 115200 -l glinet-b1300-1 -f",
+        "delay": "30",
+        "iface_to_device": "to-dut",
+        "control_ip": "192.168.100.120",
+        "host_ip_to_device": "192.168.2.2/24",
+        "devices": [
+            {
+                "name": "lan",
+                "type": "prplmesh_compose",
+                "role": "controller",
+                "docker_network": "prplMesh-glinet-1",
+                "conn_cmd": ""
+            },
+            {
+                "name": "wifi",
+                "type": "prplWRT_STA",
+                "iface": "wlan0",
+                "driver": "nl80211,wext",
+                "connection_type": "local_cmd",
+                "conn_cmd": "bash",
+                "color": "yellow"
+            },
+            {
+                "name": "remote_station",
+                "type": "prplWRT_STA",
+                "iface": "wlan0",
+                "driver": "nl80211,wext",
+                "conn_cmd": "bash",
+                "color": "yellow",
+                "station_ip": "192.168.100.210",
+                "station_username": "ubuntu",
+                "station_pw": "prplmesh123!",
+                "station_ip_wifi": "192.168.2.4"
+            }
+        ]
+    },
+    "turris-rdkb": {
+        "name": "agent-turris-rdkb",
+        "board_type": "RDKB",
+        "role": "agent",
+        "docker_network": "prplMesh-net-turris-omnia-1",
+        "conn_cmd": "not used",
+        "delay": "30",
+        "iface_to_device": "to-dut",
+        "control_ip": "192.168.200.140",
+        "devices": [
+            {
+                "name": "lan",
+                "type": "prplmesh_compose",
+                "role": "controller",
+                "docker_network": "prplMesh-net-turris-omnia-1",
+                "conn_cmd": ""
+            },
+            {
+                "name": "wifi",
+                "type": "RDKB_STA",
+                "iface": "wlp4s0",
+                "driver": "nl80211,wext",
+                "connection_type": "local_cmd",
+                "conn_cmd": "bash",
+                "color": "yellow"
+            }
+        ]
+    }
+}

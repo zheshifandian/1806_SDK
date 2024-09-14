@@ -1,0 +1,59 @@
+#
+---
+_include: {
+  tlvf/association_frame/eElementID.h,
+  tlvf/AssociationRequestFrame/assoc_frame_bitfields.h,
+  tlvf/association_frame/eExtElementID.h,
+}
+_namespace: assoc_frame
+
+cStaHeCapability:
+  _type: class
+  _is_tlv_class: True
+  _comment: |
+    Draft P802.11REVme_D0.1 
+    (9.4.2.248 HE Capabilities element(11ax))
+  type:
+    _type: eElementID
+    _value: ID_EID_EXTENSION
+  length:
+    _type: uint8_t
+  subtype:
+    _type: eExtElementID
+    _value: EXTID_HE_CAPABILITIES
+  mac_cap_info:
+    _type: uint8_t
+    _length: [6]
+  phy_cap_info:
+    _type: uint8_t
+    _length: [11]
+  rx_mcs_le_80:
+    _type: uint16_t
+    _comment: RX HE MCS for channel width lower or equal to 80MHz
+  tx_mcs_le_80:
+    _type: uint16_t
+    _comment: TX HE MCS for channel width lower or equal to 80MHz
+  data:
+    _type: uint8_t
+    _length: []
+    _comment: remaining variable length data to be parsed
+
+sHePhyCapInfoB1:
+  _type: struct
+  _bit_field: uint8_t
+  reserved2:
+    _bit_range: [7,7]
+  tone_242_rus_in_5:
+    _bit_range: [6,6]
+  tone_242_rus_in_2_4:
+    _bit_range: [5,5]
+  bw_160_80p80_in_5:
+    _bit_range: [4,4]
+  bw_160_in_5:
+    _bit_range: [3,3]
+  bw_40_80_in_5:
+    _bit_range: [2,2]
+  bw_40_in_2_4:
+    _bit_range: [1,1]
+  reserved1:
+    _bit_range: [0,0]

@@ -1,0 +1,39 @@
+#!/bin/sh
+
+enable=`uci get prplmesh.config.enable`
+if [ -z $enable ]; then
+	logger -t easymesh not support
+	return
+elif [ $enable == 0 ]; then
+	logger -t easymesh not support
+	return
+fi
+mode=`uci get prplmesh.config.management_mode`
+if [ "$mode" == "Multi-AP-Controller-and-Agent" ]; then
+	logger -t easymesh wifi reload controller
+	return
+else
+	port=`uci get network.@switch_vlan[1].ports | tr -d '5t'`
+	wired=`cat sys/kernel/debug/esw_debug | grep phy$port | awk -F ' ' ' {print$3}'`
+	if [ $wired == 1 ]; then
+		logger -t easymesh wifi reload wired connect
+		return
+	else
+		enable=`uci get wireless.default_radio11.disabled`
+		if [ $enable == 1 ]; then
+			ssid1=`uci get wireless.default_radio22.ssid`
+			ssid2=`iwinfo | grep wlan1-2 | awk -F : '{print$2}' | tr -d '\"' | tr -d ' '`
+		else
+			ssid1=`uci get wireless.default_radio11.ssid`
+			ssid2=`iwinfo | grep wlan0-2 | awk -F : '{print$2}' | tr -d '\"' | tr -d ' '`
+		fi
+		if [ -z $ssid2 ]; then
+			logger -t easymesh wifi reload already
+		elif [ "$ssid1" == "$ssid2" ]; then
+			logger -t easymesh wifi reload
+			wifi
+		else
+			logger -t easymesh wifi reload already
+		fi
+	fi
+fi

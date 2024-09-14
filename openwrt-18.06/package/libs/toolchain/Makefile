@@ -149,26 +149,6 @@ $(call Package/libc/Default)
   TITLE:=C library
 endef
 
-define Package/libc/config
-	menu "Configuration"
-	depends on EXTERNAL_TOOLCHAIN && PACKAGE_libc
-
-	config LIBC_ROOT_DIR
-		string
-		prompt "libc shared library base directory"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libc
-		default TOOLCHAIN_ROOT  if !NATIVE_TOOLCHAIN
-		default "/"  if NATIVE_TOOLCHAIN
-
-	config LIBC_FILE_SPEC
-		string
-		prompt "libc shared library files (use wildcards)"
-		depends on EXTERNAL_TOOLCHAIN && PACKAGE_libc
-		default "./lib/ld{*.so*,-linux*.so.*} ./lib/lib{anl,c,cidn,crypt,dl,m,nsl,nss_dns,nss_files,resolv,util}{-*.so,.so.*,.so}"
-
-	endmenu
-endef
-
 
 define Package/libpthread
 $(call Package/libc/Default)
@@ -547,12 +527,63 @@ else
 	exit 0
   endef
 
+  define Package/glibc/install
+	$(CP) ./glibc-files/* $(1)/
+	rm -f $(1)/etc/localtime
+	$(LN) /tmp/localtime $(1)/etc/localtime
+	$(INSTALL_DIR) $(1)/lib
+	$(CP) \
+		$(TOOLCHAIN_DIR)/lib/ld*.so.* \
+		$(TOOLCHAIN_DIR)/lib/ld-$(LIBC_SO_VERSION).so \
+		$(1)/lib/
+	for file in libanl libc libcidn libcrypt libdl libm libnsl libnss_dns libnss_files libresolv libutil; do \
+		for file in $(TOOLCHAIN_DIR)/lib/$$$$file.so.* $(TOOLCHAIN_DIR)/lib/$$$$file-$(LIBC_SO_VERSION).so; do \
+			if [ -e "$$$$file" ]; then \
+				$(CP) $$$$file $(1)/lib/; \
+			fi; \
+		done; \
+	done
+  endef
+
+  define Package/uClibc/install
+	$(INSTALL_DIR) $(1)/lib
+	$(CP) \
+		$(TOOLCHAIN_DIR)/lib/ld*-uClibc.so.* \
+		$(TOOLCHAIN_DIR)/lib/ld*-uClibc-$(LIBC_SO_VERSION).so \
+		$(1)/lib/
+	$(CP) \
+		$(TOOLCHAIN_DIR)/lib/libc.so.* \
+		$(TOOLCHAIN_DIR)/lib/libuClibc-$(LIBC_SO_VERSION).so \
+		$(1)/lib/
+	$(CP) \
+		$(PKG_BUILD_DIR)/libuClibc-* \
+		$(1)/lib/
+  endef
+
+  LD_MUSL_NAME = $(notdir $(firstword $(wildcard $(TOOLCHAIN_DIR)/lib/libc.so*)))
+
+  define Package/musl/install
+	$(INSTALL_DIR) $(1)/lib $(1)/usr/bin
+	$(CP) \
+		$(TOOLCHAIN_DIR)/lib/ld-musl-*.so* \
+		$(1)/lib/
+	$(CP) \
+		$(TOOLCHAIN_DIR)/lib/libc.so* \
+		$(1)/lib/
+	$(LN) ../../lib/$(LD_MUSL_NAME) $(1)/usr/bin/ldd
+  endef
+
   define Package/libc/install
-	for file in $(call qstrip,$(CONFIG_LIBC_FILE_SPEC)); do \
-		$(INSTALL_DIR) $(1)/lib ; \
-		$(CP) $(call qstrip,$(CONFIG_LIBC_ROOT_DIR))/$$$$file $(1)/lib/ ; \
-	done ; \
-	exit 0
+    $(call Package/$(LIBC)/install,$1)
+  endef
+
+  define Package/libc/install_lib
+	$(CP) $(filter-out %/libdl_pic.a %/libpthread_pic.a %/libresolv_pic.a,$(wildcard $(TOOLCHAIN_DIR)/lib/lib*.a)) $(1)/lib/
+	$(if $(wildcard $(TOOLCHAIN_DIR)/lib/libc_so.a),$(CP) $(TOOLCHAIN_DIR)/lib/libc_so.a $(1)/lib/libc_pic.a)
+	$(if $(LIBGCC_MAP), \
+		$(CP) $(LIBGCC_A) $(1)/lib/libgcc_s_pic.a; \
+		$(CP) $(LIBGCC_MAP) $(1)/lib/libgcc_s_pic.map \
+	)
   endef
 
   define Package/libpthread/install

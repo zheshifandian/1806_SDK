@@ -1,0 +1,13 @@
+#
+---
+_namespace: wfa_map
+
+tlvClientInfo:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_CLIENT_INFO
+  length: uint16_t
+  bssid: sMacAddr
+  client_mac: sMacAddr

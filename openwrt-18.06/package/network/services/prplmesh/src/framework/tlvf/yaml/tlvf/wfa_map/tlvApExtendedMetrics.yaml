@@ -1,0 +1,21 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.61 AP Extended Metrics TLV
+
+tlvApExtendedMetrics:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_AP_EXTENDED_METRICS
+  length: uint16_t
+  bssid: sMacAddr
+  unicast_bytes_sent: uint32_t
+  unicast_bytes_received: uint32_t
+  multicast_bytes_sent: uint32_t
+  multicast_bytes_received: uint32_t
+  broadcast_bytes_sent: uint32_t
+  broadcast_bytes_received: uint32_t

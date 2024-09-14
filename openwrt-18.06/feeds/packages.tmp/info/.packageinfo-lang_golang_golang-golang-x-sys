@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/lang/golang/golang-golang-x-sys/Makefile
+Build-Depends: golang/host
+
+Package: golang-golang-x-sys-dev
+Submenu: Go
+Version: 20180621-63fc586f45fe72d95d5240a5d5eb95e6503907d3-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Go packages for interaction with the OS
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: golang-golang-x-sys-20180621-63fc586f45fe72d95d5240a5d5eb95e6503907d3.tar.xz
+License: BSD-3-Clause
+LicenseFiles: LICENSE
+Type: ipkg
+Description: Supplementary Go packages for low-level interactions with the operating
+system.
+https://godoc.org/golang.org/x/sys
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

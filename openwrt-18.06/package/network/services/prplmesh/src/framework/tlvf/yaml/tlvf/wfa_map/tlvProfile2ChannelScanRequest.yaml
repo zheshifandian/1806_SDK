@@ -1,0 +1,37 @@
+#
+---
+_include: {
+  tlvf/wfa_map/tlvChannelScanCapabilities.h
+}
+_namespace: wfa_map
+
+tlvProfile2ChannelScanRequest:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_CHANNEL_SCAN_REQUEST
+  length: uint16_t
+  perform_fresh_scan: ePerformFreshScan
+  radio_list_length:
+    _type: uint8_t
+    _length_var: True
+  radio_list:
+    _type: cRadiosToScan
+    _length: [ radio_list_length ]
+
+ePerformFreshScan:
+  _type: enum
+  _enum_storage: uint8_t
+  PERFORM_A_FRESH_SCAN_AND_RETURN_RESULTS: 0x80
+  RETURN_STORED_RESULTS_OF_LAST_SUCCESSFUL_SCAN: 0x00
+
+cRadiosToScan:
+  _type: class
+  radio_uid: sMacAddr
+  operating_classes_list_length:
+    _type: uint8_t
+    _length_var: True
+  operating_classes_list:
+    _type: cOperatingClasses
+    _length: [ operating_classes_list_length ]

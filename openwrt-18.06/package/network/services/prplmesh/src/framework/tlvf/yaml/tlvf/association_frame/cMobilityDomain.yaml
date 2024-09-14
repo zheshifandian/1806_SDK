@@ -1,0 +1,27 @@
+#
+---
+_include: {
+  tlvf/association_frame/eElementID.h,
+}
+_namespace: assoc_frame
+
+cMobilityDomain:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_MOBILITY_DOMAIN
+  length:
+    _type: uint8_t
+  mdid: uint16_t
+  ft_cap_policy: sFtCapabilityPolicy
+
+sFtCapabilityPolicy:
+  _type: struct
+  _bit_field: uint8_t
+  reserved:
+    _bit_range: [7,7]
+  resource_req_protocol_cap:
+    _bit_range: [1,1]
+  fast_bss_trans_over_ds:
+    _bit_range: [0,0]

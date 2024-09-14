@@ -1,0 +1,917 @@
+Index: hostapd-2019-08-08-ca8c2bd2/hostapd/Makefile
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/hostapd/Makefile
++++ hostapd-2019-08-08-ca8c2bd2/hostapd/Makefile
+@@ -222,6 +222,10 @@ endif
+ endif
+ endif
+ 
++ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++CFLAGS += -DCONFIG_DRIVER_NL80211_SIFLOWER
++endif
++
+ ifdef CONFIG_NO_CTRL_IFACE
+ CFLAGS += -DCONFIG_NO_CTRL_IFACE
+ else
+Index: hostapd-2019-08-08-ca8c2bd2/hostapd/ctrl_iface.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/hostapd/ctrl_iface.c
++++ hostapd-2019-08-08-ca8c2bd2/hostapd/ctrl_iface.c
+@@ -62,6 +62,9 @@
+ #include "ctrl_iface.h"
+ #include "config_file.h"
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++#include <syslog.h>
++#endif
+ 
+ #define HOSTAPD_CLI_DUP_VALUE_MAX_LEN 256
+ 
+@@ -903,6 +906,20 @@ static int hostapd_ctrl_iface_bss_tm_req
+ 	int nei_len;
+ 	u8 mbo[10];
+ 	size_t mbo_len = 0;
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	u8 only_tran_reason = 0;
++	syslog(LOG_DEBUG, "cmd:%s\n", cmd);
++	/*
++	 *  To avoid disrupting the logic within the conditional compilation block of CONFIG_MBO,
++	 *  we added a variable named "only_tran_reason." When CONFIG_DRIVER_NL80211_SIFLOWER is enabled,
++	 *  only the Transition Reason Code can be added in the attributes field of the MBO-OCE IE.
++	*/
++	pos = os_strstr(cmd, "only_tran_reason");
++	if (pos) {
++		pos += 16;
++		only_tran_reason = 1;
++	}
++#endif
+ 
+ 	if (hwaddr_aton(cmd, addr)) {
+ 		wpa_printf(MSG_DEBUG, "Invalid STA MAC address");
+@@ -984,57 +1001,82 @@ static int hostapd_ctrl_iface_bss_tm_req
+ 	if (pos) {
+ 		unsigned int mbo_reason, cell_pref, reassoc_delay;
+ 		u8 *mbo_pos = mbo;
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++		if (only_tran_reason == 0) {
++#endif
++			ret = sscanf(pos, "mbo=%u:%u:%u", &mbo_reason,
++					&reassoc_delay, &cell_pref);
++			if (ret != 3) {
++				wpa_printf(MSG_DEBUG,
++					"MBO requires three arguments: mbo=<reason>:<reassoc_delay>:<cell_pref>");
++				ret = -1;
++				goto fail;
++			}
+ 
+-		ret = sscanf(pos, "mbo=%u:%u:%u", &mbo_reason,
+-			     &reassoc_delay, &cell_pref);
+-		if (ret != 3) {
+-			wpa_printf(MSG_DEBUG,
+-				   "MBO requires three arguments: mbo=<reason>:<reassoc_delay>:<cell_pref>");
+-			ret = -1;
+-			goto fail;
+-		}
++			if (mbo_reason > MBO_TRANSITION_REASON_PREMIUM_AP) {
++				wpa_printf(MSG_DEBUG,
++					"Invalid MBO transition reason code %u",
++					mbo_reason);
++				ret = -1;
++				goto fail;
++			}
+ 
+-		if (mbo_reason > MBO_TRANSITION_REASON_PREMIUM_AP) {
+-			wpa_printf(MSG_DEBUG,
+-				   "Invalid MBO transition reason code %u",
+-				   mbo_reason);
+-			ret = -1;
+-			goto fail;
+-		}
++			/* Valid values for Cellular preference are: 0, 1, 255 */
++			if (cell_pref != 0 && cell_pref != 1 && cell_pref != 255) {
++				wpa_printf(MSG_DEBUG,
++					"Invalid MBO cellular capability %u",
++					cell_pref);
++				ret = -1;
++				goto fail;
++			}
+ 
+-		/* Valid values for Cellular preference are: 0, 1, 255 */
+-		if (cell_pref != 0 && cell_pref != 1 && cell_pref != 255) {
+-			wpa_printf(MSG_DEBUG,
+-				   "Invalid MBO cellular capability %u",
+-				   cell_pref);
+-			ret = -1;
+-			goto fail;
+-		}
++			if (reassoc_delay > 65535 ||
++				(reassoc_delay &&
++				!(req_mode & WNM_BSS_TM_REQ_DISASSOC_IMMINENT))) {
++				wpa_printf(MSG_DEBUG,
++					"MBO: Assoc retry delay is only valid in disassoc imminent mode");
++				ret = -1;
++				goto fail;
++			}
+ 
+-		if (reassoc_delay > 65535 ||
+-		    (reassoc_delay &&
+-		     !(req_mode & WNM_BSS_TM_REQ_DISASSOC_IMMINENT))) {
+-			wpa_printf(MSG_DEBUG,
+-				   "MBO: Assoc retry delay is only valid in disassoc imminent mode");
+-			ret = -1;
+-			goto fail;
+-		}
++			*mbo_pos++ = MBO_ATTR_ID_TRANSITION_REASON;
++			*mbo_pos++ = 1;
++			*mbo_pos++ = mbo_reason;
++			*mbo_pos++ = MBO_ATTR_ID_CELL_DATA_PREF;
++			*mbo_pos++ = 1;
++			*mbo_pos++ = cell_pref;
++
++			if (reassoc_delay) {
++				*mbo_pos++ = MBO_ATTR_ID_ASSOC_RETRY_DELAY;
++				*mbo_pos++ = 2;
++				WPA_PUT_LE16(mbo_pos, reassoc_delay);
++				mbo_pos += 2;
++			}
+ 
+-		*mbo_pos++ = MBO_ATTR_ID_TRANSITION_REASON;
+-		*mbo_pos++ = 1;
+-		*mbo_pos++ = mbo_reason;
+-		*mbo_pos++ = MBO_ATTR_ID_CELL_DATA_PREF;
+-		*mbo_pos++ = 1;
+-		*mbo_pos++ = cell_pref;
+-
+-		if (reassoc_delay) {
+-			*mbo_pos++ = MBO_ATTR_ID_ASSOC_RETRY_DELAY;
+-			*mbo_pos++ = 2;
+-			WPA_PUT_LE16(mbo_pos, reassoc_delay);
+-			mbo_pos += 2;
+-		}
++			mbo_len = mbo_pos - mbo;
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++		} else if (only_tran_reason == 1) {
++			ret = sscanf(pos, "mbo=%u", &mbo_reason);
++			if (ret != 1) {
++				syslog(LOG_DEBUG, "Parse MBO transition reason code failed [%s]\n", __func__);
++				ret = -1;
++				goto fail;
++			}
++
++			if (mbo_reason > MBO_TRANSITION_REASON_PREMIUM_AP) {
++				syslog(LOG_DEBUG, "Invalid MBO transition reason code %u [%s]", mbo_reason, __func__);
++				ret = -1;
++				goto fail;
++			}
+ 
+-		mbo_len = mbo_pos - mbo;
++			*mbo_pos++ = MBO_ATTR_ID_TRANSITION_REASON;
++			*mbo_pos++ = 1;
++			*mbo_pos++ = mbo_reason;
++			mbo_len = mbo_pos - mbo;
++
++		} else
++			syslog(LOG_DEBUG, "Invaild status [%s]\n", __func__);
++#endif
+ 	}
+ #endif /* CONFIG_MBO */
+ 
+@@ -4674,3 +4716,12 @@ static void hostapd_ctrl_iface_send(stru
+ }
+ 
+ #endif /* CONFIG_NATIVE_WINDOWS */
++
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++void sf_nl_receive_msg_process(u8 *data, struct hostapd_data *bss) {
++	char reply[100];
++	hostapd_ctrl_iface_receive_process(bss, (char *)data, reply, 0, NULL, 0);
++
++	return;
++}
++#endif
+\ No newline at end of file
+Index: hostapd-2019-08-08-ca8c2bd2/hostapd/ctrl_iface.h
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/hostapd/ctrl_iface.h
++++ hostapd-2019-08-08-ca8c2bd2/hostapd/ctrl_iface.h
+@@ -36,4 +36,8 @@ hostapd_global_ctrl_iface_deinit(struct
+ }
+ #endif /* CONFIG_NO_CTRL_IFACE */
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++void sf_nl_receive_msg_process(uint8_t *data, struct hostapd_data *bss);
++#endif
++
+ #endif /* CTRL_IFACE_H */
+Index: hostapd-2019-08-08-ca8c2bd2/hostapd/main.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/hostapd/main.c
++++ hostapd-2019-08-08-ca8c2bd2/hostapd/main.c
+@@ -397,6 +397,10 @@ static void hostapd_global_deinit(const
+ {
+ 	int i;
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	wpa_driver_nl80211_siflower_deinit();
++#endif
++
+ 	for (i = 0; wpa_drivers[i] && global.drv_priv; i++) {
+ 		if (!global.drv_priv[i])
+ 			continue;
+@@ -444,6 +448,10 @@ static int hostapd_global_run(struct hap
+ 	}
+ #endif /* EAP_SERVER_TNC */
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	wpa_driver_nl80211_siflower_init(ifaces, SF_NL_INITOR_HAPD);
++#endif
++
+ 	eloop_run();
+ 
+ 	return 0;
+@@ -670,6 +678,9 @@ int main(int argc, char *argv[])
+ 	interfaces.ctrl_iface_init = hostapd_ctrl_iface_init;
+ 	interfaces.ctrl_iface_deinit = hostapd_ctrl_iface_deinit;
+ 	interfaces.driver_init = hostapd_driver_init;
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	interfaces.sf_nlmsg_process = sf_nl_receive_msg_process;
++#endif
+ 	interfaces.global_iface_path = NULL;
+ 	interfaces.global_iface_name = NULL;
+ 	interfaces.global_ctrl_sock = -1;
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.h
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/hostapd.h
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.h
+@@ -73,6 +73,10 @@ struct hapd_interfaces {
+ #ifdef CONFIG_DPP
+ 	struct dpp_global *dpp;
+ #endif /* CONFIG_DPP */
++
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	void (*sf_nlmsg_process)(u8 *data, struct hostapd_data *bss);
++#endif
+ };
+ 
+ enum hostapd_chan_status {
+Index: hostapd-2019-08-08-ca8c2bd2/src/drivers/driver.h
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/drivers/driver.h
++++ hostapd-2019-08-08-ca8c2bd2/src/drivers/driver.h
+@@ -5783,4 +5783,110 @@ extern const struct wpa_driver_ops wpa_d
+ extern const struct wpa_driver_ops wpa_driver_none_ops; /* driver_none.c */
+ #endif /* CONFIG_DRIVER_NONE */
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++#define SF_EASYMESH_USER 31
++#define SF_USER_MSG (0x10 + 8)
++// maximum payload size
++#define SF_MAX_PAYLOAD 4096
++
++/**
++ * sf_nl_msg_type - Define different message types.
++ */
++typedef enum {
++	/**
++	 * Used to construct netlink connection.
++	 */
++	SF_NL_MSG_OPEN = 0,
++	/**
++	 * Used to unconstruct netlink connection.
++	 */
++	SF_NL_MSG_CLOSE,
++	/*========================================= hostapd =======================================*/
++	/**
++	 * SF_NL_MSG_UPDATE - Message type for updating hostapd configuration.
++	 * This message type is used when the hostapd configuration needs to be updated.
++	 */
++	SF_NL_MSG_UPDATE,
++
++	/**
++	 * SF_NL_MSG_SEND_BTM_REQ - Message type for instructing hostapd to send a BSS Transition Management
++	 * Request. This message is used to trigger hostapd to send a BTM request to a specified client.
++	 */
++	SF_NL_MSG_SEND_BTM_REQ,
++
++	/**
++	 * SF_NL_MSG_BTM_RESP - Message type for sending information in BSS Transition Management Response.
++	 * This message is used to send information to the Agent and trigger it to send a Client Steering
++	 * BTM Report message when client steering uses the Steering Mandate mechanism.
++	 */
++	SF_NL_MSG_BTM_RESP,
++
++	/*========================================= wpa_supplicant =================================*/
++	/**
++	 * SF_NL_MSG_WPA_TEST - Message type for testing wpa communication.
++	 * This message type just used for test.
++	 */
++	SF_NL_MSG_WPA_TEST,
++
++	/**
++	 * SF_NL_MSG_BACKHAUL_OPT - Message type for steering backhaul optimization.
++	 * This message is used to notify the Backhaul Station to change the current connection.
++	 */
++	SF_NL_MSG_BACKHAUL_OPT,
++
++	/**
++	 * SF_NL_MSG_BTM_STATUS - Message type for sending BSS Transition Management Status Code to kernel.
++	 * This message is used to send status codes to the Agent, enabling the kernel to determine the
++	 * steering status and construct the Backhaul Steering Response frame.
++	*/
++	SF_NL_MSG_BTM_STATUS,
++
++	/**
++	 * _SF_NL_HAPD_MSG_MAX_ - Sentinel value for the enumeration.
++	 * Defines the maximum valid message type value, used for validation purposes.
++	 */
++	_SF_NL_HAPD_MSG_MAX_
++} sf_nl_msg_type;
++
++/**
++ * struct sf_nl_msg - A structure of nltlink messages.
++ * @type: Siflower netlink message type.
++ * @bssid: bssid of interface want to operate.
++ * @data: The data.
++ * @data_len: The length of data.
++ *
++ * This structure is used to store messages.
++ */
++typedef struct {
++	sf_nl_msg_type type;
++	uint8_t bssid[ETH_ALEN];
++	int data_len;
++	u8 *data;
++} sf_nl_msg;
++
++/**
++ * sf_nl_cominitiator - Define different netlink communication initiator types.
++*/
++typedef enum {
++        SF_NL_INITOR_HAPD = 0,
++        SF_NL_INITOR_WPA,
++} sf_nl_cominitiator;
++
++/**
++ * sf_listen_args - A structure of arguments pass to .
++ * @data: A pointer point to Global information of hostapd or wpa_supplicant.
++ * @cominitiator: The type of netlink communication initiator.
++ *
++ * This structure used to pass arguments to new pthread.
++*/
++typedef struct {
++        void *data;
++        sf_nl_cominitiator cominitiator;
++} sf_listen_args;
++
++void sf_update_btm_status(enum bss_trans_mgmt_status_code status);
++int wpa_driver_nl80211_siflower_init(void *data, sf_nl_cominitiator cominitiator);
++int wpa_driver_nl80211_siflower_deinit(void);
++#endif
++
+ #endif /* DRIVER_H */
+Index: hostapd-2019-08-08-ca8c2bd2/src/drivers/driver_nl80211.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/drivers/driver_nl80211.c
++++ hostapd-2019-08-08-ca8c2bd2/src/drivers/driver_nl80211.c
+@@ -39,6 +39,12 @@
+ #include "rfkill.h"
+ #include "driver_nl80211.h"
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++#include <syslog.h>
++#include <pthread.h>
++#include "ap/hostapd.h"
++#include "wpa_supplicant_i.h"
++#endif
+ 
+ #ifndef NETLINK_CAP_ACK
+ #define NETLINK_CAP_ACK 10
+@@ -11247,3 +11253,431 @@ const struct wpa_driver_ops wpa_driver_n
+ 	.send_external_auth_status = nl80211_send_external_auth_status,
+ 	.set_4addr_mode = nl80211_set_4addr_mode,
+ };
++
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++volatile bool keep_running = true;
++int sf_netlink_socket;
++sf_listen_args args;
++pthread_t netlink_thread;
++enum bss_trans_mgmt_status_code sf_btm_status = WNM_BSS_TM_REJECT_UNSPECIFIED;
++
++/**
++ * sf_update_btm_status - Update the global BTM status code.
++ *
++ * @param status: The status code value.
++ *
++ * This function is used to update the global BTM status code as a response
++ * to the BTM Request initiated by the agent.
++*/
++void sf_update_btm_status(enum bss_trans_mgmt_status_code status)
++{
++        sf_btm_status = status;
++        return;
++}
++
++/**
++ * sf_nl_send_msg - Send netlink message to kernel.
++ *
++ * @sock_fd: The descriptor of socket.
++ * @nl_msg: The structure of netlink message.
++ *
++*/
++int sf_nl_send_msg(int sock_fd, sf_nl_msg *nl_msg)
++{
++	struct sockaddr_nl dest_addr;
++	struct nlmsghdr *nlh = NULL;
++	int total_size = sizeof(sf_nl_msg_type) + sizeof(int) + nl_msg->data_len;
++
++	nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(total_size));
++	if (!nlh) {
++		syslog(LOG_ERR, "malloc failed");
++		return -1;
++	}
++
++	memset(nlh, 0, NLMSG_SPACE(total_size));
++	nlh->nlmsg_len = NLMSG_SPACE(total_size);
++	nlh->nlmsg_pid = getpid();
++	nlh->nlmsg_flags = NLM_F_REQUEST;
++	nlh->nlmsg_type = SF_USER_MSG;
++
++	memcpy(NLMSG_DATA(nlh), &nl_msg->type, sizeof(sf_nl_msg_type));
++	memcpy(NLMSG_DATA(nlh) + sizeof(sf_nl_msg_type), &nl_msg->data_len, sizeof(int));
++	memcpy(NLMSG_DATA(nlh) + sizeof(sf_nl_msg_type) + sizeof(int), nl_msg->data, nl_msg->data_len);
++
++	memset(&dest_addr, 0, sizeof(dest_addr));
++	dest_addr.nl_family = AF_NETLINK;
++
++	if (sendto(sock_fd, nlh, nlh->nlmsg_len, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
++		syslog(LOG_ERR, "send failed: %s", strerror(errno));
++	}
++
++	free(nlh);
++	return 0;
++}
++
++/**
++ * sf_handle_nl_backhaul_opt_msg - Handle the message of type SF_NL_MSG_BACKHAUL_OPT
++ *
++ * @param wpa_s: The information of station.
++ * @param data: The data in netlink message.
++ * @param bssid: The BSSID of interface that message send to.
++ *
++ * This function is used to process the message of type SF_NL_MSG_BACKHAUL_OPT.
++ *
++ * Return: 0 if success, non-zero otherwise.
++*/
++static int sf_handle_nl_backhaul_opt_msg(struct wpa_supplicant *wpa_s, u8 *data, int data_len)
++{
++	u8 backhaul_steer_resp_reason = 0x07;
++	u8 *end = data + data_len;
++	sf_nl_msg msg;
++	extern void ieee802_11_rx_bss_trans_mgmt_req(struct wpa_supplicant *wpa_s, const u8 *pos, const u8 *end, int reply);
++
++	/* Initialize BTM status */
++	sf_update_btm_status(WNM_BSS_TM_REJECT_UNSPECIFIED);
++	/* Steer backhaul station associate with target BSS */
++	ieee802_11_rx_bss_trans_mgmt_req(wpa_s, data, end, 1);
++
++	/* Convert BTM status to reason code in backhaul steering response */
++	switch (sf_btm_status) {
++		case WNM_BSS_TM_ACCEPT:
++				backhaul_steer_resp_reason = 0x00;
++				break;
++		case WNM_BSS_TM_REJECT_NO_SUITABLE_CANDIDATES:
++				backhaul_steer_resp_reason = 0x05;
++				break;
++		default:
++				backhaul_steer_resp_reason = 0x06;
++				break;
++	}
++	/* Send back reason code in backhaul steering response to kernel */
++	msg.type = SF_NL_MSG_BTM_STATUS;
++	msg.data_len = sizeof(backhaul_steer_resp_reason);
++	msg.data = malloc(msg.data_len);
++	if (!msg.data) {
++		syslog(LOG_ERR, "Netlink message data malloc failed\n");
++		return -1;
++	}
++
++	memcpy(msg.data, &backhaul_steer_resp_reason, sizeof(backhaul_steer_resp_reason));
++	if (sf_nl_send_msg(sf_netlink_socket, &msg)) {
++		syslog(LOG_ERR, "Send BTM status code to kernel failed\n");
++		free(msg.data);
++		return -1;
++	}
++
++	free(msg.data);
++	return 0;
++}
++
++/**
++ * sf_process_hapd_message - Process the message receive from kernel to hostapd.
++ *
++ * @data: The data in netlink message.
++ * @bssid: The BSSID of interface that message send to.
++ * @data_len: The length of data.
++ * @type: The type of message.
++ * @args: The arguments of netlink communication initiator, containing global information of hostapd.
++ *
++ */
++static void sf_process_hapd_message(u8 *data, u8 *bssid, int data_len, sf_nl_msg_type type, sf_listen_args *args)
++{
++	struct hapd_interfaces *ifaces;
++	struct hostapd_iface *iface;
++	struct hostapd_data *bss;
++	u8 *process_data;
++	int i, j;
++
++	ifaces = (struct hapd_interfaces *)args->data;
++	switch (type) {
++		case SF_NL_MSG_CLOSE:
++			keep_running = false;
++			return;
++		case SF_NL_MSG_UPDATE:
++			process_data = malloc(data_len + 7);
++			memset(process_data, 0, data_len + 7);
++			memcpy(process_data, "UPDATE ", 7);
++			memcpy(process_data + 7, data, data_len);
++			free(data);
++			break;
++		case SF_NL_MSG_SEND_BTM_REQ:
++			process_data = malloc(data_len + 11);
++			memset(process_data, 0, data_len + 11);
++			memcpy(process_data, "BSS_TM_REQ ", 11);
++			memcpy(process_data + 11, data, data_len);
++			free(data);
++			break;
++		/* Process different type messages from kernel */
++		default:
++			break;
++	}
++
++	/* Search interface by BSSID */
++	for (i = 0; i < ifaces->count; i++) {
++		iface = ifaces->iface[i];
++		for(j = 0; j <iface->num_bss; j++) {
++			bss = iface->bss[j];
++			if (memcmp(bssid, bss->own_addr, ETH_ALEN) == 0) {
++				goto process;
++			}
++		}
++	}
++
++process:
++	if (i == ifaces->count && j == iface->num_bss) {
++		syslog(LOG_ERR, "Invaild BSSID\n");
++		return;
++	}
++
++	syslog(LOG_DEBUG, "target BSSID:%02x:%02x:%02x:%02x:%02x:%02x\n",
++				bss->own_addr[0], bss->own_addr[1], bss->own_addr[2],
++				bss->own_addr[3], bss->own_addr[4], bss->own_addr[5]);
++
++	if (!ifaces->sf_nlmsg_process) {
++		syslog(LOG_ERR, "sf_nl_msg_process NULL\n");
++		return;
++	}
++
++	/* Pass the data to hostapd and process */
++	ifaces->sf_nlmsg_process(process_data, bss);
++
++	free(process_data);
++	return;
++}
++
++/**
++ * sf_process_wpa_message - Process the message receive from kernel to wpa_supplicant.
++ *
++ * @data: The data in netlink message.
++ * @bssid: The BSSID of interface that message send to.
++ * @data_len: The length of data.
++ * @type: The type of message.
++ * @args: The arguments of netlink communication initiator, containing the global information of wpa_supplicant.
++ *
++ */
++static void sf_process_wpa_message(u8 *data, u8 *bssid, int data_len, sf_nl_msg_type type, sf_listen_args *args)
++{
++	struct wpa_global *global;
++	struct wpa_supplicant *wpa_s;
++
++	global = (struct wpa_global *)args->data;
++	switch (type) {
++		case SF_NL_MSG_CLOSE:
++			keep_running = false;
++			return;
++		case SF_NL_MSG_WPA_TEST:
++			syslog(LOG_DEBUG, "wpa: receive SF_NL_MSG_WPA_TEST from kernel\n");
++			break;
++		case SF_NL_MSG_BACKHAUL_OPT:
++			for (wpa_s = global->ifaces; wpa_s; wpa_s = wpa_s->next) {
++					if (memcmp(wpa_s->own_addr, bssid, ETH_ALEN) == 0)
++					break;
++			}
++			if (!wpa_s) {
++					syslog(LOG_ERR, "Invaild backhaul station MAC\n");
++					return;
++			}
++			if (sf_handle_nl_backhaul_opt_msg(wpa_s, data, data_len)) {
++				syslog(LOG_ERR, "wpa: handle backhaul optimize message failed\n");
++				return;
++			}
++			break;
++		/* Process different type messages from kernel */
++		default:
++			break;
++	}
++	return;
++}
++
++/**
++ * sf_nl_receive_msg - Receive message send from kernel.
++ *
++ * @sock_fd: The descriptor of socket.
++ * @args: The arguments of netlink communication initiator.
++ *
++ */
++void sf_nl_receive_msg(int sock_fd, sf_listen_args *args)
++{
++	u8*data = NULL;
++	int data_len = 0;
++	sf_nl_msg_type type = -1;
++	u8 bssid[6];
++
++	if (!args || !args->data) {
++		syslog(LOG_ERR, "hapd_interfaces or wpa_global NULL\n");
++		return;
++	}
++
++	struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(SF_MAX_PAYLOAD));
++	if (!nlh) {
++		syslog(LOG_ERR, "malloc failed");
++		return;
++	}
++
++	memset(nlh, 0, NLMSG_SPACE(SF_MAX_PAYLOAD));
++	struct iovec iov = { .iov_base = (void *)nlh, .iov_len = NLMSG_SPACE(SF_MAX_PAYLOAD) };
++	struct msghdr msg = { .msg_iov = &iov, .msg_iovlen = 1 };
++
++	if (recvmsg(sock_fd, &msg, 0) < 0) {
++		syslog(LOG_ERR, "recvmsg failed: %s", strerror(errno));
++		free(nlh);
++		return;
++	}
++
++	if (nlh->nlmsg_type != SF_USER_MSG) {
++		free(nlh);
++		return;
++	}
++
++	/* Parse the data from netlink message */
++	type = *((sf_nl_msg_type *)NLMSG_DATA(nlh));
++	memcpy(bssid, (u8 *)(NLMSG_DATA(nlh) + sizeof(sf_nl_msg_type)), ETH_ALEN);
++	data_len = *((int *)(NLMSG_DATA(nlh) + sizeof(sf_nl_msg_type) + ETH_ALEN));
++
++	data = (u8 *)malloc(data_len);
++	if (!data) {
++		syslog(LOG_ERR, "malloc failed for frame data");
++		free(nlh);
++		return;
++	}
++
++	memcpy(data, NLMSG_DATA(nlh) + sizeof(sf_nl_msg_type) + ETH_ALEN + sizeof(int), data_len);
++	free(nlh);
++
++	/* deal data */
++	syslog(LOG_INFO, "==%s=%d=%d", __func__, __LINE__, type);
++
++	switch (args->cominitiator) {
++		case SF_NL_INITOR_HAPD:
++			/* Process message send to hostapd */
++			sf_process_hapd_message(data, bssid, data_len, type, args);
++		case SF_NL_INITOR_WPA:
++			/* Process message send to wpa_supplicant */
++			sf_process_wpa_message(data, bssid, data_len, type, args);
++		default:
++			break;
++	}
++	return;
++}
++
++/**
++ * sf_nl_open_netlink - Initialize netlink connection.
++ *
++ * @sock_fd: The descriptor of socket.
++ * @cominitiator: The type of netlink communication initiator.
++ *
++ */
++static int sf_nl_open_netlink(int *sock_fd, sf_nl_cominitiator cominitiator)
++{
++	struct sockaddr_nl src_addr;
++	uint8_t data[8];
++	int fd = socket(PF_NETLINK, SOCK_RAW, SF_EASYMESH_USER);
++	if (fd < 0) {
++		syslog(LOG_ERR, "socket failed: %s", strerror(errno));
++		return -1;
++	}
++
++	memset(&src_addr, 0, sizeof(src_addr));
++	src_addr.nl_family = AF_NETLINK;
++	src_addr.nl_pid = getpid();
++
++	if (bind(fd, (struct sockaddr*)&src_addr, sizeof(src_addr)) < 0) {
++		syslog(LOG_ERR, "bind failed: %s", strerror(errno));
++		close(fd);
++		return -1;
++	}
++
++	sf_nl_msg nl_msg;
++	nl_msg.type = SF_NL_MSG_OPEN;
++	nl_msg.data_len = 1;
++	data[0] = cominitiator;
++	nl_msg.data = data;
++
++	sf_nl_send_msg(fd, &nl_msg);
++	*sock_fd = fd;
++
++	return 0;
++}
++
++/**
++ * sf_nl_listen - Listen if the EasyMesh module insert.
++ *
++ * @args: The arguments of netlink communication initiator.
++ *
++ */
++static void *sf_nl_listen(void *arg)
++{
++	sf_listen_args *args = NULL;
++	const char *debugfs_file = "/sys/kernel/debug/agent/nl_status";
++	FILE *fp;
++	int value = 0;
++
++	args = (sf_listen_args *)arg;
++
++	while (!os_file_exists(debugfs_file) && keep_running) {
++		sleep(1);
++	}
++
++	while (keep_running) {
++		fp = fopen(debugfs_file, "r");
++		if (fp) {
++			if (fscanf(fp, "%d", &value) == 1) {
++				fclose(fp);
++				if (value == 1)
++					break;
++			} else {
++				fclose(fp);
++			}
++		}
++		sleep(1);
++	}
++
++	if (sf_nl_open_netlink(&sf_netlink_socket, args->cominitiator) != 0)
++		return NULL;
++
++	while (keep_running) {
++		sf_nl_receive_msg(sf_netlink_socket, args);
++	}
++
++	close(sf_netlink_socket);
++
++	return NULL;
++}
++
++/**
++ * wpa_driver_nl80211_siflower_init - Initialize the netlink communication.
++ *
++ * @data: The global information of netlink communication initiator.
++ * @cominitiator: The type of netlink communication initiator.
++ *
++ */
++int wpa_driver_nl80211_siflower_init(void *data, sf_nl_cominitiator cominitiator)
++{
++	args.data = data;
++	args.cominitiator = cominitiator;
++
++	if (args.cominitiator != SF_NL_INITOR_HAPD && args.cominitiator != SF_NL_INITOR_WPA) {
++		syslog(LOG_ERR, "invalid cominitator:%d \n", args.cominitiator);
++		return -1;
++	}
++
++	if (pthread_create(&netlink_thread, NULL, sf_nl_listen, &args) != 0) {
++		syslog(LOG_ERR, "netlink pthread_create failed: %s", strerror(errno));
++		return -1;
++	}
++
++	return 0;
++}
++
++/**
++ * wpa_driver_nl80211_siflower_deinit - Deinitialize the netlink communication.
++ */
++int wpa_driver_nl80211_siflower_deinit(void)
++{
++	keep_running = false;
++	pthread_join(netlink_thread, NULL);
++
++	return 0;
++}
++
++#endif
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wnm_sta.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/wnm_sta.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wnm_sta.c
+@@ -1095,6 +1095,9 @@ static void wnm_bss_tm_connect(struct wp
+ 			wpa_s, wpa_s->wnm_dialog_token, WNM_BSS_TM_ACCEPT,
+ 			MBO_TRANSITION_REJECT_REASON_UNSPECIFIED, 0,
+ 			bss->bssid);
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++		sf_update_btm_status(MBO_TRANSITION_REJECT_REASON_UNSPECIFIED);
++#endif
+ 	}
+ 
+ 	if (bss == wpa_s->current_bss) {
+@@ -1161,6 +1164,9 @@ send_bss_resp_fail:
+ 		wnm_send_bss_transition_mgmt_resp(wpa_s,
+ 						  wpa_s->wnm_dialog_token,
+ 						  status, reason, 0, NULL);
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++		sf_update_btm_status(reason);
++#endif
+ 	}
+ 	wnm_deallocate_memory(wpa_s);
+ 
+@@ -1360,10 +1366,15 @@ static int wnm_fetch_scan_results(struct
+ 	return 1;
+ }
+ 
+-
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++void ieee802_11_rx_bss_trans_mgmt_req(struct wpa_supplicant *wpa_s,
++					     const u8 *pos, const u8 *end,
++					     int reply)
++#else
+ static void ieee802_11_rx_bss_trans_mgmt_req(struct wpa_supplicant *wpa_s,
+ 					     const u8 *pos, const u8 *end,
+ 					     int reply)
++#endif
+ {
+ 	unsigned int beacon_int;
+ 	u8 valid_int;
+@@ -1408,6 +1419,9 @@ static void ieee802_11_rx_bss_trans_mgmt
+ 			wpa_s, wpa_s->wnm_dialog_token,
+ 			wpa_s->reject_btm_req_reason,
+ 			MBO_TRANSITION_REJECT_REASON_UNSPECIFIED, 0, NULL);
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++		sf_update_btm_status(MBO_TRANSITION_REJECT_REASON_UNSPECIFIED);
++#endif
+ 		return;
+ 	}
+ #endif /* CONFIG_MBO && CONFIG_TESTING_OPTIONS */
+@@ -1508,6 +1522,9 @@ static void ieee802_11_rx_bss_trans_mgmt
+ 				WNM_BSS_TM_REJECT_NO_SUITABLE_CANDIDATES,
+ 				MBO_TRANSITION_REJECT_REASON_UNSPECIFIED, 0,
+ 				NULL);
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++			sf_update_btm_status(MBO_TRANSITION_REJECT_REASON_UNSPECIFIED);
++#endif
+ 			return;
+ 		}
+ 
+@@ -1573,6 +1590,9 @@ static void ieee802_11_rx_bss_trans_mgmt
+ 		wnm_send_bss_transition_mgmt_resp(
+ 			wpa_s, wpa_s->wnm_dialog_token, status,
+ 			MBO_TRANSITION_REJECT_REASON_UNSPECIFIED, 0, NULL);
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++		sf_update_btm_status(MBO_TRANSITION_REJECT_REASON_UNSPECIFIED);
++#endif
+ 	}
+ }
+ 
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wpa_supplicant.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/wpa_supplicant.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wpa_supplicant.c
+@@ -6625,6 +6625,10 @@ int wpa_supplicant_run(struct wpa_global
+ 		return -1;
+ #endif
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	wpa_driver_nl80211_siflower_init(global, SF_NL_INITOR_WPA);
++#endif /* CONFIG_DRIVER_NL80211_SIFLOWER */
++
+ 	if (global->params.wait_for_monitor) {
+ 		for (wpa_s = global->ifaces; wpa_s; wpa_s = wpa_s->next)
+ 			if (wpa_s->ctrl_iface && !wpa_s->p2p_mgmt)
+@@ -6661,6 +6665,10 @@ void wpa_supplicant_deinit(struct wpa_gl
+ 	wifi_display_deinit(global);
+ #endif /* CONFIG_WIFI_DISPLAY */
+ 
++#ifdef CONFIG_DRIVER_NL80211_SIFLOWER
++	wpa_driver_nl80211_siflower_deinit();
++#endif /* CONFIG_DRIVER_NL80211_SIFLOWER */
++
+ 	while (global->ifaces)
+ 		wpa_supplicant_remove_iface(global, global->ifaces, 1);
+ 

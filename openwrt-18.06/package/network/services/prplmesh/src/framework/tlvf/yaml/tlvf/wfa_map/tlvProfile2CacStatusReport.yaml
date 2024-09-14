@@ -1,0 +1,55 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.44 CAC Status Report TLV
+
+tlvProfile2CacStatusReport:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_CAC_STATUS_REPORT                # line 1 (value)
+  length: uint16_t                                              # line 2 
+  number_of_available_channels:                                 # line 3
+    _type: uint8_t
+    _length_var: True
+  available_channels:                                           # line 7
+    _type: sAvailableChannels
+    _length: [ number_of_available_channels ]
+  # detected and non-occupancy are the same. It was decided
+  # to use detected to keep the same term as in other tlvs.
+  # e.g. cac-completion-report
+  number_of_detected_pairs:                                 # line 8
+    _type: uint8_t
+    _length_var: True
+  detected_pairs:                                           # line 12
+    _type: sDetectedPairs
+    _length: [ number_of_detected_pairs ]
+  number_of_active_cac_pairs:                               # line 13
+    _type: uint8_t
+    _length_var: True
+  active_cac_pairs:                                         # line 16
+    _type: sActiveCacPairs
+    _length: [ number_of_active_cac_pairs ]
+
+sAvailableChannels:
+  _type: struct
+  operating_class: uint8_t                  # line 4
+  channel: uint8_t                          # line 5
+  minutes_since_cac_completion: uint16_t    # line 6
+
+sDetectedPairs:
+  _type: struct
+  operating_class_detected: uint8_t     # line 9
+  channel_detected: uint8_t             # line 10
+  duration: uint16_t                    # line 11
+
+sActiveCacPairs:
+  _type: struct
+  operating_class_active_cac: uint8_t     # line 14
+  channel_active_cac: uint8_t             # line 15
+  countdown:                              # line 16
+    _type: uint8_t                    
+    _length: [3]

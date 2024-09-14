@@ -1,0 +1,42 @@
+#
+---
+_namespace: wfa_map
+
+tlvProfile2ApCapability:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_AP_CAPABILITY
+  length: uint16_t
+  max_prioritization_rules:
+    _type: uint8_t
+    _comment: |
+      The maximum total number of service prioritization rules supported by the Multi-AP Agent
+  reserved: uint8_t
+  capabilities_bit_field: sCapabilitiesBitsField
+  max_total_number_of_vids:
+    _type: uint8_t
+    _comment: Max Total Number of unique VLAN identifiers the Multi-AP Agent supports
+
+eByteCounterUnits:
+  _type: enum
+  _enum_storage: uint8_t
+  BYTES: 0x00
+  KIBIBYTES: 0x01
+  MEBIBYTES: 0x02
+
+sCapabilitiesBitsField:
+  _type: struct
+  _bit_field: uint8_t
+  byte_counter_units:
+    _bit_range: [7, 6]
+    _comment: |
+      0: bytes
+      1: kibibytes (KiB)
+      2: mebibytes (MiB)
+      3: reserved
+  prioritization:
+    _bit_range: [5, 5]
+  reserved:
+    _bit_range: [4, 0]

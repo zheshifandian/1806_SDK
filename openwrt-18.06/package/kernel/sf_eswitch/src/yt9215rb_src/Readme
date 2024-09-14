@@ -1,0 +1,4 @@
+os abstraction layer,take care different os implementation.
+system dependent impl for memory,thread,mutex/semaphore,printf etc.
+
+first generation will include linux and freeRTOS.

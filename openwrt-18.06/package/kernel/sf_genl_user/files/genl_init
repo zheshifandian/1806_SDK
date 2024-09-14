@@ -1,0 +1,6 @@
+#!/bin/sh
+
+START=51
+
+
+/usr/sbin/sf_genl_user tmu &

@@ -1,0 +1,18 @@
+' SPDX-License-Identifier: BSD-2-Clause-Patent
+' SPDX-FileCopyrightText: 2020 the prplMesh contributors (see AUTHORS.md)
+' This code is subject to the terms of the BSD+Patent license.
+' See LICENSE file for more details.
+
+@startuml
+
+' from backhaul_fsm_main
+[*] --> INIT
+INIT --> WAIT_ENABLE
+WAIT_ENABLE --> ENABLED
+ENABLED --> MASTER_DISCOVERY : local controller && local gw
+
+!include __inc_bh_fsm_shared.iuml!
+!include __inc_bh_fsm_wired_specific.iuml!
+!include __inc_bh_fsm_wireless_specific.iuml!
+
+@enduml

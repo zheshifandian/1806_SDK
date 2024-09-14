@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/net/https-dns-proxy/Makefile
+
+Package: https_dns_proxy
+Version: 2019-10-09-3d20c75c4a17aa569748e63ac169b9274178d573-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcares +libcurl +libev +ca-bundle
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: DNS over HTTPS Proxy Server
+Maintainer: Aaron Drew <aarond10@gmail.com>
+Source: https_dns_proxy-2019-10-09-3d20c75c4a17aa569748e63ac169b9274178d573.tar.xz
+License: MIT
+LicenseFiles: LICENSE
+Type: ipkg
+Description: DNS over HTTPS Proxy Server
+Aaron Drew <aarond10@gmail.com>
+@@
+
+

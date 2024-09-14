@@ -1,0 +1,204 @@
+
+# nothing to do if there is already a prplmesh config:
+uci -q get prplmesh && exit 0
+
+. /lib/functions/system.sh
+
+touch /etc/config/prplmesh
+
+uci batch <<'EOF'
+set prplmesh.config='prplmesh'
+set prplmesh.config.device_name='Mesh_device'
+set prplmesh.config.management_mode='Multi-AP-Agent'
+set prplmesh.config.operating_mode='WDS-Repeater'
+set prplmesh.config.enable='1'
+set prplmesh.config.onboarding='0'
+set prplmesh.config.master='0'
+set prplmesh.config.gateway='0'
+set prplmesh.config.rdkb_extensions='0'
+set prplmesh.config.band_steering='1'
+set prplmesh.config.steering='0'
+set prplmesh.config.client_roaming='1'
+set prplmesh.config.dfs_reentry='0'
+set prplmesh.config.passive_mode='1'
+set prplmesh.config.wired_backhaul='1'
+set prplmesh.config.operational='0'
+set prplmesh.config.ssid='siwifi_test'
+set prplmesh.config.mode_enabled='WPA2-Personal'
+set prplmesh.config.wep_key='12345678'
+set prplmesh.config.key_passphrase='test_passphrase'
+set prplmesh.config.mem_only_psk='0'
+set prplmesh.config.backhaul_band='auto'
+set prplmesh.config.certification_mode='0'
+set prplmesh.config.stop_on_failure_attempts='1'
+set prplmesh.config.link_metrics_request_interval_sec='30'
+
+set prplmesh.radio0='wifi-device'
+set prplmesh.radio0.hostap_iface='wlan0'
+set prplmesh.radio0.hostap_iface_steer_vaps='wlan0.0'
+set prplmesh.radio0.sta_iface='wlan0'
+set prplmesh.radio0.dcs_enable='0'
+set prplmesh.radio0.dcs_channel_pool='1,6,11'
+set prplmesh.radio0.dcs_interval_sec='15'
+set prplmesh.radio0.dcs_dwell_msec='40'
+set prplmesh.radio0.dcs_refresh_sec='86400'
+
+set prplmesh.radio1='wifi-device'
+set prplmesh.radio1.hostap_iface='wlan1'
+set prplmesh.radio1.hostap_iface_steer_vaps='wlan1.0'
+set prplmesh.radio1.sta_iface='wlan1'
+set prplmesh.radio1.dcs_enable='0'
+set prplmesh.radio1.dcs_channel_pool='36-48,149-165'
+set prplmesh.radio1.dcs_interval_sec='15'
+set prplmesh.radio1.dcs_dwell_msec='40'
+set prplmesh.radio1.dcs_refresh_sec='86400'
+
+commit prplmesh
+EOF
+
+uci batch <<'EOF'
+set wireless.default_radio0.ieee80211k='1'
+set wireless.default_radio0.ieee80211v='1'
+set wireless.default_radio0.bss_transition='1'
+set wireless.default_radio0.bridge='br-lan'
+set wireless.default_radio0.ap='2'
+set wireless.default_radio0.multi_ap='2'
+set wireless.default_radio0.multi_ap_backhaul_ssid='prplmesh_bh'
+set wireless.default_radio0.multi_ap_backhaul_key='12345678'
+del wireless.default_radio0.wpa_group_rekey
+del wireless.default_radio0.group
+
+set wireless.default_radio1.ieee80211k='1'
+set wireless.default_radio1.ieee80211v='1'
+set wireless.default_radio1.bss_transition='1'
+set wireless.default_radio1.bridge='br-lan'
+set wireless.default_radio1.ap='2'
+set wireless.default_radio1.multi_ap='2'
+set wireless.default_radio1.multi_ap_backhaul_ssid='prplmesh_bh'
+set wireless.default_radio1.multi_ap_backhaul_key='12345678'
+del wireless.default_radio1.wpa_group_rekey
+del wireless.default_radio1.group
+
+set wireless.default_radio10='wifi-iface'
+set wireless.default_radio10.device='radio0'
+set wireless.default_radio10.network='lan'
+set wireless.default_radio10.ifname='wlan0-1'
+set wireless.default_radio10.mode='ap'
+set wireless.default_radio10.ssid='prplmesh_bh'
+set wireless.default_radio10.key='12345678'
+set wireless.default_radio10.encryption='psk2+ccmp'
+set wireless.default_radio10.max_inactivity='60'
+set wireless.default_radio10.ieee80211v='1'
+set wireless.default_radio10.bss_transition='1'
+set wireless.default_radio10.bridge='br-lan'
+set wireless.default_radio10.ap='1'
+set wireless.default_radio10.multi_ap='1'
+set wireless.default_radio10.defalut_disabeld='false'
+set wireless.default_radio10.disabled='0'
+
+set wireless.default_radio20='wifi-iface'
+set wireless.default_radio20.device='radio1'
+set wireless.default_radio20.network='lan'
+set wireless.default_radio20.ifname='wlan1-1'
+set wireless.default_radio20.mode='ap'
+set wireless.default_radio20.ssid='prplmesh_bh'
+set wireless.default_radio20.hidden='1'
+set wireless.default_radio20.key='12345678'
+set wireless.default_radio20.encryption='psk2+ccmp'
+set wireless.default_radio20.max_inactivity='60'
+set wireless.default_radio20.ieee80211v='1'
+set wireless.default_radio20.bss_transition='1'
+set wireless.default_radio20.bridge='br-lan'
+set wireless.default_radio20.ap='1'
+set wireless.default_radio20.multi_ap='1'
+set wireless.default_radio20.defalut_disabeld='false'
+set wireless.default_radio20.disabled='0'
+
+set wireless.default_radio11='wifi-iface'
+set wireless.default_radio11.device='radio0'
+set wireless.default_radio11.ifname='wlan0-2'
+set wireless.default_radio11.mode='sta'
+set wireless.default_radio11.network='lan'
+set wireless.default_radio11.wds='1'
+set wireless.default_radio11.wpa_pushbutton='1'
+set wireless.default_radio11.wps_config='push_button'
+set wireless.default_radio11.multi_ap='1'
+set wireless.default_radio11.default_disabled='true'
+set wireless.default_radio11.ssid='easymesh'
+set wireless.default_radio11.disabled='1'
+set wireless.default_radio11.key='12345678'
+set wireless.default_radio11.encryption='psk2+ccmp'
+
+set wireless.default_radio22='wifi-iface'
+set wireless.default_radio22.device='radio1'
+set wireless.default_radio22.ifname='wlan1-2'
+set wireless.default_radio22.mode='sta'
+set wireless.default_radio22.network='lan'
+set wireless.default_radio22.wds='1'
+set wireless.default_radio22.wpa_pushbutton='1'
+set wireless.default_radio22.wps_config='push_button'
+set wireless.default_radio22.multi_ap='1'
+set wireless.default_radio22.default_disabled='true'
+set wireless.default_radio22.ssid='easymesh'
+set wireless.default_radio22.disabled='1'
+set wireless.default_radio22.key='12345678'
+set wireless.default_radio22.encryption='psk2+ccmp'
+
+set wireless.default_radio0.encryption='psk2+ccmp'
+set wireless.default_radio1.encryption='psk2+ccmp'
+
+set wireless.radio0.noscan='1'
+set wireless.radio1.noscan='1'
+commit wireless
+EOF
+
+local mac=`uci get network.lan_dev.macaddr`
+local lan_mac=$(macaddr_add "$mac" +11)
+local macset=`uci get network.lan.macaddr`
+uci set network.lan.macaddr=$mac
+uci set network.lan_dev.macaddr=$lan_mac
+uci set network.lan.ifname='eth0.1 eth0.2'
+uci set network.wan.disabled='1'
+uci commit network
+
+#for RX40 platform, wlan0 and wlan2 are used instead of the defualt wlan0 and wlan1
+#sta ifaces are wlan1 and wlan3
+if grep -q GRX /tmp/sysinfo/board_name; then
+        uci set prplmesh.radio1.hostap_iface="wlan2"
+        uci set prplmesh.radio1.hostap_iface_steer_vaps="wlan2.0"
+        uci set prplmesh.radio0.sta_iface="wlan1"
+        uci set prplmesh.radio1.sta_iface="wlan3"
+        uci commit prplmesh
+fi
+
+# Use the first interface of the LAN network as the default value
+BH_IFACE="$(uci get network.lan.ifname | cut -d" " -f1)"
+if [ -z "$BH_IFACE" ] ; then
+        logger -t prplmesh -p daemon.warn "No default wired backhaul interface was set! Please set 'prplmesh.config.backhaul_wire_iface' manually."
+else
+        uci set prplmesh.config.backhaul_wire_iface="$BH_IFACE"
+        uci commit prplmesh
+fi
+
+# FIXME: the next part can be removed once prplMesh supports the same
+# MAC address for the bridge and wireless interfaces (PPM-1057).
+. /lib/functions.sh
+. /lib/netifd/wireless/mac80211.sh
+case "$(board_name)" in
+        glinet,gl-b1300)
+                export macidx=10
+                uci set network.lan.macaddr="$(mac80211_generate_mac phy0)"
+                unset macidx
+                uci commit network
+                /etc/init.d/network reload
+        ;;
+#        siflower,sf19a28-soc)
+#                export macidx=10
+#                uci set network.lan.macaddr="$(mac80211_generate_mac phy0)"
+#                unset macidx
+#                uci commit network
+#                /etc/init.d/network reload
+#	;;
+        *)
+        ;;
+esac

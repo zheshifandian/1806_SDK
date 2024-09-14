@@ -1,0 +1,44 @@
+#
+---
+_namespace: assoc_frame
+
+cCapInfoDmgSta:
+  _type: class
+  _comment: |
+    Capability Information field if transmitted by a DMG STA.
+  dmg_param:
+    _type: sDmgParam
+  cap_info:
+    _type: sInfoSubField
+  listen_interval:
+    _type: uint16_t
+
+sInfoSubField:
+  _type: struct
+  _bit_field: uint8_t
+  reserved2:
+    _bit_range: [7,5]
+  radio_measurement:
+    _bit_range: [4,4]
+  reserved1:
+    _bit_range: [3,2]
+  triggered_unscheduled_ps:
+    _bit_range: [1,1]
+  spectrum_management:
+    _bit_range: [0,0]
+
+sDmgParam:
+  _type: struct
+  _bit_field: uint8_t
+  bss_type:
+    _bit_range: [7,6]
+  ecap_policy_enforced:
+    _bit_range: [5,5]
+  dmg_privacy:
+    _bit_range: [4,4]
+  cbap_source:
+    _bit_range: [3,3]
+  cbap_only:
+    _bit_range: [2,2]
+  bss_type:
+    _bit_range: [1,0]

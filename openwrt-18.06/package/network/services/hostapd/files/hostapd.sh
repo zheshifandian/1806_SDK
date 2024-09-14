@@ -234,7 +234,7 @@ hostapd_common_add_bss_config() {
 	config_add_string 'bssid:macaddr' 'ssid:string'
 	config_add_boolean wds wmm uapsd hidden utf8_ssid cond_hidden
 
-	config_add_int maxassoc max_inactivity
+	config_add_int maxassoc max_inactivity is_default_radio
 	config_add_boolean disassoc_low_ack isolate short_preamble
 
 	config_add_int \
@@ -337,7 +337,7 @@ hostapd_set_bss_options() {
 		acct_server acct_secret acct_port acct_interval \
 		bss_load_update_period chan_util_avg_period sae_require_mfp \
 		multi_ap multi_ap_backhaul_ssid multi_ap_backhaul_key \
-		wpa_group_update_count
+		wpa_group_update_count is_default_radio
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -359,6 +359,7 @@ hostapd_set_bss_options() {
 	set_default chan_util_avg_period 600
 	set_default utf8_ssid 1
 	set_default multi_ap 0
+	set_default is_default_radio 0
 
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
@@ -381,6 +382,7 @@ hostapd_set_bss_options() {
 	append bss_conf "uapsd_advertisement_enabled=$uapsd" "$N"
 	append bss_conf "utf8_ssid=$utf8_ssid" "$N"
 	append bss_conf "multi_ap=$multi_ap" "$N"
+	append bss_conf "is_default_radio=$is_default_radio" "$N"
 
 	[ "$tdls_prohibit" -gt 0 ] && append bss_conf "tdls_prohibit=$tdls_prohibit" "$N"
 
@@ -1052,27 +1054,27 @@ wpa_supplicant_run() {
 
 	_wpa_supplicant_common "$ifname"
 
-	# /usr/sbin/wpa_supplicant -B -s \
-	# 	${network_bridge:+-b $network_bridge} \
-	# 	-P "/var/run/wpa_supplicant-${ifname}.pid" \
-	# 	-D ${_w_driver:-wext} \
-	# 	-i "$ifname" \
-	# 	-c "$_config" \
-	# 	-C "$_rpath" \
-	# 	"$@"
+#	/usr/sbin/wpa_supplicant -B -s \
+#		${network_bridge:+-b $network_bridge} \
+#		-P "/var/run/wpa_supplicant-${ifname}.pid" \
+#		-D ${_w_driver:-wext} \
+#		-i "$ifname" \
+#		-c "$_config" \
+#		-C "$_rpath" \
+#		"$@"
 
-	# ret="$?"
-	# wireless_add_process_wpas "$(cat "/var/run/wpa_supplicant-${ifname}.pid")" /usr/sbin/wpa_supplicant 1
+#	ret="$?"
+#	wireless_add_process_wpas "$(cat "/var/run/wpa_supplicant-${ifname}.pid")" /usr/sbin/wpa_supplicant 1
 
-	# [ "$ret" != 0 ] && wireless_setup_vif_failed WPA_SUPPLICANT_FAILED
+#	[ "$ret" != 0 ] && wireless_setup_vif_failed WPA_SUPPLICANT_FAILED
 
 	#set wds connect/disconnect status
 	[ -e /usr/bin/wpa_cli_event.sh ] && /usr/sbin/wpa_cli -a "/usr/bin/wpa_cli_event.sh" -i "$ifname"&
 	# check current status
 	[ -e /usr/bin/check_connection.sh ] && /usr/bin/check_connection.sh "$ifname"&
 
-	# return $ret
-    return 0
+#	return $ret
+	return 0
 }
 
 hostapd_common_cleanup() {

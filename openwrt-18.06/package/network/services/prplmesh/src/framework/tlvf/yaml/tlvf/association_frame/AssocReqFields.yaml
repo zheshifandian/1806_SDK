@@ -1,0 +1,268 @@
+#
+---
+_include: {
+  tlvf/common/sMacAddr.h,
+  tlvf/association_frame/eElementID.h,
+  tlvf/AssociationRequestFrame/assoc_frame_bitfields.h,
+}
+_namespace: assoc_frame
+
+cSSID:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_SSID
+  length:
+    _type: uint8_t
+  ssid:
+    _type: char
+    _length: []
+    _length_max: 0x20
+
+cRSN:
+  _comment: |
+    The RSNE is present if dot11RSNAActivated is true.
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_RSN
+  length:
+    _type: uint8_t
+  version:
+    _type: uint16_t
+  optional:
+    _type: uint8_t
+    _length: []
+
+cSupportedOpClasses:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_SUP_OP_CLASSES
+  length:
+    _type: uint8_t
+  current_op_class: uint8_t
+  op_classes:
+    _type: uint8_t
+    _length: []
+
+cSupportRates:
+  _comment: |
+    Supported Rates and BSS Membership Selectors
+    This field is not present if dot11DMGOptionImplemented is true
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_SUPPORT_RATES
+  length:
+    _type: uint8_t
+  supported_rated:
+    _type: uint8_t
+    _length: []
+
+cExtendedSupportRates:
+  _comment: |
+   Extended supported rates and BSS Membership Selectors
+   This field is not present if dot11DMGOptionImplemented is true
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_EXTENDED_SUP_RATES
+  length:
+    _type: uint8_t
+  extended_suport_rated:
+    _type: uint8_t
+    _length: []
+
+cPowerCapability:
+  _comment: |
+    This element is present if dot11SpectrumManagementRequired
+    is true or dot11RadioMeasurementActivated is true.
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_POWER_CAPABILITY
+  length:
+    _type: uint8_t
+  min_tx_power:
+    _type: uint8_t
+  max_tx_power:
+    _type: uint8_t
+
+cBssCoexistence20_40:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_BSS_COEXISTENCE20_40
+  length:
+    _type: uint8_t
+  info_field: uint8_t
+
+cQosTrafficCap:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_QOS_TRAFFIC_CAP
+  length:
+    _type: uint8_t
+  flags:
+    _comment: |
+      QoS traffic capability bitmask/flags
+    _type: uint8_t
+  ac_sta_count_list:
+    _comment: |
+      Total number of nonzero bits in Bits 0-1 of 'flags'
+    _type: uint8_t
+
+cTimBroadcastRequest:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_TIM_BROADCAST_REQUEST
+  length:
+    _type: uint8_t
+  tim_brdcast_interval:
+    _type: uint8_t
+
+cInterworking:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_INTERWORKING
+  length:
+    _type: uint8_t
+  ac_network_options:
+    _type: uint8_t
+  optional_params:
+    _type: uint8_t
+    _length: []
+
+cMultiBand:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_MULTI_BAND
+  length:
+    _type: uint8_t
+  multi_band_control:
+    _type: uint8_t
+  band_id:
+    _type: uint8_t
+  op_class:
+    _type: uint8_t
+  channel_num:
+    _type: uint8_t
+  bssid: sMacAddr
+  beacon_interval:
+    _type: uint8_t
+  tsf_offset:
+    _type: uint8_t
+    _length: [8]
+  multi_band_con_cap:
+    _type: uint8_t
+  fst_session_timeout:
+    _type: uint8_t
+  optional:
+    _type: uint8_t
+
+eMultiBandId:
+  _type: enum
+  _enum_storage: uint8_t
+  _comment: |
+    The Band ID field provides the identification of the frequency band related to the Operating Class and
+    channel Number fields. The Band ID field is defined in 9.4.1.45. (Cf80211-2020 Table 9-67)
+  BAND_TV_WHITE_SPACES: 0
+  BAND_SUB_1_GHZ: 1
+  BAND_2_4_GHZ: 2
+  BAND_3_6_GHZ: 3
+  BAND_4_9_AND_5_GHZ: 4
+  BAND_60_GHZ : 5
+  BAND_45_GHZ : 6
+
+cDmgCapabilities:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_DMG_CAPS
+  length: uint8_t
+  bssid: sMacAddr
+  aid: uint8_t
+  dmg_sta_cap_info:
+    _type: uint8_t
+    _length: [8]
+  dmg_ap:
+    _comment: |
+      DMG AP or PCP capability info
+    _type: uint16_t
+  dmg_sta_beam_track_time_lim: uint16_t
+  extended_sc_mcs_cap: uint8_t
+  basic_amsdu_subframe_max_num: uint8_t
+  short_amsdu_subframe_max_num: uint8_t
+
+cMultipleMacSublayers:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_MMS
+  length:
+    _type: uint8_t
+  mms_control: uint8_t
+  sta_mac: sMacAddr
+  interface_addr:
+    _type: uint8_t
+    _length: []
+
+cOperatingModeNotify:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_OP_MODE_NOTIFICATION
+  length:
+    _type: uint8_t
+  op_mode:
+    _type: uint8_t
+
+cVendorSpecific:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_VENDOR_SPECIFIC
+  length:
+    _type: uint8_t
+  oui:
+    _type: uint8_t
+    _length: [3]
+  oui_type:
+    _type: uint8_t
+  data:
+    _type: uint8_t
+    _length: []
+
+cUnknownField:
+  _comment: |
+   Dummy class used to store unknown (unhandled) IEs
+   as raw data
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+  length:
+    _type: uint8_t
+  data:
+    _type: uint8_t
+    _length: []

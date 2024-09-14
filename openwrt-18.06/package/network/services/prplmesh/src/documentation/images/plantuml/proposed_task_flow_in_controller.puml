@@ -1,0 +1,19 @@
+@startuml
+'Replacing ACTION_CONTROL_HOSTAP_CSA_NOTIFICATION by CHANNEL_SELECTION_RESPONSE
+participant controller
+participant task_pool
+participant channel_selection_task
+
+controller - task_pool  handle_ieee1905_1_msg(CHANNEL_nSELECTION_RESPONSE)
+task_pool - channel_selection_task handle_ieee1905_1_msg(ieee1905_1CmduMessageRx &cmdu_rx,nstdstring src_mac)
+
+group handle_ieee1905_1_msg
+channel_selection_task - channel_selection_task  channel_preference_query()
+channel_selection_task - channel_selection_task  channel_preference_report()
+channel_selection_task - channel_selection_task  channel_selection_request()
+channel_selection_task - channel_selection_task  channel_selection_response()
+channel_selection_task - channel_selection_task  operating_channel_report()
+channel_selection_task - channel_selection_task  CAC_request()
+channel_selection_task - channel_selection_task  CAC_termination()
+end
+@enduml
