@@ -1,0 +1,124 @@
+
+/* SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+ * SPDX-FileCopyrightText: 2020 the prplMesh contributors (see AUTHORS.md)
+ *
+ * This code is subject to the terms of the BSD+Patent license.
+ * See LICENSE file for more details.
+ */
+
+%config {
+    define-behavior = {
+        existing-object = "update"
+    };
+}
+
+%define {
+    select Device.WiFi.DataElements.Network.Device.Radio.BSS.STA {
+        %read-only string MACAddress = "00:00:00:00:00:00";
+        %read-only string TimeStamp = "2020-08-31T11:22:39Z";
+
+        /**
+        ** Need to add here HTCapabilities, VHTCapabilities, HECapabilities
+        ** from mids which defined in controller.odl
+        **/
+
+        %read-only uint32 LastDataDownlinkRate = 0;
+        %read-only uint32 LastDataUplinkRate = 0;
+        %read-only uint64 UtilizationReceive = 0 {
+            on action validate call check_minimum 0;
+        }
+
+        %read-only uint64 UtilizationTransmit = 0 {
+            on action validate call check_minimum 0;
+        }
+
+        %read-only uint32 EstMACDataRateDownlink = 0;
+        %read-only uint32 EstMACDataRateUplink = 0;
+
+        %read-only uint32 SignalStrength = 0 {
+            on action validate call check_range [0, 220];
+        }
+
+        %read-only uint32 LastConnectTime = 0 {
+            on action read call action_read_assoc_time;
+        }
+
+        %read-only uint64 BytesSent = 0;
+        %read-only uint64 BytesReceived = 0;
+        %read-only uint64 PacketsSent = 0;
+        %read-only uint64 PacketsReceived = 0;
+        %read-only uint64 ErrorsSent = 0;
+        %read-only uint64 ErrorsReceived = 0;
+        %read-only uint64 RetransCount = 0;
+        %read-only string IPV4Address = "0";
+        %read-only string IPV6Address = "0";
+        %read-only string Hostname = "0";
+
+        %read-only object MeasurementReport [] {
+            counted with MeasurementReportNumberOfEntries;
+            %read-only string BSSID = "00:00:00:00:00:00";
+            %read-only uint16 Channel = 0;
+            %read-only uint16 OpClass = 0;
+            %read-only uint16 DialogToken = 0;
+            %read-only uint16 MeasurementToken = 0;
+            %read-only uint16 RepMode = 0;
+            %read-only uint16 PhyType = 0;
+            %read-only uint16 RCPI = 0;
+            %read-only uint16 RSNI = 0;
+            %read-only uint16 AntId = 0;
+            %read-only uint16 Duration = 0;
+            %read-only uint64 StartTime = 0;
+        }
+
+        %read-only object MultiAPSTA {
+            %read-only datetime AssociationTime = "2020-08-31T11:22:39Z";
+            %read-only uint32 Noise = 0;
+
+            %read-only object SteeringHistory [] {
+                counted with SteeringHistoryNumberOfEntries;
+                %read-only datetime Time = "2020-08-31T11:22:39Z";
+
+                /* The BSSID of the Access Point that initiated the steering. */
+                %read-only string APOrigin = "00:00:00:00:00:00";
+
+                /*  This might be Unknown for BTM Query Response steers. */
+                %read-only string TriggerEvent {
+                    default "Unknown";
+                    on action validate call check_enum [
+                        "Unknown",
+                        "Wi-Fi Channel Utilization",
+                        "Wi-Fi Link Quality",
+                        "Backhaul Link Utilization"
+                    ];
+                }
+
+                %read-only string SteeringApproach {
+                    default "BTM Request";
+                    on action validate call check_enum [
+                        "Blacklist",
+                        "BTM Request",
+                        "Async BTM Query"
+                    ];
+                }
+                %read-only string APDestination = "00:00:00:00:00:00";
+                %read-only uint32 SteeringDuration = 0;
+            }
+
+            %read-only object SteeringSummaryStats {
+                %read-only uint64 NoCandidateAPFailures = 0;
+                %read-only uint64 BlacklistAttempts = 0;
+                %read-only uint64 BlacklistSuccesses = 0;
+                %read-only uint64 BlacklistFailures = 0;
+                %read-only uint64 BTMAttempts = 0;
+                %read-only uint64 BTMSuccesses = 0;
+                %read-only uint64 BTMFailures = 0;
+                %read-only uint64 BTMQueryResponses = 0;
+                %read-only string LastSteerTimeStamp = "2020-08-31T11:22:39Z";
+                %read-only uint32 LastSteerTime = 0 {
+                    on action read call action_last_steer_time;
+                }
+            }
+        }
+    }
+}

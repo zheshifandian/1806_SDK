@@ -1,0 +1,38 @@
+
+/* SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+ * SPDX-FileCopyrightText: 2020 the prplMesh contributors (see AUTHORS.md)
+ *
+ * This code is subject to the terms of the BSD+Patent license.
+ * See LICENSE file for more details.
+ */
+
+%config {
+    define-behavior = {
+        existing-object = "update"
+    };
+}
+
+%define {
+    select Device.WiFi.DataElements.Network.Device.Radio.Capabilities {
+
+        /**
+        ** Need to add here HTCapabilities, VHTCapabilities, HECapabilities
+        ** from mids which defined in controller.odl
+        **/
+
+        object OperatingClasses [] {
+            counted with OperatingClassesNumberOfEntries;
+            %read-only uint32 Class = 0 {
+                on action validate call check_range [0, 255];
+            }
+            %read-only int32 MaxTxPower = 0 {
+                on action validate call check_range [-127, 127];
+            }
+            %read-only object NonOperable [] {
+                uint32 NonOpChannelNumber;
+                counted with NumberOfNonOperChan;
+            }
+        }
+    }
+}

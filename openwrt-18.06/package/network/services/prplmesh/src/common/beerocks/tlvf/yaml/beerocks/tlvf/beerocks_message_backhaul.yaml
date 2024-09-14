@@ -1,0 +1,207 @@
+#
+---
+_include: {
+  beerocks/tlvf/beerocks_message_common.h,
+  structs/sCacStartedNotificationParams.h
+}
+_namespace: beerocks_message
+_multi_class: True
+_multi_class_auto_insert:
+  action_op:
+    _type: eActionOp_BACKHAUL
+    _value_const: [_auto_value_by_name, 1]
+    _class_const: True
+
+#################################################
+#################################################
+
+cACTION_BACKHAUL_REGISTER_REQUEST:
+  _type: class
+
+cACTION_BACKHAUL_REGISTER_RESPONSE:
+  _type: class
+
+cACTION_BACKHAUL_ENABLE:
+  _type: class
+
+cACTION_BACKHAUL_CONNECTED_NOTIFICATION:
+  _type: class
+
+cACTION_BACKHAUL_DISCONNECTED_NOTIFICATION:
+  _type: class
+  stopped: uint8_t
+
+cACTION_BACKHAUL_ENABLE_APS_REQUEST:
+  _type: class
+  iface:
+    _type: char
+    _length: ["beerocks::message::IFACE_NAME_LENGTH"]
+  channel: uint8_t
+  bandwidth: beerocks::eWiFiBandwidth
+  center_channel: uint8_t
+
+cACTION_BACKHAUL_UPDATE_STOP_ON_FAILURE_ATTEMPTS_REQUEST:
+  _type: class
+  attempts: uint32_t
+
+cACTION_BACKHAUL_AP_DISABLED_NOTIFICATION:
+  _type: class
+  iface:
+    _type: char
+    _length: ["beerocks::message::IFACE_NAME_LENGTH"]
+    
+cACTION_BACKHAUL_CLIENT_RX_RSSI_MEASUREMENT_REQUEST:
+  _type: class
+  params: sNodeRssiMeasurementRequest
+
+cACTION_BACKHAUL_CLIENT_RX_RSSI_MEASUREMENT_RESPONSE:
+  _type: class
+  params: sNodeRssiMeasurement
+
+cACTION_BACKHAUL_CLIENT_RX_RSSI_MEASUREMENT_CMD_RESPONSE:
+  _type: class
+  mac: sMacAddr
+
+cACTION_BACKHAUL_ASSOCIATED_STA_LINK_METRICS_REQUEST:
+  _type: class
+  sync: uint8_t
+  sta_mac: sMacAddr
+
+cACTION_BACKHAUL_ASSOCIATED_STA_LINK_METRICS_RESPONSE:
+  _type: class
+  _is_tlv_class: True
+  length: uint16_t
+  sta_mac: sMacAddr
+  bssid_info_list_length:
+    _type: uint8_t
+    _length_var: True
+  bssid_info_list:
+    _type: sBssidInfo
+    _length: [bssid_info_list_length]
+
+cACTION_BACKHAUL_START_WPS_PBC_REQUEST:
+  _type: class
+  iface:
+    _type: char
+    _length: ["beerocks::message::IFACE_NAME_LENGTH"]
+
+cACTION_BACKHAUL_SET_ASSOC_DISALLOW_REQUEST:
+  _type: class
+  enable: uint8_t
+  bssid: sMacAddr
+
+cACTION_BACKHAUL_APPLY_VLAN_POLICY_REQUEST:
+  _type: class
+  
+cACTION_BACKHAUL_ZWDFS_RADIO_DETECTED:
+  _type: class
+  front_iface_name:
+    _type: char
+    _length: ["beerocks::message::IFACE_NAME_LENGTH"]
+
+cACTION_BACKHAUL_CHANNELS_LIST_REQUEST:
+  _type: class
+
+cACTION_BACKHAUL_CHANNELS_LIST_RESPONSE:
+  _type: class
+
+cACTION_BACKHAUL_HOSTAP_CHANNEL_SWITCH_ACS_START:
+  _type: class
+  cs_params: sApChannelSwitch
+  tx_limit: int8_t
+  tx_limit_valid: uint8_t #bool
+
+cACTION_BACKHAUL_HOSTAP_CANCEL_ACTIVE_CAC_REQUEST:
+  _type: class
+  cs_params: sApChannelSwitch # the channel to restore to after cancellation.
+
+cACTION_BACKHAUL_HOSTAP_CANCEL_ACTIVE_CAC_RESPONSE:
+  _type: class
+  success : uint8_t # bool
+
+cACTION_BACKHAUL_HOSTAP_CSA_NOTIFICATION:
+  _type: class
+  cs_params: sApChannelSwitch
+
+cACTION_BACKHAUL_HOSTAP_CSA_ERROR_NOTIFICATION:
+  _type: class
+  cs_params: sApChannelSwitch
+
+cACTION_BACKHAUL_HOSTAP_DFS_CAC_STARTED_NOTIFICATION:
+  _type: class
+  params: sCacStartedNotificationParams
+
+cACTION_BACKHAUL_HOSTAP_DFS_CAC_COMPLETED_NOTIFICATION:
+  _type: class
+  params: sDfsCacCompleted
+
+cACTION_BACKHAUL_HOSTAP_ZWDFS_ANT_CHANNEL_SWITCH_REQUEST:
+  _type: class
+  ant_switch_on: uint8_t #bool
+  channel: uint8_t
+  bandwidth: beerocks::eWiFiBandwidth
+  center_frequency: uint32_t
+
+cACTION_BACKHAUL_HOSTAP_ZWDFS_ANT_CHANNEL_SWITCH_RESPONSE:
+  _type: class
+  success: uint8_t #bool
+
+cACTION_BACKHAUL_RADIO_DISABLE_REQUEST:
+  _type: class
+  iface:
+    _type: char
+    _length: ["beerocks::message::IFACE_NAME_LENGTH"]
+
+cACTION_BACKHAUL_RADIO_TEAR_DOWN_REQUEST:
+  _type: class
+
+################################################
+# CHANNEL SCAN REQUESTS/RESPONSES
+################################################
+cACTION_BACKHAUL_CHANNEL_SCAN_TRIGGER_SCAN_REQUEST:
+  _type: class
+  scan_params: sTriggerChannelScanParams
+
+cACTION_BACKHAUL_CHANNEL_SCAN_TRIGGER_SCAN_RESPONSE:
+  _type: class
+  success: uint8_t #bool
+
+cACTION_BACKHAUL_CHANNEL_SCAN_DUMP_RESULTS_REQUEST:
+  _type: class
+  
+cACTION_BACKHAUL_CHANNEL_SCAN_DUMP_RESULTS_RESPONSE:
+  _type: class
+  success: uint8_t #bool
+
+################################################
+# CHANNEL SCAN NOTIFICATIONS
+################################################
+
+cACTION_BACKHAUL_CHANNEL_SCAN_TRIGGERED_NOTIFICATION:
+  _type: class
+  radio_mac: sMacAddr
+
+cACTION_BACKHAUL_CHANNEL_SCAN_RESULTS_NOTIFICATION:
+  _type: class
+  scan_results: sChannelScanResults
+  radio_mac: sMacAddr
+  is_dump:
+    _type: uint8_t
+    _value: 0
+    _comment: 1 - notification contains a result dump, 0 - notification that results are ready
+
+cACTION_BACKHAUL_CHANNEL_SCAN_ABORT_REQUEST:
+  _type: class
+
+cACTION_BACKHAUL_CHANNEL_SCAN_ABORT_RESPONSE:
+  _type: class
+  success: uint8_t #bool
+
+cACTION_BACKHAUL_CHANNEL_SCAN_ABORTED_NOTIFICATION:
+  _type: class
+  reason: uint8_t
+  radio_mac: sMacAddr
+
+cACTION_BACKHAUL_CHANNEL_SCAN_FINISHED_NOTIFICATION:
+  _type: class
+  radio_mac: sMacAddr

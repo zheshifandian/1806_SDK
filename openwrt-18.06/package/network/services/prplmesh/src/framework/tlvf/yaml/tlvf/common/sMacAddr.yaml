@@ -1,0 +1,9 @@
+#
+---
+
+sMacAddr:
+  _type: struct
+  oct:
+    _type: uint8_t
+    _length: [ 6 ]
+    _value: 0

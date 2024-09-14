@@ -188,6 +188,7 @@ unsigned int nf_conntrack_htable_size __read_mostly;
 EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
 
 unsigned int nf_conntrack_max __read_mostly;
+unsigned int nf_conntrack_drop_count_clr __read_mostly;
 seqcount_t nf_conntrack_generation __read_mostly;
 static unsigned int nf_conntrack_hash_rnd __read_mostly;
 
@@ -1120,7 +1121,7 @@ __nf_conntrack_alloc(struct net *net,
 			if (!conntrack_gc_work.early_drop)
 				conntrack_gc_work.early_drop = true;
 			atomic_dec(&net->ct.count);
-			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
+			atomic_inc(&net->ct.drop_count);
 			return ERR_PTR(-ENOMEM);
 		}
 	}
@@ -1154,6 +1155,10 @@ __nf_conntrack_alloc(struct net *net,
 	return ct;
 out:
 	atomic_dec(&net->ct.count);
+	if (unlikely(atomic_read(&net->ct.drop_count) > 0) &&
+	    atomic_read(&net->ct.count) < nf_conntrack_drop_count_clr) {
+		atomic_set(&net->ct.drop_count, 0);
+	}
 	return ERR_PTR(-ENOMEM);
 }
 
@@ -1181,6 +1186,10 @@ void nf_conntrack_free(struct nf_conn *ct)
 	kmem_cache_free(nf_conntrack_cachep, ct);
 	smp_mb__before_atomic();
 	atomic_dec(&net->ct.count);
+	if (unlikely(atomic_read(&net->ct.drop_count) > 0) &&
+	    atomic_read(&net->ct.count) < nf_conntrack_drop_count_clr) {
+		atomic_set(&net->ct.drop_count, 0);
+	}
 }
 EXPORT_SYMBOL_GPL(nf_conntrack_free);
 
@@ -2044,6 +2053,7 @@ int nf_conntrack_init_start(void)
 		return -ENOMEM;
 
 	nf_conntrack_max = max_factor * nf_conntrack_htable_size;
+	nf_conntrack_drop_count_clr = nf_conntrack_max / 100 * 98;
 
 	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
 						sizeof(struct nf_conn),
@@ -2141,6 +2151,7 @@ int nf_conntrack_init_net(struct net *net)
 
 	BUILD_BUG_ON(IP_CT_UNTRACKED == IP_CT_NUMBER);
 	atomic_set(&net->ct.count, 0);
+	atomic_set(&net->ct.drop_count, 0);
 
 	net->ct.pcpu_lists = alloc_percpu(struct ct_pcpu);
 	if (!net->ct.pcpu_lists)

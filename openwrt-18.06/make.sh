@@ -47,8 +47,8 @@ else
 #	if [ "$is_rep_board" != "" ];then
 #		tag=`git tag  |  grep "${branch}.rep-" | sort -V | awk 'END{print}'`
 #	else
-# ${branch}-1 is specailly for release-1.0.0 branch
-#		tag=`git tag  |  grep "${branch}-1" | sort -V | awk 'END{print}'`
+#${branch}-2 is specailly for release2.0.0 branch
+#		tag=`git tag  |  grep "${branch}-2" | sort -V | awk 'END{print}'`
 #	fi
 
 
@@ -79,17 +79,20 @@ case ${board} in
 	a28_ac28)
 		target_board=target/linux/siflower/sf19a28_ac28_fullmask_def.config
 		;;
+	a28_ac28nand)
+		target_board=target/linux/siflower/sf19a28_ac28nand_fullmask_def.config
+		;;
 	a28_ac28s)
 		target_board=target/linux/siflower/sf19a28_ac28s_fullmask_def.config
 		;;
 	a28_phy)
-        target_board=target/linux/siflower/sf19a28_phy_fullmask_def.config
-        ;;
-	a28_ac28nand)
-		target_board=target/linux/siflower/sf19a28_ac28nand_fullmask_def.config
+		target_board=target/linux/siflower/sf19a28_phy_fullmask_def.config
 		;;
 	a28_yts)
 		target_board=target/linux/siflower/sf19a28_yts_fullmask_def.config
+		;;
+	a28_bpi)
+		target_board=target/linux/siflower/sf19a28_bpi_fullmask_def.config
 		;;
 	clean)
 		echo "clean build enviroment"

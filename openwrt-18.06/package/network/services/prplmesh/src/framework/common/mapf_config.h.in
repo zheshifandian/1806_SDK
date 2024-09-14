@@ -1,0 +1,2 @@
+#define MAPF_VERSION "@prplmesh_VERSION@"
+#define TMP_PATH "@TMP_PATH@"

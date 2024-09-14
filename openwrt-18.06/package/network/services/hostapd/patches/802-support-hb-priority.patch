@@ -1,0 +1,113 @@
+Index: hostapd-2019-08-08-ca8c2bd2/hostapd/config_file.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/hostapd/config_file.c
++++ hostapd-2019-08-08-ca8c2bd2/hostapd/config_file.c
+@@ -3194,6 +3194,8 @@ static int hostapd_config_fill(struct ho
+ 		}
+ 	} else if (os_strcmp(buf, "acs_exclude_dfs") == 0) {
+ 		conf->acs_exclude_dfs = atoi(pos);
++	} else if (os_strcmp(buf, "hb_priority") == 0) {
++		conf->hb_priority = atoi(pos);
+ 	} else if (os_strcmp(buf, "channel") == 0) {
+ 		if (os_strcmp(pos, "acs_survey") == 0) {
+ #ifndef CONFIG_ACS
+@@ -3351,6 +3353,8 @@ static int hostapd_config_fill(struct ho
+ 			conf->preamble = SHORT_PREAMBLE;
+ 		else
+ 			conf->preamble = LONG_PREAMBLE;
++	} else if (os_strcmp(buf, "is_default_radio") == 0) {
++		bss->is_default_radio = atoi(pos);
+ 	} else if (os_strcmp(buf, "ignore_broadcast_ssid") == 0) {
+ 		bss->ignore_broadcast_ssid = atoi(pos);
+ 	} else if (os_strcmp(buf, "conditionally_ignore_bcast_ssid") == 0) {
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/ap_config.h
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/ap_config.h
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/ap_config.h
+@@ -454,6 +454,8 @@ struct hostapd_bss_config {
+ 	int wmm_enabled;
+ 	int wmm_uapsd;
+ 
++	int is_default_radio;
++
+ 	struct hostapd_vlan *vlan;
+ 
+ 	macaddr bssid;
+@@ -875,6 +877,7 @@ struct hostapd_config {
+ 	u16 beacon_int;
+ 	int rts_threshold;
+ 	int fragm_threshold;
++	int hb_priority;
+ 	u8 channel;
+ 	u8 acs;
+ 	struct wpa_freq_range_list acs_ch_list;
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/ubus.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/ubus.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/ubus.c
+@@ -1341,6 +1341,18 @@ static void wifi_ap_probe_req_cb(struct
+ 	*(int *)req->priv = blobmsg_get_u32(tb[0]);
+ }
+ 
++static void wifi_recevie_assoc_cb(struct ubus_request *req, int type, struct blob_attr *msg)
++{
++    struct blob_attr *tb[1];
++    const struct blobmsg_policy recevie_assoc_policy[] = {
++        { .name = "result", .type = BLOBMSG_TYPE_INT32 },
++    };
++
++    blobmsg_parse(recevie_assoc_policy, ARRAY_SIZE(recevie_assoc_policy), tb, blob_data(msg), blob_len(msg));
++
++    *(int *)req->priv = blobmsg_get_u32(tb[0]);
++}
++
+ int hostapd_ubus_handle_event(struct hostapd_data *hapd, struct hostapd_ubus_request *req)
+ {
+ 	struct ubus_banned_client *ban;
+@@ -1352,7 +1364,7 @@ int hostapd_ubus_handle_event(struct hos
+ 	const char *type = "mgmt";
+ 	struct ubus_event_req ureq = {};
+ 	const u8 *addr;
+-	int ret = 0;
++	int ret = 0, auth_ret = 0, sf_hb_priority_id = 0;
+ 
+ 	if (req->mgmt_frame)
+ 		addr = req->mgmt_frame->sa;
+@@ -1411,6 +1423,28 @@ int hostapd_ubus_handle_event(struct hos
+ 		}
+ 	}
+ 
++    if (hapd->iconf->hb_priority && hapd->conf->is_default_radio &&
++            (req->type == HOSTAPD_UBUS_PROBE_REQ || (req->type == HOSTAPD_UBUS_ASSOC_REQ && hapd->iconf->channel < 14))) {
++        if (ctx && !ubus_lookup_id(ctx, "sf_hb_priority", &sf_hb_priority_id)) {
++            if (req->type == HOSTAPD_UBUS_PROBE_REQ) {
++                blob_buf_init(&b, 0);
++                blobmsg_add_macaddr(&b, "sta_mac", addr);
++                blobmsg_add_u16(&b, "channel", hapd->iconf->channel);
++                blobmsg_add_u32(&b, "obj_id", (&hapd->ubus.obj)->id);
++                blobmsg_add_u16(&b, "rssi", req->ssi_signal + 256);
++                ubus_invoke(ctx, sf_hb_priority_id,
++                        "wifi_recevie_probe_req", b.head, NULL, 0, 1000);
++            } else {
++                blob_buf_init(&b, 0);
++                blobmsg_add_macaddr(&b, "sta_mac", addr);
++                blobmsg_add_u16(&b, "channel", hapd->iconf->channel);
++                blobmsg_add_u16(&b, "rssi", req->ssi_signal + 256);
++                ubus_invoke(ctx, sf_hb_priority_id,
++                        "wifi_recevie_assoc", b.head, wifi_recevie_assoc_cb, &auth_ret, 1000);
++            }
++        }
++    }
++
+ 	if (!hapd->ubus.obj.has_subscribers)
+ 		goto out;
+ 
+@@ -1481,6 +1515,8 @@ int hostapd_ubus_handle_event(struct hos
+ 		return ureq.resp;
+ 
+ out:
++    if (hapd->iconf->hb_priority && hapd->conf->is_default_radio && req->type == HOSTAPD_UBUS_ASSOC_REQ && hapd->iconf->channel < 14)
++        return auth_ret;
+ 	if (hapd->conf->conditionally_ignore_bcast_ssid)
+ 		return ret;
+ 

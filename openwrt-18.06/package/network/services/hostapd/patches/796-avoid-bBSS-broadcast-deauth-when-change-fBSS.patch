@@ -1,0 +1,14 @@
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/hostapd.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.c
+@@ -189,6 +189,9 @@ static void hostapd_clear_old(struct hos
+ 	 * allow them to use the BSS anymore.
+ 	 */
+ 	for (j = 0; j < iface->num_bss; j++) {
++        // No need to broadcast deauth in backhaul BSS.
++        if (iface->bss[j]->conf->multi_ap == 1)
++            continue;
+ 		hostapd_flush_old_stations(iface->bss[j],
+ 					   WLAN_REASON_PREV_AUTH_NOT_VALID);
+ 		hostapd_broadcast_wep_clear(iface->bss[j]);

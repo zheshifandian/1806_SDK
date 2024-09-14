@@ -1,0 +1,19 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.60 Radio Metrics TLV
+
+tlvProfile2RadioMetrics:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_RADIO_METRICS        # line 1 (value)
+  length: uint16_t                                  # line 2
+  radio_uid: sMacAddr                               # line 3
+  noise: uint8_t                                    # line 4
+  transmit : uint8_t                                # line 5
+  receive_self : uint8_t                            # line 6
+  receive_other : uint8_t                           # line 7

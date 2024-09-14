@@ -20,6 +20,9 @@ define KernelPackage/sf_hnat/config
 		config SFAX8_HNAT_TEST_TOOL
 			bool "set test tool"
 			default "n"
+		config SFAX8_HNAT_MULTI_WAN
+			bool "support hnat multi wan"
+			default "n"
 	endif
 endef
 
@@ -31,6 +34,11 @@ EXTRA_KCONFIG += CONFIG_SFAX8_HNAT_TEST_TOOL=y
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_HNAT_TEST_TOOL
 endif
 
+ifdef CONFIG_SFAX8_HNAT_MULTI_WAN
+EXTRA_KCONFIG += CONFIG_SFAX8_HNAT_MULTI_WAN=y
+NOSTDINC_FLAGS += -DCONFIG_SFAX8_HNAT_MULTI_WAN
+endif
+
 ifdef CONFIG_TARGET_siflower_sf19a28_mpw1
 NOSTDINC_FLAGS += -DCONFIG_SF19A28_MPW1
 endif
@@ -39,35 +47,31 @@ ifdef CONFIG_TARGET_siflower_sf19a28_fullmask
 NOSTDINC_FLAGS += -DCONFIG_SF19A28_FULLMASK
 endif
 
-SFAX8_KO_NAME="sfhnat.ko"
-
-ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="sfhnat_s.ko"
-endif
-
-ifneq ($(findstring NAND,$(PROFILE)),)
-SFAX8_KO_NAME="sfhnat_nand.ko"
-endif
-
-ifneq ($(findstring EVB,$(PROFILE)),)
-SFAX8_KO_NAME="sfhnat_evb.ko"
-endif
-
-ifneq ($(findstring PHY,$(PROFILE)),)
-SFAX8_KO_NAME="sfhnat_p.ko"
-endif
-
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="sfhnat_yts.ko"
-endif
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./* $(PKG_BUILD_DIR)/
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
 endef
 
 define Build/Compile
-	$(CP) ./$(SFAX8_KO_NAME) $(PKG_BUILD_DIR)/sfhnat.ko
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+		ARCH="$(LINUX_KARCH)" \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
+		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+		$(EXTRA_KCONFIG)  \
+		modules
+endef
+
+define KernelPackage/sf_hnat/install
+	$(INSTALL_DIR) $(1)/sbin/
+	$(CP) ./file/hnat_onoff.sh $(1)/sbin/
+ifdef CONFIG_SFAX8_HNAT_TEST_TOOL
+	$(INSTALL_DIR) $(1)/etc/pkt
+	$(CP) -r ./file/test_tool_pkt/* $(1)/etc/pkt/
+endif
 endef
 
 $(eval $(call KernelPackage,sf_hnat))

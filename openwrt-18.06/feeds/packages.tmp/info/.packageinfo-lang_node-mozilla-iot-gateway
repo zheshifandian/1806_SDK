@@ -1,0 +1,33 @@
+Source-Makefile: feeds/packages/lang/node-mozilla-iot-gateway/Makefile
+Build-Depends: node/host openzwave
+
+Package: node-mozilla-iot-gateway
+Menu: 1
+Submenu: Node.js
+Version: 0.6.1-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +node +node-npm +libopenzwave +openzwave-config +python +python3-light +python3-pip +openssl-util +MOIT_enable-plugin-support:git-http
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Things Gateway by Mozilla
+Maintainer: Marko Ratkaj <marko.ratkaj@sartura.hr>
+Source: node-mozilla-iot-gateway-0.6.1.tar.gz
+License: MPL-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description:   Build Your Own Web of Things Gateway. The "Web of Things" (WoT) is the
+  idea of taking the lessons learned from the World Wide Web and applying
+  them to IoT. It's about creating a decentralized Internet of Things by
+  giving Things URLs on the web to make them linkable and discoverable,
+  and defining a standard data model and APIs to make them interoperable.
+https://iot.mozilla.org/gateway/
+Marko Ratkaj <marko.ratkaj@sartura.hr>
+@@
+Config:
+  source "feeds/packages/lang/node-mozilla-iot-gateway/Config.in"
+@@
+
+

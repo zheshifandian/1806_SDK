@@ -1,0 +1,29 @@
+#
+---
+_namespace: wfa_map
+
+tlvAssociatedWiFi6StaStatusReport:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_ASSOCIATED_WIFI_6_STA_STATUS_REPORT
+  length: uint16_t
+  sta_mac: sMacAddr
+  tid_queue_size_list_length:
+    _type: uint8_t
+    _length_var: True
+  tid_queue_size_list:
+    _type: sTidQueueSize
+    _length: [ tid_queue_size_list_length ]
+
+sTidQueueSize:
+  _type: struct
+  tid:
+    _type: uint8_t
+    _comment: |
+      The Tid of the corresponding queue size field. 
+  queue_size:
+    _type: uint8_t
+    _comment: |
+      Queue size of associated TID field.

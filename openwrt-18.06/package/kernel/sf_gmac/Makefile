@@ -1,10 +1,3 @@
-#
-# Copyright (C) 2008-2010 OpenWrt.org
-#
-# This is free software, licensed under the GNU General Public License v2.
-# See /LICENSE for more information.
-#
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sf_gmac
@@ -51,13 +44,10 @@ define KernelPackage/sf_gmac/config
 			bool "choose tclk to use for gmac."
 			default "n"
 
-		config SFAX8_GMAC_RX_BUFFER_POOL
-			bool "enable  gmac rx pool"
+		config SFAX8_PTP
+			bool "ptp function enable"
 			default "n"
 
-		config SFAX8_GMAC_RX_BUFFER_POOL_LIMIT
-			bool "enable  gmac rx pool limit, allock skb fail when pool full"
-			default "n"
 	endif
 
 endef
@@ -112,9 +102,14 @@ endif
 ifdef CONFIG_MEMORY_OPTIMIZE
 NOSTDINC_FLAGS += -DCONFIG_MEMORY_OPTIMIZE
 endif
+
 ifdef CONFIG_SFAX8_GMAC_DELAY_AUTOCALI
 EXTRA_KCONFIG += CONFIG_SFAX8_GMAC_DELAY_AUTOCALI=y
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_GMAC_DELAY_AUTOCALI
+endif
+
+ifdef CONFIG_SFAX8_PTP
+NOSTDINC_FLAGS += -DCONFIG_SFAX8_PTP
 endif
 
 #ifdef CONFIG_SFAX8_GMAC_TCLKCHOOSE
@@ -122,20 +117,11 @@ EXTRA_KCONFIG += CONFIG_SFAX8_GMAC_TCLKCHOOSE=y
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_GMAC_TCLKCHOOSE
 #endif
 
-ifdef CONFIG_SFAX8_GMAC_RX_BUFFER_POOL
-EXTRA_KCONFIG += CONFIG_SFAX8_GMAC_RX_BUFFER_POOL=y
-NOSTDINC_FLAGS += -DCONFIG_SFAX8_GMAC_RX_BUFFER_POOL
-endif
-
-ifdef CONFIG_SFAX8_GMAC_RX_BUFFER_POOL_LIMIT
-EXTRA_KCONFIG += CONFIG_SFAX8_GMAC_RX_BUFFER_POOL_LIMIT=y
-NOSTDINC_FLAGS += -DCONFIG_SFAX8_GMAC_RX_BUFFER_POOL_LIMIT
-endif
 
 define KernelPackage/sf_gmac
   SUBMENU:=Network Devices
   TITLE:=Siflower SFA18 gmac support
-  DEPENDS:=+kmod-sfax8-factory-read
+  DEPENDS:=+kmod-sfax8-factory-read +SFAX8_PTP:kmod-ptp
   FILES:=$(PKG_BUILD_DIR)/sgmac.ko
   AUTOLOAD:=$(call AutoLoad,60,sgmac,1)
   KCONFIG:=
@@ -150,35 +136,24 @@ ifdef CONFIG_SFAX8_FPGA_GMAC
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_FPGA_GMAC
 endif
 
-SFAX8_KO_NAME="a28_sgmac.ko"
-
-ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="a28_sgmac_s.ko"
-endif
-
-ifneq ($(findstring NAND,$(PROFILE)),)
-SFAX8_KO_NAME="a28_sgmac_nand.ko"
-endif
-
-ifneq ($(findstring EVB,$(PROFILE)),)
-SFAX8_KO_NAME="a28_sgmac_evb.ko"
-endif
-
-ifneq ($(findstring PHY,$(PROFILE)),)
-SFAX8_KO_NAME="a28_sgmac_p.ko"
-endif
-
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="a28_sgmac_yts.ko"
-endif
+NOSTDINC_FLAGS += \
+	-I$(PKG_BUILD_DIR)
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./Makefile $(PKG_BUILD_DIR)/
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
 endef
 
 define Build/Compile
-	$(CP) ./$(SFAX8_KO_NAME) $(PKG_BUILD_DIR)/sgmac.ko
+	$(CP) ../siflower_include/* $(PKG_BUILD_DIR)/
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+		ARCH="$(LINUX_KARCH)" \
+		CROSS_COMPILE="$(TARGET_CROSS)" \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
+		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
+		$(EXTRA_KCONFIG)  \
+		modules
 endef
 
 $(eval $(call KernelPackage,sf_gmac))

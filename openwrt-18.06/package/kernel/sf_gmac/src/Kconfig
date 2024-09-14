@@ -1,0 +1,35 @@
+config NET_VENDOR_SIFLOWER
+	tristate "vender siflower switch driver support sfax8"
+	help
+	  This driver supports the ethernet/switch inside
+
+if NET_VENDOR_SIFLOWER
+
+config SFAX8_GMAC
+tristate "vender siflower GMAC Ethernet driver support sf16AX8"
+	select MII
+	select PHYLIB
+	help
+	  This driver supports RGMII/RMII mode GMAC
+
+config SFAX8_RGMII_GMAC
+	bool "select RGMII mode gmac"
+	depends on (SFAX8_GMAC)
+
+config SFAX8_RMII_GMAC
+	bool "select RMII mode gmac"
+	depends on (SFAX8_GMAC)
+
+config CONFIG_SFAX8_IFG_ENABLE
+	bool "enable short ifg on rgmii 96->80"
+	depends on (SFAX8_GMAC)
+
+config SFAX8_GMAC_DELAY_AUTOCALI
+	bool "enable gmac delay auto calibarate"
+	depends on (SFAX8_GMAC)
+
+config SFAX8_GMAC_TCLKCHOOSE
+	bool "choose tclk to use for gmac."
+	default "n"
+
+endif

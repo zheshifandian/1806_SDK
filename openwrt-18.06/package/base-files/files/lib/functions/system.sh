@@ -109,6 +109,23 @@ macaddr_add() {
 	echo $oui:$nic
 }
 
+macaddr_sub() {
+	local mac=$1
+	local val=$2
+	local oui=${mac%:*:*:*}
+	local nic=${mac#*:*:*:}
+
+	nic=$(printf "%06x" $((0x${nic//:/} - $val & 0xffffff)) | sed 's/^\(.\{2\}\)\(.\{2\}\)\(.\{2\}\)/\1:\2:\3/')
+	echo $oui:$nic
+}
+
+change_macaddr()
+{
+        local tmp=$1:$2:$3:$4:$5:$6
+        local mac=$(echo $tmp | sed 's/0x//g')
+        echo $mac
+}
+
 macaddr_setbit_la() {
 	local mac=$1
 

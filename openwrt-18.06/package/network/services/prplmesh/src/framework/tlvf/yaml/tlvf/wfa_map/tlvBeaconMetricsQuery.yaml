@@ -1,0 +1,44 @@
+#
+---
+_namespace: wfa_map
+
+tlvBeaconMetricsQuery:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_BEACON_METRICS_QUERY
+  length: uint16_t
+  associated_sta_mac: sMacAddr
+  operating_class: uint8_t
+  channel_number: uint8_t
+  bssid: sMacAddr
+  reporting_detail_value: uint8_t
+  ssid_length:
+    _type: uint8_t
+    _length_var: True
+  ssid:
+    _type: char
+    _length: [ ssid_length ]
+  ap_channel_reports_list_length:
+    _type: uint8_t
+    _length_var: True
+  ap_channel_reports_list:
+    _type: cApChannelReports
+    _length: [ ap_channel_reports_list_length ]
+  elemnt_id_list_length:
+    _type: uint8_t
+    _length_var: True
+  elemnt_id_list:
+    _type: uint8_t
+    _length: [ elemnt_id_list_length ]
+
+cApChannelReports:
+  _type: class
+  ap_channel_report_list_length:
+    _type: uint8_t
+    _length_var: True
+  ap_channel_report_list:
+    _type: uint8_t
+    _length: [ ap_channel_report_list_length ]
+    _comment: The first element of this list is the operating class.

@@ -1,0 +1,17 @@
+#
+---
+_namespace: wfa_map
+
+# Multi-AP v2 Specification: 17.2.54 Source Info TLV format
+# TLV for specifying the MAC address of the device that generated the message
+# included in the "data" field of the tlvTunnelledData TLV.
+tlvTunnelledSourceInfo:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_TUNNELLED_SOURCE_INFO
+  length: uint16_t
+  mac:
+    _type: sMacAddr
+    _comment: The MAC address of the device that generated the message included in the tlvValue field of the Tunneled TLV.

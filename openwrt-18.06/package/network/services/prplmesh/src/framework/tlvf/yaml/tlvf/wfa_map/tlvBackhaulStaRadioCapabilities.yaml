@@ -1,0 +1,30 @@
+#
+---
+_namespace: wfa_map
+
+tlvBackhaulStaRadioCapabilities:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_BACKHAUL_STA_RADIO_CAPABILITIES
+  length: uint16_t
+  ruid:
+    _type: sMacAddr
+    _comment: Radio Unique Identifier of the radio for which capabilities are reported.
+  sta_mac_included:
+    _type: eStaMacIncluded
+  sta_mac:
+    _type: sMacAddr
+    _condition:
+      _using_members: sta_mac_included
+      _phrase: sta_mac_included == eStaMacIncluded::FIELD_PRESENT
+    _comment: |
+      Mac Address of the backhaul STA on this radio.
+      This field is included if the MAC address included field is set to 1.
+
+eStaMacIncluded:
+  _type: enum
+  _enum_storage: uint8_t
+  FIELD_PRESENT: 0x80
+  FIELD_NOT_PRESENT: 0x00

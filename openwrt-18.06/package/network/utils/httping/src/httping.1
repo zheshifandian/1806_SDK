@@ -1,0 +1,137 @@
+.\" Copyright Folkert van Heusden, 2005
+.\"
+.\" This file may be copied under the conditions described
+.\" in the GNU GENERAL PUBLIC LICENSE, Version 1, September 1998
+.\" that should have been distributed together with this file.
+.\"
+.TH HTTPING 1 2005-11 "httping"
+.SH NAME
+httping - measure the lateceny and throughput of a webserver
+.SH SYNOPSIS
+.BI "httping [" options "]
+.sp
+options:
+.BI "[\-g url] [\-h hostname] [\-p portnumber] [\-x proxyhost:port] [\-c count] [\-i interval] [\-t timeout] [\-s] [\-G] [\-b] [\-L xferlimit] [\-X] [\-l] [\-z] [\-f] [\-m] [\-o rc,...] [\-e string] [\-I useragent string] [\-R referer string] [\-r] [\-n warn,crit] [\-N mode] [\-q] [\-V]"
+.SH DESCRIPTION
+The program
+.B httping
+lets you measure the latency of a webserver. Since version 1.0.6 also the throughput can be measured.
+.PP
+.SH OPTIONS
+.TP
+.B "\-g url"
+This selects the url to probe. E.g.: http://localhost/
+.TP
+.B "\-h hostname"
+Instead of '-g' one can also set a hostname to probe with -h: -h localhost
+.TP
+.B "\-p portnumber"
+-p can be used together with -h. -p selects the portnumber to probe.
+.TP
+.B "\-x proxyhost:port]
+Probe using a proxyserver. Note that you're also measuring the latency of the proxyserver!
+.TP
+.B "\-c count"
+How many probes to send before exiting.
+.TP
+.B "\-i interval"
+How many seconds to sleep between every probe sent.
+.TP
+.B "\-t timeout"
+How long to wait for answer from the other side.
+.TP
+.B "\-S"
+Split measured latency in time to connect and time to exchange a request with the HTTP server.
+.TP
+.B "\-s"
+When a successfull transaction was done, show the HTTP statuscode (200, 404, etc.).
+.TP
+.B "\-G"
+Do a GET request instead of a HEAD request: this means that also the complete page/file must be transferred. Note that in this case you're no longer measuring the latency!
+.TP
+.B "\-b"
+Use this switch together with '-G'. When this option is used, the transferspeed (in KB/s) is shown.
+.TP
+.B "\-B"
+Use this switch together with '-G'. Ask the HTTP server to compress the returned data: this will reduce the influence of the bandwidth of your connection while increasing the influence of the processorpower of the HTTP server.
+.TP
+.B "\-L x"
+Use this switch together with '-G'. Limit the amount of data transferred to 'x'. Note that this only affects the content of the page/file and not the headerdata.
+.TP
+.B "\-X"
+Use this switch together with '-G'. For each "ping" show the amount of data transferred (excluding the headers).
+.TP
+.B "\-l"
+Connect using SSL: for this to work you need to give a 'https'-url or a 443 portnumber.
+.TP
+.B "\-z"
+When connecting using SSL, display the fingerprint of the X509 certificate(s) of the peer.
+.TP
+.B "\-a"
+Audible ping
+.TP
+.B "\-f"
+Flood ping: do not sit idle between each ping but ping as fast as the computer and network allow you to.
+.TP
+.B "\-m"
+Show machine readable output (also check '-o' and '-e').
+.TP
+.B "\-o x,x,..."
+This selects the HTTP status-codes which are regarded as an OK-state.
+.TP
+.B "\-e str"
+When the status-code differs from the ones selected with '-o', the given string is displayed.
+.TP
+.B "\-I str"
+UserAgent-string to send to the webserver (instead of 'HTTPing <version>').
+.TP
+.B "\-R str"
+Referer-string to send to the webserver.
+.TP
+.B "\-r"
+Only resolve the hostname once: this takes the resolving out of the loop so that the latency of the DNS is not measured. Also usefull when you want to measure only 1 webserver while the DNS returns a different ip-address for each resolve ('roundrobin').
+.TP
+.B "\-n warn,crit"
+Switches HTTPing to Nagios-plugin mode 1: return exitcode '1' when the average response time is bigger then 'warn', return exitcode '2' when the the average response time is bigger then 'crit'. In all other cases return exitcode '0'.
+.TP
+.B "\-N x"
+Switches HTTPing to Nagios-plugin mode 2: return 0 when everything is fine, 'x' when anything fails. E.g.: 1 => Nagios warning state, 2 => Nagios critical state.
+.TP
+.B "\-q"
+Be quiet, only return an exit-code.
+.TP
+.B "\-A,U,P"
+Activate the basic authentication, Username follow the -U, Password the -P.
+.TP
+.B "\-V"
+Show the version and exit.
+
+.SH KEYS
+Press <CTRL> + <c> to exit the program. It will display a summary of what was measured.
+
+.SH EXAMPLES
+.TP
+.B "httping \-g http://localhost/"
+Ping the webserver on host 'localhost'.
+.TP
+.B "httping \-h localhost \-p 1000"
+Ping the webserver on host 'localhost' and portnumber 1000.
+.TP
+.B "httping \-l \-g https://localhost/"
+Ping the webserver on host 'localhost' using an SSL connection.
+.TP
+.B "httping \-g http://localhost/ -A -U username -P password"
+Ping the webserver on host 'localhost' using the Basic HTTP Authentication.
+.SH BUGS
+None. This program is totally bug-free.
+
+.SH "SEE ALSO"
+.BR http://www.vanheusden.com/httping/
+
+.SH NOTES
+This page describes
+.B httping
+as found in the httping-1.0.8 package; other versions may differ slightly.
+Please mail corrections and additions to folkert@vanheusden.com.
+Report bugs in the program to folkert@vanheusden.com.
+Consider using PGP. My PGP key-id is: 0x1f28d8ae

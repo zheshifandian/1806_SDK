@@ -1,0 +1,19 @@
+#
+---
+_namespace: wfa_map
+
+tlvDscpMappingTable:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_DSCP_MAPPING_TABLE
+  length: uint16_t
+  dscp_pcp_mapping:
+    _type: uint8_t
+    _length: [ 64 ]
+    _comment: |
+      List of 64 PCP values (one octet per value) corresponding to the DSCP markings 0x00 to 0x3F,
+      ordered by increasing DSCP Value.
+      This table is used to select a PCP value if a Service Prioritization Rule specifies Rule
+      Output: 0x08.

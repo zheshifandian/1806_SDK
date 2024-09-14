@@ -1,0 +1,6 @@
+#! /bin/sh
+/bin/mount -a
+echo "/sbin/mdev" > /proc/sys/kernel/hotplug
+echo -n "Starting mdev: "
+/sbin/mdev -s
+/bin/clear.sh

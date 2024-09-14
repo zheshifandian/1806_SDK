@@ -1,0 +1,20 @@
+#
+---
+_namespace: wfa_map
+
+tlvClientAssociationEvent:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_CLIENT_ASSOCIATION_EVENT
+  length: uint16_t
+  client_mac: sMacAddr
+  bssid: sMacAddr
+  association_event: eAssociationEvent
+
+eAssociationEvent:
+  _type: enum
+  _enum_storage: uint8_t
+  CLIENT_HAS_JOINED_THE_BSS: 0x80
+  CLIENT_HAS_LEFT_THE_BSS: 0x00

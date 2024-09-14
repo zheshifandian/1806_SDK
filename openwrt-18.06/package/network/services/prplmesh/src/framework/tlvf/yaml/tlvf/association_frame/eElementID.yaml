@@ -1,0 +1,41 @@
+#
+---
+
+eElementID:
+  _type: enum
+  _enum_storage: uint8_t
+  ID_SSID: 0
+  _comment: |
+    Supported Rates and BSS Membership Selectors
+  ID_SUPPORT_RATES: 1
+  ID_EDCA_PARAM_SET: 12 
+  ID_POWER_CAPABILITY: 33
+  ID_SUP_CHANNELS: 36
+  ID_HT_CAPABILITY: 45
+  ID_QOS_CAPABILITY: 46
+  ID_RSN: 48
+  _comment: |
+    Extended Supported Rates and BSS Membership Selectors
+  ID_EXTENDED_SUP_RATES: 50
+  ID_MOBILITY_DOMAIN: 54
+  ID_FAST_BSS_TRANS: 55
+  ID_SUP_OP_CLASSES: 59
+  ID_RM_ENABLED_CAPS: 70
+  ID_BSS_COEXISTENCE20_40: 72
+  ID_RIC: 75
+  ID_FMS_REQUEST: 87
+  ID_QOS_TRAFFIC_CAP: 89
+  ID_TIM_BROADCAST_REQUEST: 94
+  ID_DMS_REQUEST: 99
+  ID_INTERWORKING: 107
+  ID_EXTENDED_CAPABILITY: 127
+  ID_MULTI_BAND: 158
+  _comment: Multiple MAC sublayer
+  ID_MMS: 170
+  ID_VHT_CAPS: 191
+  ID_DMG_CAPS: 194
+  ID_OP_MODE_NOTIFICATION: 199
+  ID_VENDOR_SPECIFIC: 221
+  ID_EID_EXTENSION: 255
+  _comment: |
+    Element ID Extension (inc. subElems like HE capabilities)

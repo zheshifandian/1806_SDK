@@ -1,0 +1,116 @@
+menuconfig SF_WIRELESS_CARDS
+    tristate "Siflower Wireless Cards"
+    ---help---
+	  This will enable the support for the Siflower wireless drivers.
+if SF_WIRELESS_CARDS
+
+config WIRELESS_VENDOR_SIFLOWER
+    bool
+
+config SF16A18_WIFI_LA_ENABLE
+    bool
+
+config SF16A18_WIFI_MPW1_FPGA
+	bool "SF16A18 MPW1 build for fpga-v7"
+	default n
+
+config SF16A18_WIFI_MAC_HOST_OFFLOAD
+    tristate
+
+config SF16A18_WIFI_ATE_TOOLS
+	default y
+	bool "enable wifi ate test"
+
+config SF16A18_WIFI_LB_LA_ENABLE
+	bool "enable LA function for low band"
+    select SF16A18_WIFI_LA_ENABLE
+    default n
+
+config SF16A18_WIFI_HB_LA_ENABLE
+	bool "enable LA function for high band"
+    select SF16A18_WIFI_LA_ENABLE
+    default n
+
+config SF16A18_LMAC_USE_M_SFDSP
+	bool "enabled m_SFDSP lmac booting,make sure you have m_SFDSP core support"
+	depends on !CONFIG_SF16A18_MPW0
+	default y
+
+config SF16A18_LMAC_USE_INTERPTIV
+	bool "enabled interaptiv lmac booting,make sure you have have reserved one core"
+	default n
+
+config SF16A18_STARTCORE_USE_PIC
+	bool "enable startcore use pic binaries,otherwise lb/hb will use two different binaries"
+	default n
+
+config SF16A18_RELEASE
+	bool "if our driver is final release"
+	default n
+
+config SF16A18_WIFI_LITE_MEMORY
+	bool "if our driver is configed as lite memory"
+	default n
+
+config SF16A18_TXQ_MAX_CNT
+	int "limit txq cnt,if not set we set 64 as default in lmac_config.mk"
+	range 2 64
+	help
+		if defined this cnt,we must sync that with latest lmac_config.mk when compile lmac
+
+config SF16A18_WIFI_RF
+	tristate "SF16A18 IEEE802.11n/ac 1x1 RF driver"
+    select WIRELESS_VENDOR_SIFLOWER
+    ---help---
+	  This module adds support for platform to access RF in standalone mode.It also provide a system debug fs for user to access
+
+config SF16A18_WIFI_SOFT_MAC
+	tristate "SF16A18 IEEE802.11a/b/g/n/ac 1x1 dual band embedded SoftMAC WLAN driver"
+    depends on MAC80211
+    select WIRELESS_VENDOR_SIFLOWER
+    select SF16A18_WIFI_MAC_HOST_OFFLOAD
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	---help---
+	  This module adds support for internal bus hostport wireless adapters based on SF16A18
+	  IEEE802.11a/b/g/n/ac 1x1 dual band SoftMAC chipsets. If you choose to build a module, the driver will be called sf16a18_smac.ko.
+
+config SF16A18_WIFI_FULL_MAC
+    tristate "SF16A18 IEEE802.11a/b/g/n/ac 1x1 dual band embedded FullMAC WLAN driver"
+    depends on CFG80211
+    select WIRELESS_VENDOR_SIFLOWER
+    select SF16A18_WIFI_MAC_HOST_OFFLOAD
+	---help---
+	  This module adds support for internal bus hostport wireless adapters based on SF16A18
+	  IEEE802.11a/b/g/n/ac 1x1 FullMAC chipsets. If you choose to build a module, the driver will be called sf16a18_fmac.ko.
+
+config SF16A18_WIFI_LED
+	bool "SF16A18 wifi led functions"
+	depends on SF16A18_WIFI_SMAC || SF16A18_WIFI_FMAC
+	---help---
+	  Selecting this enables the led control for wifi status by umac self. It will not use the other led control method like by mac80211 or some uplayer standard method
+
+config SF16A18_WIIF_TRACING
+	bool "SF16A18 device tracing"
+	depends on SF16A18_WIFI_SMAC || SF16A18_WIFI_FMAC
+	---help---
+	  If you say Y here, the SF16A18 wireless drivers will register
+	  with ftrace to dump event information into the trace ringbuffer.
+	  Tracing can be enabled at runtime to aid in debugging wireless
+	  issues. This option adds a small amount of overhead when tracing
+	  is disabled. If unsure, say Y to allow developers to better help
+	  you when wireless problems occur.
+
+config SF16A18_WIFI_DBG
+	bool "SF16A18 driver debug functions"
+	depends on SF16A18_WIFI_SMAC || SF16A18_WIFI_FMAC
+	---help---
+	  Selecting this enables additional code for debug purposes.
+
+config WIRELESS_VENDOR_SIFLOWER_W18
+    tristate "SF18W18 IEEE802.11b/g/n 20M bandwidth ultra low power wifi drivers"
+	depends on MAC80211
+	help
+		This is the driver support W18 802.11 wifi softmac drivers
+
+endif

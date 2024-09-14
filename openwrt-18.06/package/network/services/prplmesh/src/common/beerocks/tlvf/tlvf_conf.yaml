@@ -1,0 +1,19 @@
+#
+---
+# Relative to tlvf.py yaml_path argument
+include_yaml_path: {
+  "beerocks/tlvf/",
+}
+
+# Relative to tlvf.py src_path variable
+source_license_header: "intel/license.txt"
+
+debug:
+  log_file: "tlvf.log"
+  log_format: '%(levelname)s %(funcName)s(%(lineno)d): %(message)s'
+  log_level: "DEBUG" #"INFO", "WARNING", "ERROR", "OFF"
+  keep_source_marker: false #true
+  dump_include_files: false
+  dump_yaml: true
+  dump_db: true
+  dump_stack: true

@@ -1,0 +1,531 @@
+#
+---
+_include: beerocks/tlvf/beerocks_message_common.h
+_namespace: beerocks_message
+_multi_class: True
+_multi_class_auto_insert:
+  action_op:
+    _type: eActionOp_BML
+    _value_const: [_auto_value_by_name, 1]
+    _class_const: True
+
+#################################################
+#################################################
+
+cACTION_BML_PING_REQUEST:
+  _type: class
+
+cACTION_BML_PING_RESPONSE:
+  _type: class
+
+cACTION_BML_NW_MAP_REQUEST:
+  _type: class
+
+cACTION_BML_NW_MAP_RESPONSE:
+  _type: class
+  node_num: uint32_t
+  buffer_size:
+    _type: uint32_t
+    _length_var: True
+  buffer:
+    _type: uint8_t
+    _length: [buffer_size]
+
+cACTION_BML_NW_MAP_UPDATE:
+  _type: class
+  node_num: uint32_t
+  buffer_size:
+    _type: uint32_t
+    _length_var: True
+  buffer:
+    _type: uint8_t
+    _length: [buffer_size]
+
+cACTION_BML_STATS_UPDATE:
+  _type: class
+  num_of_stats_bulks: uint32_t
+  buffer_size:
+    _type: uint32_t
+    _length_var: True
+  buffer:
+    _type: uint8_t
+    _length: [buffer_size]
+
+cACTION_BML_EVENTS_UPDATE:
+  _type: class
+  buffer_size:
+    _type: uint32_t
+    _length_var: True
+  buffer:
+    _type: uint8_t
+    _length: [buffer_size]
+
+cACTION_BML_REGISTER_TO_NW_MAP_UPDATES_REQUEST:
+  _type: class
+
+cACTION_BML_UNREGISTER_FROM_NW_MAP_UPDATES_REQUEST:
+  _type: class
+
+cACTION_BML_SET_LEGACY_CLIENT_ROAMING_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_LEGACY_CLIENT_ROAMING_REQUEST:
+  _type: class
+
+cACTION_BML_REGISTER_TO_EVENTS_UPDATES_REQUEST:
+  _type: class
+
+cACTION_BML_UNREGISTER_FROM_EVENTS_UPDATES_REQUEST:
+  _type: class
+
+cACTION_BML_REGISTER_TO_STATS_UPDATES_REQUEST:
+  _type: class
+
+cACTION_BML_UNREGISTER_FROM_STATS_UPDATES_REQUEST:
+  _type: class
+
+cACTION_BML_SET_LEGACY_CLIENT_ROAMING_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_GET_LEGACY_CLIENT_ROAMING_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_ROAMING_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_ROAMING_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_CLIENT_ROAMING_REQUEST:
+  _type: class
+
+cACTION_BML_GET_CLIENT_ROAMING_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_DFS_REENTRY_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_DFS_REENTRY_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_DFS_REENTRY_REQUEST:
+  _type: class
+
+cACTION_BML_GET_DFS_REENTRY_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_ROAMING_PREFER_SIGNAL_STRENGTH_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_ROAMING_PREFER_SIGNAL_STRENGTH_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_CLIENT_ROAMING_PREFER_SIGNAL_STRENGTH_REQUEST:
+  _type: class
+
+cACTION_BML_GET_CLIENT_ROAMING_PREFER_SIGNAL_STRENGTH_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_BAND_STEERING_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_BAND_STEERING_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_CLIENT_BAND_STEERING_REQUEST:
+  _type: class
+
+cACTION_BML_GET_CLIENT_BAND_STEERING_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_IRE_ROAMING_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_IRE_ROAMING_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_IRE_ROAMING_REQUEST:
+  _type: class
+
+cACTION_BML_GET_IRE_ROAMING_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_LOAD_BALANCER_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_LOAD_BALANCER_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_LOAD_BALANCER_REQUEST:
+  _type: class
+
+cACTION_BML_GET_LOAD_BALANCER_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_SERVICE_FAIRNESS_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_SERVICE_FAIRNESS_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_SERVICE_FAIRNESS_REQUEST:
+  _type: class
+
+cACTION_BML_GET_SERVICE_FAIRNESS_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_CHANGE_MODULE_LOGGING_LEVEL_REQUEST:
+  _type: class
+  params: sLoggingLevelChange
+
+cACTION_BML_CHANGE_MODULE_LOGGING_LEVEL_RESPONSE:
+  _type: class
+
+cACTION_BML_WIFI_CREDENTIALS_SET_REQUEST:
+  _type: class
+  al_mac: sMacAddr
+  authentication_type: uint16_t #  eWscAuth
+  encryption_type: uint16_t #  eWscEncr
+  fronthaul: uint8_t
+  backhaul: uint8_t
+  ssid_size:
+    _type: uint8_t
+    _length_var: True
+  ssid:
+    _type: char
+    _length: [ssid_size]
+  network_key_size:
+    _type: uint8_t
+    _length_var: True
+  network_key:
+    _type: char
+    _length: [network_key_size]
+  operating_classes_size:
+    _type: uint8_t
+    _length_var: True
+  operating_classes:
+    _type: uint8_t
+    _length: [operating_classes_size]
+
+cACTION_BML_WIFI_CREDENTIALS_SET_RESPONSE:
+  _type: class
+  error_code: uint32_t
+
+cACTION_BML_SET_RESTRICTED_CHANNELS_REQUEST:
+  _type: class
+  params: sRestrictedChannels
+
+cACTION_BML_SET_RESTRICTED_CHANNELS_RESPONSE:
+  _type: class
+  error_code: uint32_t
+
+cACTION_BML_GET_RESTRICTED_CHANNELS_REQUEST:
+  _type: class
+  params: sRestrictedChannels
+
+cACTION_BML_GET_RESTRICTED_CHANNELS_RESPONSE:
+  _type: class
+  params: sRestrictedChannels
+
+cACTION_BML_SET_CERTIFICATION_MODE_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CERTIFICATION_MODE_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_CERTIFICATION_MODE_REQUEST:
+  _type: class
+
+cACTION_BML_GET_CERTIFICATION_MODE_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_VAP_LIST_CREDENTIALS_REQUEST:
+  _type: class
+  result:
+    _type: uint32_t
+    _comment: # 0 - Failure, 1 - Success
+  vap_list_size:
+    _type: uint8_t
+    _length_var: True
+  vap_list:
+    _type: sConfigVapInfo
+    _length: [vap_list_size]
+
+cACTION_BML_SET_VAP_LIST_CREDENTIALS_RESPONSE:
+  _type: class
+  result:
+    _type: uint32_t
+    _comment: # 0 - Failure, 1 - Success
+
+cACTION_BML_GET_VAP_LIST_CREDENTIALS_RESPONSE:
+  _type: class
+  result:
+    _type: uint32_t
+    _comment: # 0 - Failure, 1 - Success
+  vap_list_size:
+    _type: uint8_t
+    _length_var: True
+  vap_list:
+    _type: sConfigVapInfo
+    _length: [vap_list_size]
+
+cACTION_BML_GET_VAP_LIST_CREDENTIALS_REQUEST:
+  _type: class
+  result:
+    _type: uint32_t
+    _comment: # 0 - Failure, 1 - Success
+
+cACTION_BML_STEERING_SET_GROUP_REQUEST:
+  _type: class
+  steeringGroupIndex: uint32_t
+  cfg_2: sSteeringApConfig
+  cfg_5: sSteeringApConfig
+  remove: uint8_t
+
+cACTION_BML_STEERING_SET_GROUP_RESPONSE:
+  _type: class
+  error_code: int32_t
+
+cACTION_BML_STEERING_CLIENT_SET_REQUEST:
+  _type: class
+  steeringGroupIndex: uint32_t
+  bssid: sMacAddr
+  client_mac: sMacAddr
+  config: sSteeringClientConfig
+  remove: uint8_t
+
+cACTION_BML_STEERING_CLIENT_SET_RESPONSE:
+  _type: class
+  error_code: int32_t
+
+cACTION_BML_STEERING_EVENT_REGISTER_UNREGISTER_REQUEST:
+  _type: class
+  unregister: uint8_t
+
+cACTION_BML_STEERING_EVENT_REGISTER_UNREGISTER_RESPONSE:
+  _type: class
+  error_code: int32_t
+
+cACTION_BML_STEERING_CLIENT_DISCONNECT_REQUEST:
+  _type: class
+  steeringGroupIndex: uint32_t
+  bssid: sMacAddr
+  client_mac: sMacAddr
+  type: eDisconnectType
+  reason: uint32_t
+
+cACTION_BML_STEERING_CLIENT_DISCONNECT_RESPONSE:
+  _type: class
+  error_code: int32_t
+
+cACTION_BML_STEERING_CLIENT_MEASURE_REQUEST:
+  _type: class
+  steeringGroupIndex: uint32_t
+  bssid: sMacAddr
+  client_mac: sMacAddr
+
+cACTION_BML_STEERING_CLIENT_MEASURE_RESPONSE:
+  _type: class
+  error_code: int32_t
+
+################################################
+# GENERAL steering RDKB event message
+#################################################
+cACTION_BML_STEERING_EVENTS_UPDATE:
+  _type: class
+  buffer_size:
+    _type: uint32_t
+    _length_var: True
+  buffer:
+    _type: uint8_t
+    _length: [buffer_size]
+
+cACTION_BML_TRIGGER_TOPOLOGY_QUERY:
+  _type: class
+  al_mac: sMacAddr
+
+cACTION_BML_TOPOLOGY_RESPONSE:
+  _type: class
+  device_data: sDeviceData
+  result:
+    _type: uint32_t
+    _comment: # 0 - Failure, 1 - Success
+
+cACTION_BML_REGISTER_TOPOLOGY_QUERY:
+  _type: class
+
+cACTION_BML_UNREGISTER_TOPOLOGY_QUERY:
+  _type: class
+
+cACTION_BML_TRIGGER_CHANNEL_SELECTION_REQUEST:
+  _type: class
+  al_mac: sMacAddr
+  ruid: sMacAddr
+
+cACTION_BML_CHANNEL_SCAN_SET_CONTINUOUS_PARAMS_REQUEST:
+  _type: class
+  radio_mac: sMacAddr
+  params: sChannelScanRequestParams
+
+cACTION_BML_CHANNEL_SCAN_SET_CONTINUOUS_PARAMS_RESPONSE:
+  _type: class
+  op_error_code:
+    _type: uint8_t
+    _comment: 0 - Success, Otherwise error according to beerocks_defines:eChannelScanOperationCode
+
+cACTION_BML_CHANNEL_SCAN_GET_CONTINUOUS_PARAMS_REQUEST:
+  _type: class
+  radio_mac: sMacAddr
+
+cACTION_BML_CHANNEL_SCAN_GET_CONTINUOUS_PARAMS_RESPONSE:
+  _type: class
+  params: sChannelScanRequestParams
+
+cACTION_BML_CHANNEL_SCAN_SET_CONTINUOUS_ENABLE_REQUEST:
+  _type: class
+  radio_mac: sMacAddr
+  isEnable: uint8_t
+
+cACTION_BML_CHANNEL_SCAN_SET_CONTINUOUS_ENABLE_RESPONSE:
+  _type: class
+  op_error_code:
+    _type: uint8_t
+    _comment: 0 - Success, Otherwise error according to beerocks_defines:eChannelScanOperationCode
+
+cACTION_BML_CHANNEL_SCAN_GET_CONTINUOUS_ENABLE_REQUEST:
+  _type: class
+  radio_mac: sMacAddr
+
+cACTION_BML_CHANNEL_SCAN_GET_CONTINUOUS_ENABLE_RESPONSE:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_CHANNEL_SCAN_START_SCAN_REQUEST:
+  _type: class
+  scan_params: sTriggerChannelScanParams
+
+cACTION_BML_CHANNEL_SCAN_START_SCAN_RESPONSE:
+  _type: class
+  op_error_code:
+    _type: uint8_t
+    _comment: 0 - Success, Otherwise error according to beerocks_defines:eChannelScanOperationCode
+
+cACTION_BML_CHANNEL_SCAN_GET_RESULTS_REQUEST:
+  _type: class
+  radio_mac: sMacAddr
+  scan_mode:
+    _type: uint8_t
+    _comment: 0 - results for the continuous scan, 1 - results for the single scan
+
+cACTION_BML_CHANNEL_SCAN_GET_RESULTS_RESPONSE:
+  _type: class
+  result_status:
+    _type: uint8_t
+    _comment: 0 - Success, Otherwise error according to beerocks_defines:eDcsScanErrCode
+  op_error_code:
+    _type: uint8_t
+    _comment: 0 - Success, Otherwise error according to beerocks_defines:eChannelScanOperationCode
+  last:
+    _type: uint8_t
+    _comment: 0 - Not reached end of response, 1 - reached end of respons
+  results_size:
+    _type: uint8_t
+    _length_var: True
+  results:
+    _type: sChannelScanResults
+    _length: [results_size]
+
+cACTION_BML_WIFI_CREDENTIALS_UPDATE_REQUEST:
+  _type: class
+  al_mac: sMacAddr
+
+cACTION_BML_WIFI_CREDENTIALS_UPDATE_RESPONSE:
+  _type: class
+  error_code: uint32_t
+
+cACTION_BML_WIFI_CREDENTIALS_CLEAR_REQUEST:
+  _type: class
+  al_mac: sMacAddr
+
+cACTION_BML_WIFI_CREDENTIALS_CLEAR_RESPONSE:
+  _type: class
+  error_code: uint32_t
+
+cACTION_BML_CLIENT_GET_CLIENT_LIST_REQUEST:
+  _type: class
+
+cACTION_BML_CLIENT_GET_CLIENT_LIST_RESPONSE:
+  _type: class
+  result:
+    _type: uint8_t
+    _comment: # 0 - Failure, 1 - Success
+  client_list_size:
+    _type: uint32_t
+    _length_var: True
+  client_list:
+    _type: sMacAddr
+    _length: [client_list_size]
+
+cACTION_BML_CLIENT_SET_CLIENT_REQUEST:
+  _type: class
+  sta_mac: sMacAddr
+  client_config: sClientConfig
+
+cACTION_BML_CLIENT_SET_CLIENT_RESPONSE:
+  _type: class
+  result:
+    _type: uint8_t
+    _comment: # 0 - Failure, 1 - Success
+
+cACTION_BML_CLIENT_GET_CLIENT_REQUEST:
+  _type: class
+  sta_mac: sMacAddr
+
+cACTION_BML_CLIENT_GET_CLIENT_RESPONSE:
+  _type: class
+  result:
+    _type: uint8_t
+    _comment: # 0 - Failure, 1 - Success
+  client: sClient
+
+cACTION_BML_CLIENT_CLEAR_CLIENT_REQUEST:
+  _type: class
+  sta_mac: sMacAddr
+
+cACTION_BML_CLIENT_CLEAR_CLIENT_RESPONSE:
+  _type: class
+  result:
+    _type: uint8_t
+    _comment: # 0 - Failure, 1 - Success
+
+cACTION_BML_SET_CLIENT_ROAMING_11K_SUPPORT_REQUEST:
+  _type: class
+  isEnable: uint8_t
+
+cACTION_BML_SET_CLIENT_ROAMING_11K_SUPPORT_RESPONSE:
+  _type: class
+
+cACTION_BML_GET_CLIENT_ROAMING_11K_SUPPORT_REQUEST:
+  _type: class
+
+cACTION_BML_GET_CLIENT_ROAMING_11K_SUPPORT_RESPONSE:
+  _type: class
+  isEnable: uint8_t

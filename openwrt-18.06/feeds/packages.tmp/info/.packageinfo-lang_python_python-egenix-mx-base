@@ -1,0 +1,54 @@
+Source-Makefile: feeds/packages/lang/python/python-egenix-mx-base/Makefile
+
+Package: python-egenix-mx-base
+Submenu: Python
+Version: 3.2.9-4
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python
+Section: lang
+Category: Languages
+Repository: base
+Title: Egenix mxBase
+Maintainer: Dmitry Trefilov <the-alien@live.ru>
+Source: egenix-mx-base-3.2.9.tar.gz
+License: eGenix
+LicenseFiles: LICENSE COPYRIGHT
+Type: ipkg
+Description:  The eGenix.com mx Base Distribution for Python is a collection
+ of professional quality software tools which enhance Python's
+ usability in many important areas such as fast text searching,
+ date/time processing and high speed data types.
+https://www.egenix.com/products/python/mxBase/
+Dmitry Trefilov <the-alien@live.ru>
+@@
+
+Package: python-egenix-mx-base-src
+Submenu: Python
+Version: 3.2.9-4
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python
+Section: lang
+Category: Languages
+Repository: base
+Title: Egenix mxBase (sources)
+Maintainer: Dmitry Trefilov <the-alien@live.ru>
+Source: egenix-mx-base-3.2.9.tar.gz
+License: eGenix
+LicenseFiles: LICENSE COPYRIGHT
+Type: ipkg
+Description:      The eGenix.com mx Base Distribution for Python is a collection
+ of professional quality software tools which enhance Python's
+ usability in many important areas such as fast text searching,
+ date/time processing and high speed data types..
+    (Contains the Python sources for this package).
+https://www.egenix.com/products/python/mxBase/
+Dmitry Trefilov <the-alien@live.ru>
+@@
+
+

@@ -1,0 +1,137 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+
+. /lib/sfwifi.sh
+
+usage() {
+	cat <<EOF
+Usage: $0 [reset|remove|reload] [lb/hb]
+reset wifi firmware.
+EOF
+	exit 1
+}
+
+call_wifi_cmd(){
+	#get device from band
+	input_band=$2
+	local cfgfile=
+	device=""
+	DEVICES=
+	config_cb() {
+		local type="$1"
+		local section="$2"
+
+		# section start
+		case "$type" in
+			wifi-device)
+				append DEVICES "$section"
+				;;
+		esac
+	}
+	config_load "${cfgfile:-wireless}"
+	for device1 in $DEVICES;
+	do
+		config_get band1 "$device1" band
+		[ lb = "$input_band" ] && [ 2.4G = "$band1" ] && {
+			device=$device1
+			break
+		}
+		[ hb = "$input_band" ] && [ 5G = "$band1" ] && {
+			device=$device1
+			aa=2
+			break
+		}
+		echo "band=$band1 device=$device1" > /dev/ttyS0
+	done
+	echo "device=$device" > /dev/ttyS0
+	/sbin/wifi $1 $device
+}
+
+firmware_remove(){
+	#stop wifi first
+	/sbin/wifi down
+	sleep 1
+	#unregist umac
+	unload_smac
+	#unregist lmac
+	unload_firmware
+	#unregist rf
+#	unload_rf
+}
+
+detect_wifi(){
+	#detect wifi
+	/sbin/wifi detect > /tmp/wireless.tmp
+    [ -s /tmp/wireless.tmp ] && {
+		cat /tmp/wireless.tmp >> /etc/config/wireless
+	}
+	rm -f /tmp/wireless.tmp
+}
+
+band_reload(){
+	local band="$1"
+	[ lb = "$band" ] && {
+		insmod_umac_lb
+	}
+	[ hb = "$band" ] && {
+		insmod_umac_hb
+	}
+	[ all = "$band" ] && {
+		insmod_smac
+	}
+	[ -z "$band" ] && {
+		insmod_smac
+	}
+	detect_wifi
+	#bring up wifi
+	call_wifi_cmd up $band
+}
+
+firmware_reload(){
+	#reload firmware
+	load_firmware
+	#reload rf
+#	insmod_rf
+	band_reload $1
+}
+
+firmware_reset(){
+	firmware_remove
+	firmware_reload $1
+}
+
+band_remove(){
+	local band="$1"
+	call_wifi_cmd down $band
+	sleep 1
+	[ lb = "$band" ] && {
+		unload_umac_lb
+	}
+	[ hb = "$band" ] && {
+		unload_umac_hb
+	}
+	[ all = "$band" ] && {
+		unload_smac
+	}
+	[ -z "$band" ] && {
+		unload_smac
+	}
+}
+
+hb_test(){
+	load_firmware
+	insmod_umac_hb
+}
+
+mount -t debugfs none /sys/kernel/debug
+
+case "$1" in
+	reset) hb_test;;
+	remove) unload_umac_hb;;
+	reload) firmware_reload $2;;
+	reload_band) band_reload $2;;
+	remove_band) band_remove $2;;
+	test) hb_test;;
+	--help|help) usage;;
+	*) hb_test;;
+esac

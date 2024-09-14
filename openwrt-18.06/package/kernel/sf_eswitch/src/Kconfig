@@ -1,0 +1,8 @@
+config  SFAX8_ESWITCH_DRIVER
+	tristate "Siflower Externel Switch Driver"
+	help
+	  This driver supports the sfax8 gigabit switch inside
+
+config SFAX8_ESWITCH_LIGHT
+	bool "build light eswitch driver"
+	depends on (SFAX8_ESWITCH_DRIVER)

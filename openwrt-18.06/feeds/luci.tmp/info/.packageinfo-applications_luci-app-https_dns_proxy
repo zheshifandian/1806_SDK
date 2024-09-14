@@ -1,0 +1,583 @@
+Source-Makefile: feeds/luci/applications/luci-app-https_dns_proxy/Makefile
+Build-Depends: lua/host luci-base/host LUCI_CSSTIDY:csstidy/host 
+
+Package: luci-app-https_dns_proxy
+Submenu: 3. Applications
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci-compat +luci-mod-admin-full +https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: HTTPS DNS Proxy Web UI
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Description:    Provides Web UI for HTTPS DNS Proxy
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-bg
+Default: LUCI_LANG_bg||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - bg translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - български (Bulgarian)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-ca
+Default: LUCI_LANG_ca||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - ca translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Català (Catalan)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-cs
+Default: LUCI_LANG_cs||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - cs translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Čeština (Czech)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-de
+Default: LUCI_LANG_de||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - de translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Deutsch (German)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-el
+Default: LUCI_LANG_el||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - el translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Ελληνικά (Greek)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-en
+Default: LUCI_LANG_en||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - en translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - English
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-es
+Default: LUCI_LANG_es||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - es translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Español (Spanish)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-fr
+Default: LUCI_LANG_fr||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - fr translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Français (French)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-he
+Default: LUCI_LANG_he||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - he translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - עִבְרִית (Hebrew)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-hi
+Default: LUCI_LANG_hi||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - hi translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - हिंदी (Hindi)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-hu
+Default: LUCI_LANG_hu||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - hu translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Magyar (Hungarian)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-it
+Default: LUCI_LANG_it||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - it translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Italiano (Italian)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-ja
+Default: LUCI_LANG_ja||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - ja translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - 日本語 (Japanese)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-ko
+Default: LUCI_LANG_ko||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - ko translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - 한국어 (Korean)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-ms
+Default: LUCI_LANG_ms||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - ms translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Bahasa Melayu (Malay)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-nb_NO
+Default: LUCI_LANG_nb_NO||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - nb_NO translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - 
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - pl translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Polski (Polish)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-pt
+Default: LUCI_LANG_pt||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - pt translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Português (Portuguese)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-pt_BR
+Default: LUCI_LANG_pt_BR||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - pt_BR translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - 
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-ro
+Default: LUCI_LANG_ro||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - ro translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Română (Romanian)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-ru
+Default: LUCI_LANG_ru||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - ru translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Русский (Russian)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-sk
+Default: LUCI_LANG_sk||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - sk translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Slovenčina (Slovak)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-sv
+Default: LUCI_LANG_sv||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - sv translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Svenska (Swedish)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-tr
+Default: LUCI_LANG_tr||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - tr translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Türkçe (Turkish)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-uk
+Default: LUCI_LANG_uk||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - uk translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Українська (Ukrainian)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-vi
+Default: LUCI_LANG_vi||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - vi translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - Tiếng Việt (Vietnamese)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - zh-cn translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - 中文 (Chinese)
+Stan Grishin <stangri@melmac.net>
+@@
+
+Package: luci-i18n-https_dns_proxy-zh-tw
+Default: LUCI_LANG_zh-tw||(ALL&&m)
+Version: x-9
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-https_dns_proxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-https_dns_proxy - zh-tw translation
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0-or-later
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-https_dns_proxy - 臺灣華語 (Taiwanese)
+Stan Grishin <stangri@melmac.net>
+@@
+
+

@@ -1,0 +1,43 @@
+#
+---
+_namespace: wfa_map
+
+tlvProfile2ErrorCode:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_ERROR_CODE
+  length: uint16_t
+  reason_code: eReasonCode
+  bssid: 
+    _type: sMacAddr
+    _comment: |
+      BSSID this error refers to.
+      This field shall be included if the reason code field is set to 0x07 or 0x08.
+    _condition:
+      _using_members: reason_code
+      _phrase: |
+        reason_code == eReasonCode::DEFAULT_PCP_OR_PRIMARY_VLAN_ID_NOT_PROVIDED || 
+        reason_code == eReasonCode::NUMBER_OF_UNIQUE_VLAN_ID_EXCEEDS_MAXIMUM_SUPPORTED
+  service_prioritization_rule_id:
+    _type: uint32_t
+    _comment: |
+      Service Prioritization Rule ID this error refers to.
+      This field shall be included if the reason code field is set to 0x01 or 0x02.
+    _condition:
+      _using_members: reason_code
+      _phrase: |
+        reason_code == eReasonCode::SERVICE_PRIORITIZATION_RULE_NOT_FOUND || 
+        reason_code == eReasonCode::NUMBER_OF_SERVICE_PRIORITIZATION_RULES_EXCEEDED_THE_MAXIMUM_SUPPORTED
+
+eReasonCode:
+  _type: enum
+  _enum_storage: uint8_t
+  SERVICE_PRIORITIZATION_RULE_NOT_FOUND: 0x01
+  NUMBER_OF_SERVICE_PRIORITIZATION_RULES_EXCEEDED_THE_MAXIMUM_SUPPORTED: 0x02
+  DEFAULT_PCP_OR_PRIMARY_VLAN_ID_NOT_PROVIDED: 0x03
+  NUMBER_OF_UNIQUE_VLAN_ID_EXCEEDS_MAXIMUM_SUPPORTED: 0x05
+  TRAFFIC_SEPARATION_ON_COMBINED_FRONTHAUL_AND_PROFILE1_BACKHAUL_UNSUPPORTED: 0x07
+  TRAFFIC_SEPARATION_ON_COMBINED_PROFILE1_BACKHAUL_AND_PROFILE2_BACKHAUL_UNSUPPORTED: 0x08
+  SERVICE_PRIORITIZATION_RULE_NOT_SUPPORTED: 0x09

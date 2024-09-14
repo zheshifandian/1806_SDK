@@ -1,0 +1,21 @@
+#
+---
+_include: { bcl/beerocks_defines.h }
+
+_namespace: beerocks_message
+
+sSupportedBandwidth:
+  _type: struct
+  bandwidth: beerocks::eWiFiBandwidth
+  rank:
+    _type: int32_t
+    _value: -1
+    _comment: 0 = Best Rank, INT32_MAX = Worst Rank, -1 = Undefined/Not Operable.
+  multiap_preference:
+    _type: uint8_t
+    _value: 0
+    _comment: |
+      The rank converted to preference value:
+      0  - Unusable (e.g due to country code limitation).
+      1  - Lowest preference.
+      14 - Highest preference.

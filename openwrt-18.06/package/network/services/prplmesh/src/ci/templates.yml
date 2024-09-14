@@ -1,0 +1,243 @@
+###############################################################
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+# SPDX-FileCopyrightText: 2019-2020 the prplMesh contributors (see AUTHORS.md)
+# This code is subject to the terms of the BSD+Patent license.
+# See LICENSE file for more details.
+###############################################################
+
+.image-build:
+  stage: containers
+  tags:
+    - shell
+    - docker-build
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - if [ "$CI_COMMIT_BRANCH" = "master" ]; then latest_tag="--tag latest"; fi
+    - ./tools/docker/image-build.sh --image "${CI_JOB_NAME#image-build-}" --tag $CI_PIPELINE_ID $latest_tag --push
+  retry: 2
+
+.in-prplmesh-builder:
+  image:
+    name: $CI_REGISTRY_IMAGE/prplmesh-builder-ubuntu-bionic:$CI_PIPELINE_ID
+    entrypoint: [""]
+  tags:
+    - docker
+  needs: ["image-build-builder/ubuntu/bionic"]
+
+.run-test-in-docker:
+  stage: test
+  extends: .in-prplmesh-builder
+  script:
+    - cd build/install
+    - ./tests/${CI_JOB_NAME}
+  needs:
+    - job: build-in-docker
+
+.build-for-openwrt:
+  stage: build
+  script:
+    - mkdir -p "build/$TARGET_DEVICE"
+    - tools/docker/builder/openwrt/build.sh --verbose -d "$TARGET_DEVICE" -t "prplmesh-builder-$TARGET_DEVICE:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID" 2>&1
+  artifacts:
+    paths:
+      - "build/*"
+    expire_in: 4 weeks
+    when: always
+  tags:
+    - shell
+    - docker-build
+  needs: []
+
+.build-for-openwrt-mmx:
+  extends: .build-for-openwrt
+  script:
+    - mkdir -p "build/$TARGET_DEVICE"
+    - tools/docker/builder/openwrt/build.sh --verbose -d "$TARGET_DEVICE" -t "prplmesh-builder-$TARGET_DEVICE:$CI_COMMIT_SHORT_SHA-$CI_PIPELINE_ID" --mmx 2>&1
+  rules:
+  - if: '$CI_PARENT_PIPELINE_SOURCE == "schedule"'
+  - when: manual
+    allow_failure: true
+
+
+.build-for-rdkb:
+  stage: build
+  script:
+    # LOCAL_RUNNER_CACHE_DIR is an environment variable that can be set by a GitLab runner
+    # to specify a custom persistent folder for caching files between builds. If not defined,
+    # the home folder of the current user is used.
+    - export RDK_CACHE_DIR=${LOCAL_RUNNER_CACHE_DIR:-~}/rdk
+    - mkdir -p "build/$TARGET_DEVICE"
+    - mkdir -p "$RDK_CACHE_DIR"
+    # Clean up the cache directory from anything that hasn't been accessed for a week.
+    - find "$RDK_CACHE_DIR" -type f -atime +7 -delete
+    - tools/docker/builder/rdk-b/build.sh --verbose --target-device "$TARGET_DEVICE" --tag "$CI_PIPELINE_ID" --cache "$RDK_CACHE_DIR"
+  artifacts:
+    paths:
+      - "build/${TARGET_DEVICE}-rdk/"
+    expire_in: 4 weeks
+    when: always
+  tags:
+    - shell
+    - docker-build
+  needs: []
+
+.test-upgrade-image:
+  stage: test
+  script:
+    - tools/deploy_firmware.py --device "$TARGET_DEVICE" --target-name "$TARGET_DEVICE_NAME" --image "$OPENWRT_IMAGE" --full --configuration ci/configuration/boardfarm/"$TARGET_DEVICE_NAME".sh
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /.*test-upgrade-image.*/
+    - when: manual
+      allow_failure: true
+  tags:
+    - targets
+  timeout: 20m
+
+.test-on-target:
+  stage: test
+  before_script:
+    # Remove any leftover from docker-compose
+    - ./dctest.py --clean
+    # we need a list of all the targets to be able to kill them
+    - ALL_TARGETS="turris-omnia-1 turris-omnia-2 glinet-b1300-1 netgear-rax40-1 nec-wx3000hp-1"
+    # kill prplmesh on each target to make sure they don't interfere with the test
+    - for i in $ALL_TARGETS ; do ssh "$i" 'pgrep -f beerocks | xargs kill -9 2>/dev/null' || true ; done
+    - tools/deploy_firmware.py --device "$TARGET_DEVICE" --target-name "$TARGET_DEVICE_NAME" --image "$OPENWRT_IMAGE" --configuration ci/configuration/boardfarm/"$TARGET_DEVICE_NAME".sh
+    - tools/setup_uci.sh --target-type "$TARGET_DEVICE" --target-name "$TARGET_DEVICE_NAME"
+    - tools/deploy_ipk.sh $TARGET_DEVICE_NAME "build/$TARGET_DEVICE/"prplmesh.ipk
+  script:
+    - |
+      ssh "$TARGET_DEVICE_NAME" <<'EOF'
+        uci set prplmesh.config.management_mode='Multi-AP-Controller-and-Agent'
+        uci set prplmesh.config.operating_mode='Gateway'
+        uci set prplmesh.config.wired_backhaul=0
+        uci set prplmesh.config.master=1
+        uci set prplmesh.config.gateway=1
+        uci commit prplmesh
+      EOF
+    - tests/openwrt/test_status.sh $TARGET_DEVICE_NAME
+  after_script:
+    - tests/openwrt/capture_logs.sh $TARGET_DEVICE_NAME
+  artifacts:
+    paths:
+      - logs
+    expire_in: 4 weeks
+    when: always
+  tags:
+    - targets
+  timeout: 20m
+
+.test-on-rdkb:
+  stage: test
+  before_script:
+    # we need a list of all the targets to be able to kill them
+    - ALL_TARGETS="turris-omnia-1 turris-omnia-2 glinet-b1300-1 netgear-rax40-1 nec-wx3000hp-1"
+    # kill prplmesh on each target to make sure they don't interfere with the test
+    - for i in $ALL_TARGETS ; do ssh "$i" 'pgrep -f beerocks | xargs kill -9 2>/dev/null' || true ; done
+    - export RDKB_IMAGE_PATH=$(ls build/turris-omnia-rdk/rdkb-generic-broadband-image_rdkb*.rootfs.tar.gz)
+    - export RDKB_IMAGE_NAME=${RDKB_IMAGE_PATH##*/}
+    - tools/deploy_firmware.py --device turris-omnia-rdk --target-name "$TARGET_DEVICE_NAME" --image $RDKB_IMAGE_NAME
+    # tools/deploy_ipk.sh $TARGET_DEVICE_NAME build/turris-omnia-rdk/prplmesh_*.ipk
+  artifacts:
+    paths:
+      - logs
+    expire_in: 4 weeks
+    when: always
+  tags:
+    - targets
+  timeout: 20m
+
+.run-certification-tests:
+  interruptible: false
+  stage: test
+  before_script:
+    - ci/git-clean-reset.sh ~/easymesh_cert "$(<"ci/easymesh_cert_version")"
+    - ~/easymesh_cert/utils/power_cycle/power_cycle.py --force
+  script:
+    - export TESTS_TO_RUN="$(cat .tests-to-run)"
+    - export DEVICE_UNDER_TEST="$(cat .device-under-test)"
+    - |
+      case "$DEVICE_UNDER_TEST" in
+          axepoint)
+              IMAGE_NAME="$AXEPOINT_FULLIMAGE"
+          ;;
+          nec-wx3000hp)
+              IMAGE_NAME="$NEC_WX3000HP_FULLIMAGE"
+          ;;
+          turris-omnia)
+              IMAGE_NAME="$TURRIS_OMNIA_FULLIMAGE"
+          ;;
+          *)
+              IMAGE_NAME=''
+          ;;
+      esac
+      if [ -n "$IMAGE_NAME" ] ; then
+          echo "Checking if the firmware on $DEVICE_UNDER_TEST needs to be updated"
+          tools/deploy_firmware.py --device $DEVICE_UNDER_TEST --target-name "$DEVICE_UNDER_TEST" --image $IMAGE_NAME --configuration ci/configuration/certification/R1/"$DEVICE_UNDER_TEST".sh
+          tools/setup_uci.sh --target-type "$DEVICE_UNDER_TEST" --target-name "$DEVICE_UNDER_TEST"
+          echo "Deploying prplMesh to $DEVICE_UNDER_TEST"
+          tools/deploy_ipk.sh --certification-mode $DEVICE_UNDER_TEST build/$DEVICE_UNDER_TEST/prplmesh.ipk
+      fi
+    - ~/easymesh_cert/run_test_file.py --easymesh-revision "$EASYMESH_REVISION" --upload-results --verbose --log-folder logs --device-under-test $DEVICE_UNDER_TEST $TESTS_TO_RUN
+  artifacts:
+    paths:
+      - logs
+    when: always
+  timeout: 36h
+
+.run-certification-tests-R1:
+  extends: .run-certification-tests
+  variables:
+    GIT_CLONE_PATH: "/builds/prpl-foundation/prplmesh/prplMesh/"
+    EASYMESH_REVISION: "R1"
+  after_script:
+    - ci/certification/R1_marvell_station.sh
+
+.run-certification-tests-R2:
+  extends: .run-certification-tests
+  variables:
+    EASYMESH_REVISION: "R2"
+
+.certification-generic:
+  interruptible: false
+  # RUN_ON_DEVICE variable need to be set when extending the job
+  script:
+    - ci/git-clean-reset.sh ~/easymesh_cert "$(<"ci/easymesh_cert_version")"
+    - ~/easymesh_cert/run_test_file.py --verbose --log-folder logs --easymesh-revision "$EASYMESH_REVISION" --device-under-test $RUN_ON_DEVICE "${CI_JOB_NAME%%:*}"
+  artifacts:
+    paths:
+      - logs
+    when: always
+  timeout: 45min
+
+.certification-generic-R1:
+  extends: .certification-generic
+  variables:
+    GIT_CLONE_PATH: "/builds/prpl-foundation/prplmesh/prplMesh/"
+    EASYMESH_REVISION: "R1"
+  after_script:
+    - ci/certification/R1_marvell_station.sh
+
+.certification-generic-R2:
+  extends: .certification-generic
+  variables:
+    EASYMESH_REVISION: "R2"
+  before_script:
+    - |
+      case "$RUN_ON_DEVICE" in
+          axepoint)
+              IMAGE_NAME="$AXEPOINT_FULLIMAGE"
+          ;;
+          nec-wx3000hp)
+              IMAGE_NAME="$NEC_WX3000HP_FULLIMAGE"
+          ;;
+          turris-omnia)
+              IMAGE_NAME="$TURRIS_OMNIA_FULLIMAGE"
+          ;;
+          *)
+              IMAGE_NAME=''
+          ;;
+      esac
+      tools/deploy_firmware.py --device "$RUN_ON_DEVICE"  --target-name "$RUN_ON_DEVICE" --image "$IMAGE_NAME" --configuration ci/configuration/certification/R2/"$RUN_ON_DEVICE".sh
+    - tools/setup_uci.sh --target-type "$RUN_ON_DEVICE" --target-name "$RUN_ON_DEVICE"
+    - tools/deploy_ipk.sh --certification-mode $RUN_ON_DEVICE build/$RUN_ON_DEVICE/prplmesh.ipk

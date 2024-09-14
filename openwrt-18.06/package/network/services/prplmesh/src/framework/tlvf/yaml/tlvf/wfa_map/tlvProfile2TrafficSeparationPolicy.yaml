@@ -1,0 +1,32 @@
+#
+---
+_namespace: wfa_map
+
+tlvProfile2TrafficSeparationPolicy:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_TRAFFIC_SEPARATION_POLICY
+  length: uint16_t
+  ssids_vlan_id_list_length:
+    _type: uint8_t
+    _length_var: True
+  ssids_vlan_id_list:
+    _type: cSsidVlanId
+    _length: [ ssids_vlan_id_list_length ]
+
+cSsidVlanId:
+  _type: class
+  ssid_name_length:
+    _type: uint8_t
+    _length_var: True
+  ssid_name: 
+    _type: char
+    _length: [ ssid_name_length ]
+  vlan_id:
+    _type: uint16_t
+    _comment: |
+      0x000x - 0x0002: Reserved
+      0x0003 - 0x0FFE: VLAN ID
+      0x0FFF - 0xFFFF: Reserved

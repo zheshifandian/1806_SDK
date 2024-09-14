@@ -1,0 +1,25 @@
+#
+---
+_namespace: wfa_map
+
+tlvProfile2ApRadioAdvancedCapabilities:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_AP_RADIO_ADVANCED_CAPABILITIES
+  length: uint16_t
+  radio_uid: sMacAddr
+  traffic_separation_flag: sTrafficSeparationFlag
+
+sTrafficSeparationFlag:
+  _type: struct
+  _bit_field: uint8_t
+  combined_front_back:
+    _bit_range: [7,7]
+    _comment: Traffic Separation on combined fronthaul and Profile-1 backhaul support.
+  combined_profile1_and_profile2:
+    _bit_range: [6,6]
+    _comment: Traffic Separation on combined Profile-1 backhaul and Profile-2 backhaul support.
+  reserved:
+    _bit_range: [5,0]

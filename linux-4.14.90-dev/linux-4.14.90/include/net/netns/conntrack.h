@@ -92,6 +92,7 @@ struct ct_pcpu {
 
 struct netns_ct {
 	atomic_t		count;
+	atomic_t		drop_count;
 	unsigned int		expect_count;
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
 	struct delayed_work ecache_dwork;

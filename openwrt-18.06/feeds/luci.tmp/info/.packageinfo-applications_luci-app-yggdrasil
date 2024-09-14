@@ -1,0 +1,22 @@
+Source-Makefile: feeds/luci/applications/luci-app-yggdrasil/Makefile
+Build-Depends: lua/host luci-base/host LUCI_CSSTIDY:csstidy/host 
+
+Package: luci-app-yggdrasil
+Submenu: 3. Applications
+Version: x-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +yggdrasil
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: LuCI support for Yggdrasil
+Maintainer: 
+Source: 
+Type: ipkg
+Description: LuCI support for Yggdrasil
+
+@@
+
+

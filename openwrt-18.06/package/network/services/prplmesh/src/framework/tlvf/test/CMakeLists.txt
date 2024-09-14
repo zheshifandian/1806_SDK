@@ -1,0 +1,6 @@
+if(BUILD_TESTS)
+    add_executable(tlvf_test tlvf_test.cpp)
+    target_link_libraries(tlvf_test elpp mapfcommon tlvf)
+    install(TARGETS tlvf_test DESTINATION tests)
+    add_test(NAME tlvf_test COMMAND $<TARGET_FILE:tlvf_test>)
+endif()

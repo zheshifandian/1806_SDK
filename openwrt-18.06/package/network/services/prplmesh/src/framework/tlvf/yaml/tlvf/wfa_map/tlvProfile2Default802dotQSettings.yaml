@@ -1,0 +1,15 @@
+#
+---
+_namespace: wfa_map
+
+tlvProfile2Default802dotQSettings:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_DEFAULT_802_1Q_SETTINGS
+  length: uint16_t
+  primary_vlan_id: uint16_t
+  default_pcp:
+    _type: uint8_t
+    _comment: Default Priority Code Point

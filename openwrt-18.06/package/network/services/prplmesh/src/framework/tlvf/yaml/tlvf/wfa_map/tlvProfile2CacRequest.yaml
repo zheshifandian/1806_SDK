@@ -1,0 +1,52 @@
+#
+---
+_include: {
+  tlvf/common/sMacAddr.h,
+  tlvf/wfa_map/eTlvTypeMap.h,
+  tlvf/wfa_map/tlvProfile2CacRequest.h
+}
+_namespace: wfa_map
+
+# implementation of v2 specification
+# 17.2.42 CAC Request TLV format
+
+tlvProfile2CacRequest:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_CAC_REQUEST                      # line 1 (value)
+  length: uint16_t                                              # line 2 
+  number_of_cac_radios:                                         # line 3
+    _type: uint8_t
+    _length_var: True
+  cac_radios:                                                   # line 10
+    _type: sCacRequestRadio
+    _length: [ number_of_cac_radios ]
+
+eCacCompletionAction:
+    _type : enum
+    _comment: |
+      00: Remain on channel and continue to monitor for radar
+      01: Return the radio that was performing the CAC to its most recent operational configuration.
+      10-11: Reserved 
+    REMAIN_ON_CHANNEL: 0x00
+    RETURN_PREVIOUS_CHANNEL: 0x01
+
+sCacMethod:
+  _type: struct
+  _bit_field: uint8_t
+  cac_method:
+    _bit_range: [7, 5]      # line 7
+  cac_completion_action:
+    _bit_range: [4, 3]      # line 8
+  reserved:
+    _bit_range: [2, 0]      # line 9
+
+sCacRequestRadio:
+  _type: struct
+  radio_uid: sMacAddr           # line 4
+  operating_class: uint8_t      # line 5
+  channel: uint8_t              # line 6
+  cac_method_bit_field: 
+    _type: sCacMethod 

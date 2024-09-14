@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/kernel/cifsd/Makefile
+
+Package: kmod-fs-cifsd
+Submenu: Filesystems
+Version: <LINUX_VERSION>+2019-11-27-b8675c8ac144ece00f3e6bcc5436c8ace99e23e9-1
+Depends: +kmod-nls-base +kmod-nls-utf8 +kmod-crypto-md4 +kmod-crypto-md5 +kmod-crypto-hmac +kmod-crypto-ecb +kmod-crypto-des +kmod-crypto-sha256 +kmod-crypto-cmac +kmod-crypto-sha512 +kmod-crypto-aead +kmod-crypto-ccm
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: kernel
+Category: Kernel modules
+Title: CIFS/SMB kernel server support
+Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
+Source: cifsd-2019-11-27-b8675c8ac144ece00f3e6bcc5436c8ace99e23e9.tar.xz
+License: GPL-2.0-or-later
+LicenseFiles: COPYING
+Type: ipkg
+Description: 	Kernel module for a CIFS/SMBv2,3 fileserver.
+https://github.com/cifsd-team/cifsd
+Andy Walsh <andy.walsh44+github@gmail.com>
+@@
+
+

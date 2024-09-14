@@ -343,6 +343,7 @@ static void sf19a28_cfg_setup(struct device_node *np, int cfg_type)
 	if (!IS_ERR(clk)) {
 		clk_data->clks[0] = clk;
 		of_clk_add_provider(np, of_clk_src_onecell_get, clk_data);
+		kfree(parents);
 		return;
 	} else {
 		kfree(gate);
@@ -356,7 +357,6 @@ static void sf19a28_cfg_setup(struct device_node *np, int cfg_type)
 
 err:
 	pr_err("clk %d init failed!\n", cfg_type);
-	return;
 }
 
 unsigned char sf_pll_read(void *base, unsigned int off)
@@ -427,6 +427,7 @@ static unsigned long sf_pll_recalc_rate(struct clk_hw *hw,
 	unsigned long long temp, refdiv, fbdiv, frac, postdiv1, postdiv2;
 	unsigned long rate;
 	struct sf_clk_pll *pll = container_of(hw, struct sf_clk_pll, hw);
+
 	fbdiv = (sf_pll_read(pll->base, PLL_PARA + 0x4) << 8) | sf_pll_read(pll->base, PLL_PARA);
 	fbdiv &= 0xFFF;
 	refdiv = sf_pll_read(pll->base, PLL_PARA + 0x14) >> 2;
@@ -602,10 +603,7 @@ static void sf19a28_pll_setup(struct device_node *np, int pll_type)
 	pll->hw.init = init;
 
 	clk = clk_register(NULL, &pll->hw);
-	if (IS_ERR(clk)) {
-		kfree(init->parent_names);
-		goto err;
-	} else {
+	if (!IS_ERR(clk)) {
 		clk_data = kzalloc(sizeof(struct clk_onecell_data), GFP_KERNEL);
 		if (!clk_data)
 			goto err;
@@ -620,15 +618,17 @@ static void sf19a28_pll_setup(struct device_node *np, int pll_type)
 
 		clk_data->clks[0] = clk;
 		of_clk_add_provider(np, of_clk_src_onecell_get, clk_data);
+		kfree(init->parent_names);
+		kfree(pll_name);
 		return;
 	}
 err:
+	kfree(init->parent_names);
 	kfree(pll_name);
 	kfree(init);
 	kfree(pll);
 out_of_mem:
 	pr_err("%s failed!\n", __func__);
-	return;
 }
 
 #define BUILD_SFCLK_SETUP(name, cfg)					\

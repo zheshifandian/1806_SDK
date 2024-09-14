@@ -1,0 +1,14 @@
+SF_GSWITCH SWITCH驱动版本更新如下：
+
+[Version V1.0 Release Notes] :
+1） 将Realtek和Intel GSWITCH驱动整合成了一个；
+2） 通过读取通用PHY Identifier寄存器获取设备唯一标识来区分不同厂商，通过调用不同厂商提供的API函数进行不同gswitch的初始化和配置；
+	区分不同厂商的函数：
+	sfax8_get_gswitch_type，其位于GMAC驱动中，因为GSWITCH寄存器读写依赖于GMAC的MDIO读写函数，GMAC需要用到此函数初始化GSWITCH，否则单独insmod gmac驱动会数据不通，且GSWITCH依赖于GMAC驱动；
+	关键API接口：
+	sfax8_gswitch_api_t，不同厂商需要提供对应的API接口函数，主要包含switch_dev_ops/init/deinit/check_phy_linkup等接口；
+3） 如何新增一个GSWITCH厂商驱动；
+	1> 将厂商提供的API函数打包成独立文件夹，放在src目录；
+	2> 在src目录下新建一个sf_xxx_ops.c，提供对应的API接口函数；
+	3> 修改sfax8_get_gswitch_type对应处理逻辑，注意GMAC驱动和GSWITCH驱动都包含此函数；
+	4> 修改Makefile编译成ko对应测试即可。

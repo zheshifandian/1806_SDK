@@ -1,0 +1,16 @@
+#
+---
+_namespace: wfa_map
+
+tlvSteeringBTMReport:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_STEERING_BTM_REPORT
+  length: uint16_t
+  bssid: sMacAddr
+  sta_mac: sMacAddr
+  btm_status_code: uint8_t
+  target_bssid: sMacAddr
+  

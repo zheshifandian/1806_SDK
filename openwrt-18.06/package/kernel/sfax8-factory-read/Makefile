@@ -34,30 +34,12 @@ define KernelPackage/sfax8-factory-read/config
 	endif
 endef
 
-SFAX8_KO_NAME="sfax8_factory_read.ko"
-
-ifneq ($(findstring AC28S,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_factory_read_s.ko"
-endif
-
-ifneq ($(findstring NAND,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_factory_read_nand.ko"
-endif
-
-ifneq ($(findstring EVB,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_factory_read_evb.ko"
-endif
-
-ifneq ($(findstring PHY,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_factory_read_p.ko"
-endif
-
-ifneq ($(findstring YTS,$(PROFILE)),)
-SFAX8_KO_NAME="sfax8_factory_read_yts.ko"
-endif
-
 EXTRA_KCONFIG:= \
 	CONFIG_SFAX8_FACTORY_READ=m
+
+ifdef CONFIG_TARGET_siflower_sf19a28_fullmask_SF19A28-AC28-MULTIWAN
+EXTRA_KCONFIG += CONFIG_SFAX8_HNAT_MULTI_WAN=y
+endif
 
 EXTRA_CFLAGS:= \
 	$(patsubst CONFIG_%, -DCONFIG_%=1, $(patsubst %=m,%,$(filter %=m,$(EXTRA_KCONFIG)))) \
@@ -75,11 +57,15 @@ MAKE_OPTS:= \
 	$(EXTRA_KCONFIG)
 
 define Build/Prepare
-	$(CP) ./src/sfax8_factory_read.ko $(PKG_BUILD_DIR)/
+	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+	$(CP) ../siflower_include/sfax8_factory_read.h $(PKG_BUILD_DIR)/
 endef
 
 define Build/Compile
-$(CP) ./src/$(SFAX8_KO_NAME) $(PKG_BUILD_DIR)/sfax8_factory_read.ko
+	$(MAKE) -C "$(LINUX_DIR)" \
+		$(MAKE_OPTS) \
+		modules
 endef
 
 $(eval $(call KernelPackage,sfax8-factory-read))

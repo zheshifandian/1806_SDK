@@ -1,0 +1,30 @@
+#
+---
+_namespace: wfa_map
+
+# implementation of 
+# v2 specificarion:
+# 17.2.62 Associated STA Extended Link Metrics TLV format
+
+tlvAssociatedStaExtendedLinkMetrics:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_ASSOCIATED_STA_EXTENDED_LINK_METRICS  # line 1 (value)
+  length: uint16_t                                          # line 2 (length)
+  associated_sta: sMacAddr                                  # line 3 (sta mac)
+  metrics_list_length:                                      # line 4 (number of BSSIDs)
+    _type: uint8_t
+    _length_var: True
+  metrics_list:                                             # line 10 (list)
+    _type: sMetrics
+    _length: [ metrics_list_length ]
+
+sMetrics:
+  _type: struct
+  bssid: sMacAddr                       # line 5 (bssid)
+  last_data_down_link_rate: uint32_t    # line 6
+  last_data_up_link_rate: uint32_t      # line 7    
+  utilization_receive: uint32_t         # line 8
+  utilization_transmit: uint32_t        # line 9

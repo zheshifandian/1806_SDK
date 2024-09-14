@@ -1,0 +1,20 @@
+#
+---
+_include: {
+  tlvf/association_frame/eElementID.h,
+  tlvf/AssociationRequestFrame/assoc_frame_bitfields.h,
+}
+_namespace: assoc_frame
+
+cRmEnabledCaps:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_RM_ENABLED_CAPS
+  length:
+    _type: uint8_t
+  data1:
+    _type: assoc_frame::sRmEnabledCaps1
+  data2:
+    _type: assoc_frame::sRmEnabledCaps2

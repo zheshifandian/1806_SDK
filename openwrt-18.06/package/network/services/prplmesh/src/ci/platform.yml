@@ -1,0 +1,331 @@
+###############################################################
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+# SPDX-FileCopyrightText: 2019-2020 the prplMesh contributors (see AUTHORS.md)
+# This code is subject to the terms of the BSD+Patent license.
+# See LICENSE file for more details.
+###############################################################
+
+variables:
+  PACKAGE_REGISTRY_BASE_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+  TURRIS_OMNIA_FULLIMAGE: "openwrt-mvebu-cortexa9-cznic_turris-omnia-sysupgrade.img.gz"
+  GLINET_B1300_FULLIMAGE: "openwrt-ipq40xx-generic-glinet_gl-b1300-squashfs-sysupgrade.bin"
+  AXEPOINT_FULLIMAGE: "AX3000_1600_ETH_11AXUCI-squashfs-fullimage.img"
+  NEC_WX3000HP_FULLIMAGE: "AX3000_1600_ETH_11AXUCI_ASURADA-squashfs-fullimage.img"
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+
+stages:
+  - build
+  - test
+  - certification-turris-omnia
+  - certification-turris-omnia-bhwifi
+  - certification-axepoint
+  - certification-axepoint-bhwifi
+  - certification-axepoint-controller
+  - certification-R2-nec-wx3000hp
+  - certification-R2-axepoint
+  - upload
+  - release
+
+include:
+  - local: "/ci/templates.yml"
+  - local: "/ci/certification/turris-omnia.yml"
+  - local: "/ci/certification/turris-omnia-bhwifi.yml"
+  - local: "/ci/certification/axepoint.yml"
+  - local: "/ci/certification/axepoint-bhwifi.yml"
+  - local: "/ci/certification/axepoint-controller.yml"
+  - local: "/ci/certification/R2/nec-wx3000hp.yml"
+  - local: "/ci/certification/R2/axepoint.yml"
+
+.rules-for-releases: &onrelease
+  - if: '$CI_COMMIT_TAG =~ /\A\d+\.\d+\.\d+\z/'
+
+build-for-rdkb-turris-omnia:
+  extends: .build-for-rdkb
+  variables:
+    TARGET_DEVICE: "turris-omnia"
+  retry: 2
+
+build-for-turris-omnia:
+  extends: .build-for-openwrt
+  variables:
+    TARGET_DEVICE: "turris-omnia"
+
+build-for-glinet-b1300:
+  extends: .build-for-openwrt
+  variables:
+    TARGET_DEVICE: "glinet-b1300"
+
+build-for-intel-mips:
+  extends: .build-for-openwrt
+  variables:
+    TARGET_DEVICE: "intel_mips"
+
+build-for-turris-omnia-mmx:
+  extends: .build-for-openwrt-mmx
+  variables:
+    TARGET_DEVICE: "turris-omnia"
+
+build-for-glinet-b1300-mmx:
+  extends: .build-for-openwrt-mmx
+  variables:
+    TARGET_DEVICE: "glinet-b1300"
+
+build-for-intel-mips-mmx:
+  extends: .build-for-openwrt-mmx
+  variables:
+    TARGET_DEVICE: "intel_mips"
+
+build-for-cgr:
+  stage: build
+  variables:
+    PRPLMESH_REVISION: $CI_COMMIT_SHA
+  trigger:
+    project: essensium-mind/prplmesh/puma7
+    strategy: depend
+  needs: []
+  rules:
+    - if: '$CI_PARENT_PIPELINE_SOURCE == "schedule" && $BUILD_CGR == "yes"'
+
+test-upgrade-image-on-turris-omnia:
+  extends: .test-upgrade-image
+  variables:
+    TARGET_DEVICE: turris-omnia
+    TARGET_DEVICE_NAME: turris-omnia-1
+    OPENWRT_IMAGE: openwrt-mvebu-cortexa9-cznic_turris-omnia-sysupgrade.img.gz
+  needs: ["build-for-turris-omnia"]
+
+test-upgrade-image-on-glinet-b1300:
+  extends: .test-upgrade-image
+  variables:
+    TARGET_DEVICE: glinet-b1300
+    TARGET_DEVICE_NAME: glinet-b1300-1
+    OPENWRT_IMAGE: openwrt-ipq40xx-generic-glinet_gl-b1300-squashfs-sysupgrade.bin
+  needs: ["build-for-glinet-b1300"]
+
+test-upgrade-image-on-nec-wx3000hp:
+  extends: .test-upgrade-image
+  variables:
+    TARGET_DEVICE: nec-wx3000hp
+    TARGET_DEVICE_NAME: nec-wx3000hp-1
+    OPENWRT_IMAGE: $NEC_WX3000HP_FULLIMAGE
+  needs: ["build-for-intel-mips"]
+
+test-upgrade-image-on-turris-rdkb:
+  extends: .test-upgrade-image
+  variables:
+    TARGET_DEVICE: turris-rdkb
+    TARGET_DEVICE_NAME: turris-omnia-2
+  script:
+    - export RDKB_IMAGE_PATH=$(ls build/turris-omnia-rdk/rdkb-generic-broadband-image_rdkb*.rootfs.tar.gz)
+    - export RDKB_IMAGE_NAME=${RDKB_IMAGE_PATH##*/}
+    - tools/deploy_firmware.py --device turris-omnia-rdk --target-name "$TARGET_DEVICE_NAME" --image $RDKB_IMAGE_NAME --full
+  needs: ["build-for-rdkb-turris-omnia"]
+
+test-on-turris-omnia:
+  extends: .test-on-target
+  variables:
+    TARGET_DEVICE: turris-omnia
+    TARGET_DEVICE_NAME: turris-omnia-1
+    OPENWRT_IMAGE: openwrt-mvebu-cortexa9-cznic_turris-omnia-sysupgrade.img.gz
+  needs: ["build-for-turris-omnia"]
+
+test-on-glinet-b1300:
+  extends: .test-on-target
+  variables:
+    TARGET_DEVICE: glinet-b1300
+    TARGET_DEVICE_NAME: glinet-b1300-1
+    OPENWRT_IMAGE: openwrt-ipq40xx-generic-glinet_gl-b1300-squashfs-sysupgrade.bin
+  needs: ["build-for-glinet-b1300"]
+
+boardfarm-on-nec-wx3000hp:
+ extends: .test-on-target
+ variables:
+   TARGET_DEVICE: nec-wx3000hp
+   TARGET_DEVICE_NAME: nec-wx3000hp-1
+   OPENWRT_IMAGE: $NEC_WX3000HP_FULLIMAGE
+ script:
+   - |
+       echo "Retrieving the job ID for 'build-in-docker'."
+       PARENT_PIPELINE_JOBS_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$PARENT_PIPELINE_ID/jobs?per_page=100"
+       echo "PARENT_PIPELINE_JOBS_URL: $PARENT_PIPELINE_JOBS_URL"
+       BUILD_IN_DOCKER_JOB_ID=$(curl  --retry 3 --location --header "PRIVATE-TOKEN: $ARTIFACTS_DOWNLOADER_TOKEN" "$PARENT_PIPELINE_JOBS_URL" | jq -c '.[] | select( .name == "build-in-docker" ) | .id')
+       echo "BUILD_IN_DOCKER_JOB_ID: $BUILD_IN_DOCKER_JOB_ID"
+       BUILD_IN_DOCKER_DOWNLOAD_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/$BUILD_IN_DOCKER_JOB_ID/artifacts"
+       echo "BUILD_IN_DOCKER_DOWNLOAD_URL: $BUILD_IN_DOCKER_DOWNLOAD_URL"
+       echo "Downloading 'build-in-docker' artifacts."
+       curl --location  --header "PRIVATE-TOKEN: $ARTIFACTS_DOWNLOADER_TOKEN" "$BUILD_IN_DOCKER_DOWNLOAD_URL" --output artifacts.zip
+       unzip artifacts.zip && rm artifacts.zip
+       echo Done
+   - ./dctest.py --dut "$TARGET_DEVICE_NAME" --test-suite test_flows_on_prplwrt
+   - ssh "$TARGET_DEVICE_NAME" 'wifi down'
+ tags:
+   - boardfarm
+   - nec-wx3000hp
+ needs:
+   - build-for-intel-mips
+
+boardfarm-on-nec-wx3000hp-stability:
+  extends: boardfarm-on-nec-wx3000hp
+  parallel: 10
+  rules:
+    - if: '$STABILITY_TESTS == "yes"'
+
+boardfarm-on-turris-omnia-rdkb:
+ extends: .test-on-rdkb
+ variables:
+  TARGET_DEVICE: turris-rdkb
+  TARGET_DEVICE_NAME: turris-omnia-2
+ script:
+    - |
+       echo "Retrieving the job ID for 'build-in-docker'."
+       PARENT_PIPELINE_JOBS_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$PARENT_PIPELINE_ID/jobs?per_page=100"
+       echo "PARENT_PIPELINE_JOBS_URL: $PARENT_PIPELINE_JOBS_URL"
+       BUILD_IN_DOCKER_JOB_ID=$(curl  --retry 3 --location --header "PRIVATE-TOKEN: $ARTIFACTS_DOWNLOADER_TOKEN" "$PARENT_PIPELINE_JOBS_URL" | jq -c '.[] | select( .name == "build-in-docker" ) | .id')
+       echo "BUILD_IN_DOCKER_JOB_ID: $BUILD_IN_DOCKER_JOB_ID"
+       BUILD_IN_DOCKER_DOWNLOAD_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/jobs/$BUILD_IN_DOCKER_JOB_ID/artifacts"
+       echo "BUILD_IN_DOCKER_DOWNLOAD_URL: $BUILD_IN_DOCKER_DOWNLOAD_URL"
+       echo "Downloading 'build-in-docker' artifacts."
+       curl --location  --header "PRIVATE-TOKEN: $ARTIFACTS_DOWNLOADER_TOKEN" "$BUILD_IN_DOCKER_DOWNLOAD_URL" --output artifacts.zip
+       unzip artifacts.zip && rm artifacts.zip
+       echo Done
+    - ssh "$TARGET_DEVICE_NAME" sed -ri 's/backhaul_wire_iface=erouter0/backhaul_wire_iface=lan4/' /opt/prplmesh/share/prplmesh_platform_db
+    - ./dctest.py --dut $TARGET_DEVICE --test-suite test_flows_on_rdkb
+ needs:
+   - build-for-rdkb-turris-omnia
+
+boardfarm-on-turris-omnia-rdkb-stability:
+  extends: boardfarm-on-turris-omnia-rdkb
+  parallel: 10
+  rules:
+    - if: '$STABILITY_TESTS == "yes"'
+
+run-tests-on-altran-glinet-testbed:
+  extends: .test-on-target
+  variables:
+    TARGET_DEVICE: glinet-b1300
+    TARGET_DEVICE_NAME: glinet-b1300-1
+    OPENWRT_IMAGE: openwrt-ipq40xx-generic-glinet_gl-b1300-squashfs-sysupgrade.bin
+  script:
+    - ./tools/docker/build.sh -v -j 4 -f ENABLE_NBAPI=ON
+    - ./tools/docker/image-build.sh -t $PARENT_PIPELINE_ID -i boardfarm-ci
+    - ./tools/docker/image-build.sh -t $PARENT_PIPELINE_ID -i builder/ubuntu/bionic
+    - ./dctest.py --dut glinet-b1300-1-remote --test-suite test_flows_on_altran
+  after_script:
+    - !reference [.test-on-target, after_script]
+    - ssh "$TARGET_DEVICE_NAME" 'wifi down'
+  rules:
+    - if: '$ALTRAN_TESTS !~ /^\$/'
+  tags:
+    - test_flows_on_altran
+  timeout: 90m
+  needs:
+    - job: build-for-glinet-b1300
+
+run-certification-tests-R1-platform-essensium:
+  extends: .run-certification-tests-R1
+  before_script:
+    - !reference [.run-certification-tests-R1, before_script]
+    - echo "$TESTS_TO_RUN_ESSENSIUM" > .tests-to-run
+    - echo "$DEVICE_UNDER_TEST_ESSENSIUM" > .device-under-test
+  tags:
+    - certs-tests-essensium
+  needs:
+    - job: build-for-intel-mips
+    - job: build-for-turris-omnia
+  rules:
+    - if: '$TESTS_TO_RUN_ESSENSIUM !~ /^\$/ && $DEVICE_UNDER_TEST_ESSENSIUM != "prplmesh"'
+    - when: manual
+      allow_failure: true
+
+run-certification-tests-R2-platform-essensium:
+  extends: .run-certification-tests-R2
+  before_script:
+    - !reference [.run-certification-tests-R2, before_script]
+    - echo "$TESTS_TO_RUN_R2_ESSENSIUM" > .tests-to-run
+    - echo "$DEVICE_UNDER_TEST_R2_ESSENSIUM" > .device-under-test
+  rules:
+    - if: '$TESTS_TO_RUN_R2_ESSENSIUM !~ /^\$/ && $DEVICE_UNDER_TEST_R2_ESSENSIUM != "prplmesh"'
+    - when: manual
+      allow_failure: true
+  tags:
+    - certs-tests-R2-essensium
+  needs:
+    - job: build-for-intel-mips
+    - job: build-for-turris-omnia
+
+run-certification-tests-R1-platform-isr:
+  extends: .run-certification-tests-R1
+  before_script:
+    - !reference [.run-certification-tests-R1, before_script]
+    - echo "$TESTS_TO_RUN_ISR" > .tests-to-run
+    - echo "$DEVICE_UNDER_TEST_ISR" > .device-under-test
+  tags:
+    - certs-tests-isr
+  needs:
+    - job: build-for-intel-mips
+    - job: build-for-turris-omnia
+  rules:
+    - if: '$TESTS_TO_RUN_ISR !~ /^\$/ && $DEVICE_UNDER_TEST_ISR != "prplmesh"'
+    - when: manual
+      allow_failure: true
+
+changelog:
+  stage: build
+  image: $CI_REGISTRY_IMAGE/prplmesh-scripts:$PARENT_PIPELINE_ID
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /\A\d+\.\d+\.\d+\z/'
+    - when: manual
+      allow_failure: true
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: image-build-scripts
+  script:
+    - tools/gen_changelog.py --latest-version > CHANGELOG.md
+  artifacts:
+    paths:
+      - CHANGELOG.md
+
+upload-release-artifacts:
+  stage: upload
+  image: $CI_REGISTRY_IMAGE/prplmesh-scripts:$PARENT_PIPELINE_ID
+  rules: *onrelease
+  script:
+   - |
+     upload_command() {
+       # $1 is the target name under 'build/'. It will also be used for the name of the uploaded fullimage.
+       export PACKAGE_REGISTRY_URL="${PACKAGE_REGISTRY_BASE_URL}/$1/${CI_COMMIT_TAG}"
+       curl --fail --show-error --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "build/$1/prplmesh.ipk" "${PACKAGE_REGISTRY_URL}/prplmesh_${CI_COMMIT_TAG}_$1.ipk"
+       # $2 is the name of the fullimage.
+       curl --fail --show-error --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "build/$1/$2" "${PACKAGE_REGISTRY_URL}/$CI_COMMIT_TAG-$2"
+     }
+   - upload_command "turris-omnia" "$TURRIS_OMNIA_FULLIMAGE"
+   - upload_command "glinet-b1300" "$GLINET_B1300_FULLIMAGE"
+   - upload_command "axepoint" "$AXEPOINT_FULLIMAGE"
+   - upload_command "nec-wx3000hp" "$NEC_WX3000HP_FULLIMAGE"
+  needs:
+    - job: build-for-turris-omnia
+    - job: build-for-glinet-b1300
+    - job: build-for-intel-mips
+
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.5.0
+  rules: *onrelease
+  script:
+    - |
+      release-cli create --name "Release $CI_COMMIT_TAG" --description CHANGELOG.md --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"axepoint prplmesh ipk\",\"type\":\"package\", \"url\":\"${PACKAGE_REGISTRY_BASE_URL}/axepoint/$CI_COMMIT_TAG/prplmesh_${CI_COMMIT_TAG}_axepoint.ipk\"}" \
+        --assets-link "{\"name\":\"axepoint fullimage\",\"type\":\"image\", \"url\":\"${PACKAGE_REGISTRY_BASE_URL}/axepoint/$CI_COMMIT_TAG/$CI_COMMIT_TAG-$AXEPOINT_FULLIMAGE\"}" \
+        --assets-link "{\"name\":\"glinet-b1300 prplmesh ipk\",\"type\":\"package\", \"url\":\"${PACKAGE_REGISTRY_BASE_URL}/glinet-b1300/$CI_COMMIT_TAG/prplmesh_${CI_COMMIT_TAG}_glinet-b1300.ipk\"}" \
+        --assets-link "{\"name\":\"glinet-b1300 fullimage\",\"type\":\"image\", \"url\":\"${PACKAGE_REGISTRY_BASE_URL}/glinet-b1300/$CI_COMMIT_TAG/$CI_COMMIT_TAG-$GLINET_B1300_FULLIMAGE\"}" \
+        --assets-link "{\"name\":\"turris-omnia prplmesh ipk\",\"type\":\"package\", \"url\":\"${PACKAGE_REGISTRY_BASE_URL}/turris-omnia/$CI_COMMIT_TAG/prplmesh_${CI_COMMIT_TAG}_turris-omnia.ipk\"}" \
+        --assets-link "{\"name\":\"turris-omnia fullimage\",\"type\":\"image\", \"url\":\"${PACKAGE_REGISTRY_BASE_URL}/turris-omnia/$CI_COMMIT_TAG/$CI_COMMIT_TAG-$TURRIS_OMNIA_FULLIMAGE\"}" \
+        --assets-link "{\"name\":\"nec-wx3000hp prplmesh ipk\",\"type\":\"package\",\"url\":\"${PACKAGE_REGISTRY_BASE_URL}/nec-wx3000hp/$CI_COMMIT_TAG/prplmesh_${CI_COMMIT_TAG}_nec-wx3000hp.ipk\"}" \
+        --assets-link "{\"name\":\"nec-wx3000hp fullimage\",\"type\":\"image\",\"url\":\"${PACKAGE_REGISTRY_BASE_URL}/nec-wx3000hp/$CI_COMMIT_TAG/$CI_COMMIT_TAG-$NEC_WX3000HP_FULLIMAGE\"}"
+  needs:
+    - job: upload-release-artifacts
+    - job: changelog

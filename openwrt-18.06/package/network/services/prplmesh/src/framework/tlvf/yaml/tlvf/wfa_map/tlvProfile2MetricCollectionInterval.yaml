@@ -1,0 +1,16 @@
+#
+---
+# implementation of
+# v2 specificarion:
+# 17.2.59 Metric Collection Interval
+
+_namespace: wfa_map
+
+tlvProfile2MetricCollectionInterval:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_METRIC_COLLECTION_INTERVAL  # line 1 (value)
+  length: uint16_t                                         # line 2 (length)
+  collection_interval: uint32_t                            # line 3 

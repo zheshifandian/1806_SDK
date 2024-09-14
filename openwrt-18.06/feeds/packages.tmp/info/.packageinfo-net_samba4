@@ -1,0 +1,119 @@
+Source-Makefile: feeds/packages/net/samba4/Makefile
+Build-Depends: samba4/host
+Build-Depends/host: python/host nfs-kernel-server/host
+Build-Types: host
+
+Package: samba4-libs
+Version: 4.9.16-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libtirpc +libpopt +libcomerr +libreadline +libcap +PACKAGE_libpthread:libpthread +PACKAGE_libnettle:libnettle +PACKAGE_libgcrypt:libgcrypt +PACKAGE_libpam:libpam +PACKAGE_dbus:dbus +PACKAGE_libavahi-client:libavahi-client +SAMBA4_SERVER_VFS:attr +SAMBA4_SERVER_ACL:acl +SAMBA4_SERVER_ACL:attr +SAMBA4_SERVER_AVAHI:libavahi-client
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Samba 4.9.16 libs
+Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
+Source: samba-4.9.16.tar.gz
+License: GPL-3.0-only
+LicenseFiles: COPYING
+Type: ipkg
+Description: Samba 4.9.16 libs
+https://www.samba.org/
+Andy Walsh <andy.walsh44+github@gmail.com>
+@@
+
+Package: samba4-server
+Version: 4.9.16-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +samba4-libs
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Samba 4.9.16 server
+Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
+Source: samba-4.9.16.tar.gz
+License: GPL-3.0-only
+LicenseFiles: COPYING
+Type: ipkg
+Description:   installs: smbd, nmbd (daemon) smbpasswd pdbedit testparm
+
+  This provides the basic fileserver service and is the minimum needed to serve file shares.
+  HINT: https://fitzcarraldoblog.wordpress.com/2016/10/17/a-correct-method-of-configuring-samba-for-browsing-smb-shares-in-a-home-network/
+https://www.samba.org/
+Andy Walsh <andy.walsh44+github@gmail.com>
+@@
+Config:
+  select PACKAGE_wsdd2
+  source "feeds/packages/net/samba4/Config.in"
+@@
+
+Package: samba4-client
+Version: 4.9.16-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +samba4-libs
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Samba 4.9.16 client
+Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
+Source: samba-4.9.16.tar.gz
+License: GPL-3.0-only
+LicenseFiles: COPYING
+Type: ipkg
+Description:   installs: smbclient cifsdd
+
+  The smbclient program implements a simple ftp-like client for accessing SMB shares
+https://www.samba.org/
+Andy Walsh <andy.walsh44+github@gmail.com>
+@@
+
+Package: samba4-admin
+Version: 4.9.16-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +samba4-libs
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Samba 4.9.16 admin tools
+Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
+Source: samba-4.9.16.tar.gz
+License: GPL-3.0-only
+LicenseFiles: COPYING
+Type: ipkg
+Description:   installs: net smbcontrol profiles rpcclient smbcacls smbcquotas
+
+  Administration tools collection
+https://www.samba.org/
+Andy Walsh <andy.walsh44+github@gmail.com>
+@@
+
+Package: samba4-utils
+Version: 4.9.16-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +samba4-libs
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Samba 4.9.16 utils
+Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
+Source: samba-4.9.16.tar.gz
+License: GPL-3.0-only
+LicenseFiles: COPYING
+Type: ipkg
+Description:   installs: smbstatus smbtree smbget nmblookup mvxattr
+
+  Utilities collection
+https://www.samba.org/
+Andy Walsh <andy.walsh44+github@gmail.com>
+@@
+
+

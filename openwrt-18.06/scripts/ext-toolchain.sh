@@ -256,6 +256,9 @@ wrap_bins() {
 				fi
 
 				case "${cmd##*/}" in
+					*-ar|*-nm|*-ranlib)
+						wrap_bin_other "$out" "$bin"
+					;;
 					*-*cc|*-*cc-*|*-*++|*-*++-*|*-cpp)
 						wrap_bin_cc "$out" "$bin"
 					;;

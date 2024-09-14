@@ -1,0 +1,85 @@
+#
+---
+# implementation of
+# v2 specificarion:
+# 17.2.64 Reason Code
+
+_namespace: wfa_map
+
+tlvProfile2ReasonCode:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_REASON_CODE  # line 1 (value)
+  length: uint16_t                          # line 2 (length)
+  reason_code: eReasonCode                  # line 3
+
+eReasonCode:
+  _type: enum
+  _enum_storage: uint16_t
+  RESERVED: 0 #
+  UNSPECIFIED_REASON: 1 # Unspecified reason
+  INVALID_AUTHENTICATION: 2 # Previous authentication no longer valid
+  LEAVING_NETWORK_DEAUTH: 3 # Deauthenticated because sending STA is leaving (or has left) IBSS or ESS
+  REASON_INACTIVITY: 4 # Disassociated due to inactivity
+  NO_MORE_STAS: 5 # Disassociated because AP is unable to handle all currently associated STAs
+  INVALID_CLASS2_FRAME: 6 # Class 2 frame received from nonauthenticated STA
+  INVALID_CLASS3_FRAME: 7 # Class 3 frame received from nonassociated STA
+  LEAVING_NETWORK_DISASSOC: 8 # Disassociated because sending STA is leaving (or has left) BSS
+  NOT_AUTHENTICATED: 9 # STA requesting (re)association is not authenticated with responding STA
+  UNACCEPTABLE_POWER_CAPABILITY: 10 # Disassociated because the information in the Power Capability element is unacceptable
+  UNACCEPTABLE_SUPPORTED_CHANNELS: 11 # Disassociated because the information in the Supported Channels element is unacceptable
+  BSS_TRANSITION_DISASSOC: 12 # Disassociated due to BSS transition management
+  REASON_INVALID_ELEMENT: 13 # Invalid element, i.e., an element defined in this standard for which the content does not meet the specifications in Clause 9
+  MIC_FAILURE: 14 # Message integrity code (MIC) failure
+  FOUR_WAY_HANDSHAKE_TIMEOUT: 15 # 4-way handshake timeout
+  GK_HANDSHAKE_TIMEOUT: 16 # Group key handshake timeout
+  HANDSHAKE_ELEMENT_MISMATCH: 17 # Element in 4-way handshake different from (Re)Association Request/Probe Response/Beacon frame
+  REASON_INVALID_GROUP_CIPHER: 18 # Invalid group cipher
+  REASON_INVALID_PAIRWISE_CIPHER: 19 # Invalid pairwise cipher
+  REASON_INVALID_AKMP: 20 # Invalid AKMP
+  UNSUPPORTED_RSNE_VERSION: 21 # Unsupported RSNE version
+  INVALID_RSNE_CAPABILITIES: 22 # Invalid RSNE capabilities
+  X_AUTH_FAILED_802_1: 23 # IEEE 802.1X authentication failed
+  REASON_CIPHER_OUT_OF_POLICY: 24 # Cipher suite rejected because of the security policy
+  TDLS_PEER_UNREACHABLE: 25 # TDLS direct-link teardown due to TDLS peer STA unreachable via the TDLS direct link
+  TDLS_UNSPECIFIED_REASON: 26 # TDLS direct-link teardown for unspecified reason
+  SSP_REQUESTED_DISASSOC: 27 # Disassociated because session terminated by SSP request
+  NO_SSP_ROAMING_AGREEMENT: 28 # Disassociated because of lack of SSP roaming agreement
+  BAD_CIPHER_OR_AKM: 29 # Requested service rejected because of SSP cipher suite or AKM requirement
+  NOT_AUTHORIZED_THIS_LOCATION: 30 # Requested service not authorized in this location
+  SERVICE_CHANGE_PRECLUDES_TS: 31 # TS deleted because QoS AP lacks sufficient bandwidth for this QoS STA due to a change in BSS service characteristics or operational mode (e.g., an HT BSS change from 40 MHz channel to 20 MHz channel)
+  UNSPECIFIED_QOS_REASON: 32 # Disassociated for unspecified, QoS-related reason
+  NOT_ENOUGH_BANDWIDTH: 33 # Disassociated because QoS AP lacks sufficient bandwidth for this QoS STA
+  MISSING_ACKS: 34 # Disassociated because excessive number of frames need to be acknowledged, but are not acknowledged due to AP transmissions and/or poor channel conditions
+  EXCEEDED_TXOP: 35 # Disassociated because STA is transmitting outside the limits of its TXOPs
+  STA_LEAVING: 36 # Requesting STA is leaving the BSS (or resetting)
+  END_TSEND_BA: 37 # END_DLS Requesting STA is no longer using the stream or session
+  UNKNOWN_TSUNKNOWN_BA: 38 # Requesting STA received frames using a mechanism for which a setup has not been completed
+  TIMEOUT: 39 # Requested from peer STA due to timeout
+  PEERKEY_MISMATCH: 45 # Peer STA does not support the requested cipher suite
+  PEER_INITIATED: 46 # In a DLS Teardown frame: The teardown was initiated by the DLS peer In a Disassociation frame: Disassociated because authorized access limit reached
+  AP_INITIATED: 47 # In a DLS Teardown frame: The teardown was initiated by the AP In a Disassociation frame: Disassociated due to external service requirements
+  REASON_INVALID_FT_ACTION_FRAME_COUNT: 48 # Invalid FT Action frame count
+  REASON_INVALID_PMKID: 49 # Invalid pairwise master key identifier (PMKID)
+  REASON_INVALID_MDE: 50 # Invalid MDE
+  REASON_INVALID_FTE: 51 # Invalid FTE
+  MESH_PEERING_CANCELED: 52 # Mesh peering canceled for unknown reasons
+  MESH_MAX_PEERS: 53 # The mesh STA has reached the supported maximum number of peer mesh STAs
+  MESH_CONFIGURATIONPOLICY_VIOLATION: 54 # The received information violates the Mesh Configuration policy configured in the mesh STA profile
+  MESH_CLOSE_RCVD: 55 # The mesh STA has received a Mesh Peering Close frame requesting to close the mesh peering.
+  MESH_MAX_RETRIES: 56 # The mesh STA has resent dot11MeshMaxRetries Mesh Peering Open frames, without receiving a Mesh Peering Confirm frame.
+  MESH_CONFIRM_TIMEOUT: 57 # The confirmTimer for the mesh peering instance times out.
+  MESH_INVALID_GTK: 58 # The mesh STA fails to unwrap the GTK or the values in the wrapped contents do not match
+  MESH_INCONSISTENTPARAMETERS: 59 # The mesh STA receives inconsistent information about the mesh parameters between mesh peering Management frames
+  MESH_INVALID_SECURITYCAPABILITY: 60 # The mesh STA fails the authenticated mesh peering exchange because due to failure in selecting either the pairwise ciphersuite or group ciphersuite
+  MESH_PATH_ERROR_NOPROXY_INFORMATION: 61 # The mesh STA does not have proxy information for this external destination.
+  MESH_PATH_ERROR_NOFORWARDING_INFORMATION: 62 # The mesh STA does not have forwarding information for this destination.
+  MESH_PATH_ERRORDESTINATIONUNREACHABLE: 63 # The mesh STA determines that the link to the next hop of an active path in its forwarding information is no longer usable.
+  MAC_ADDRESS_ALREADYEXISTS_IN_MBSS: 64 # The Deauthentication frame was sent because the MAC address of the STA already exists in the mesh BSS. See 11.3.6.
+  MESH_CHANNEL_SWITCHREGULATORYREQUIREMENTS: 65 # The mesh STA performs channel switch to meet regulatory
+  MESH_CHANNEL_SWITCHUNSPECIFIED: 66 # The mesh STA performs channel switching with unspecified reason.
+
+ 
+

@@ -1,0 +1,13 @@
+#
+---
+_namespace: ieee1905_1
+
+tlvEndOfMessage:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvType
+    _value_const: TLV_END_OF_MESSAGE
+  length:
+    _type: uint16_t
+    _value_const: 0x0000

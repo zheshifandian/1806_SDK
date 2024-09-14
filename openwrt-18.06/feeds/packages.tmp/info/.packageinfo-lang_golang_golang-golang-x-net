@@ -1,0 +1,25 @@
+Source-Makefile: feeds/packages/lang/golang/golang-golang-x-net/Makefile
+Build-Depends: golang/host
+
+Package: golang-golang-x-net-dev
+Submenu: Go
+Version: 20180620-afe8f62b1d6bbd81f31868121a50b06d8188e1f9-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64) +golang-golang-x-text-dev
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Go supplementary network libraries
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: golang-golang-x-net-20180620-afe8f62b1d6bbd81f31868121a50b06d8188e1f9.tar.xz
+License: BSD-3-Clause
+LicenseFiles: LICENSE
+Type: ipkg
+Description: Supplementary Go networking libraries.
+https://godoc.org/golang.org/x/net
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

@@ -1,0 +1,17 @@
+#
+---
+_namespace: wfa_map
+
+# Multi-AP v2 Specification: 17.2.56 Tunneled TLV format
+# TLV containing the raw 802.11 request frame body
+tlvTunnelledData:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_TUNNELLED_DATA
+  length: uint16_t
+  data:
+    _type: uint8_t
+    _length: []
+    _comment: 802.11 request frame body

@@ -1,0 +1,34 @@
+#
+---
+_include: {
+  tlvf/association_frame/eElementID.h,
+}
+_namespace: assoc_frame
+
+cQosCapability:
+  _comment: |
+    The QoS Capability element is present if
+    dot11QosOptionImplemented is true.
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_RSN
+  length:
+    _type: uint8_t
+  qos_info:
+    _type: sQosInfo
+
+sQosInfo:
+  _type: struct
+  _bit_field: uint8_t
+  reserved:
+    _bit_range: [7,7]
+  txop_request:
+    _bit_range: [6,6]
+  queue_request:
+    _bit_range: [5,5]
+  q_ask:
+    _bit_range: [4,4]
+  edca_param_set_update_count:
+    _bit_range: [3,0]

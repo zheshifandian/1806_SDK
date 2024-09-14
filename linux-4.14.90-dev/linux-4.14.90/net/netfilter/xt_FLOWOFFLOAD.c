@@ -517,13 +517,14 @@ flowoffload_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	if (!net)
 	  write_pnet(&nf_flowtable.ft_net, xt_net(par));
 
+	if (check_flow_in_blacklist(xt_net(par), flow))
+		goto err_flow_add;
 
 	if (flow_offload_add(&nf_flowtable, flow) < 0)
 		goto err_flow_add;
 
 	if ((info->flags & XT_FLOWOFFLOAD_HW) && sf_hnat_enable)
-		if (!check_flow_in_blacklist(xt_net(par), flow))
-			nf_flow_offload_hw_add(xt_net(par), flow, ct, &nf_flowtable.nf_count);
+		nf_flow_offload_hw_add(xt_net(par), flow, ct, &nf_flowtable.nf_count);
 
 	return XT_CONTINUE;
 

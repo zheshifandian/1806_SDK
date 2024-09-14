@@ -1,0 +1,51 @@
+#############################################################################
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+# SPDX-FileCopyrightText: 2016-2020 the prplMesh contributors (see AUTHORS.md)
+# This code is subject to the terms of the BSD+Patent license.
+# See LICENSE file for more details.
+#############################################################################
+
+#iface_type: ETHERNET, GW_BRIDGE, WAVE_512, WAVE_513, WAVE_514, WAVE_522, WAVE_523, WAVE_524, STA_8265, STA_8260
+
+[global]
+temp_path=@TMP_PATH@
+vendor=Intel
+model=prplMesh
+ucc_listener_port=8002 # 0 - disabled
+enable_arp_monitor=0
+bridge_iface=@BEEROCKS_BRIDGE_IFACE@
+enable_system_hang_test=0 # 0 - disabled
+monitor_polling_rate_msec=@BEEROCKS_MONITOR_POLLING_RATE_MSEC@
+
+[backhaul]
+backhaul_preferred_bssid=
+
+[agent0]
+hostap_iface_type=WIFI_INTEL
+hostap_ant_gain=0
+enable_repeater_mode=@BEEROCKS_REPEATER_MODE@
+
+[agent1]
+hostap_iface_type=WIFI_INTEL
+hostap_ant_gain=0
+enable_repeater_mode=0
+
+[agent2]
+hostap_iface_type=WIFI_INTEL
+hostap_ant_gain=0
+enable_repeater_mode=0
+
+[agent3]
+hostap_iface_type=WIFI_INTEL
+hostap_ant_gain=0
+enable_repeater_mode=0
+
+[log]
+log_global_levels=error,info,warning,fatal,trace,debug
+log_global_syslog_levels=error,info,warning,fatal,trace,debug
+log_global_size=@BEEROCKS_AGENT_LOG_SIZE@
+log_files_enabled=@BEEROCKS_LOG_FILES_ENABLED@
+log_files_path=@BEEROCKS_LOG_FILES_PATH@
+log_files_auto_roll=@BEEROCKS_LOG_FILES_AUTO_ROLL@
+log_stdout_enabled=@BEEROCKS_LOG_STDOUT_ENABLED@
+log_syslog_enabled=@BEEROCKS_LOG_SYSLOG_ENABLED@

@@ -1,0 +1,27 @@
+#
+---
+_namespace: wfa_map
+
+# Multi-AP v2 Specification: 17.2.55 Tunneled message type TLV format
+# TLV for specifying the Tunneled Protocol Type of the 802.11 request frame type
+# carried in the Tunneled TLV.
+tlvTunnelledProtocolType:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_TUNNELLED_PROTOCOL_TYPE
+  length: uint16_t
+  protocol_type:
+    _type: eTunnelledProtocolType
+    _comment: 802.11 request frame type carried in the Tunnelled TLV.
+
+# Supported 802.11 tunnelled frame types
+eTunnelledProtocolType:
+  _type: enum
+  _enum_storage: uint8_t
+  ASSOCIATION_REQUEST: 0x00
+  REASSOCIATION_REQUEST: 0x01
+  BTM_QUERY: 0x02
+  WNM_REQUEST: 0x03
+  ANQP_REQUEST: 0x04

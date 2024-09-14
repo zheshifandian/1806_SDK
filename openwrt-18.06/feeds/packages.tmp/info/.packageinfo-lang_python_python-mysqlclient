@@ -1,0 +1,98 @@
+Source-Makefile: feeds/packages/lang/python/python-mysqlclient/Makefile
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:gettext
+
+Package: python-mysqlclient
+Submenu: Python
+Version: 1.4.6-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +PACKAGE_python-mysqlclient:python +libmysqlclient
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python
+Section: lang
+Category: Languages
+Repository: base
+Title: MySQL database adapter for Python
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: mysqlclient-1.4.6.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description:  MySQLdb is an thread-compatible interface to the popular MySQL database
+ server that provides the Python database API.
+https://mysqlclient.readthedocs.io/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-mysqlclient-src
+Submenu: Python
+Version: 1.4.6-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python
+Section: lang
+Category: Languages
+Repository: base
+Title: MySQL database adapter for Python (sources)
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: mysqlclient-1.4.6.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description:      MySQLdb is an thread-compatible interface to the popular MySQL database
+ server that provides the Python database API..
+    (Contains the Python sources for this package).
+https://mysqlclient.readthedocs.io/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-mysqlclient
+Submenu: Python
+Version: 1.4.6-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +PACKAGE_python3-mysqlclient:python3 +libmysqlclient
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: MySQL database adapter for Python3
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: mysqlclient-1.4.6.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description:  MySQLdb is an thread-compatible interface to the popular MySQL database
+ server that provides the Python database API.
+.
+(Variant for Python3)
+https://mysqlclient.readthedocs.io/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-mysqlclient-src
+Submenu: Python
+Version: 1.4.6-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: MySQL database adapter for Python3 (sources)
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: mysqlclient-1.4.6.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description:      MySQLdb is an thread-compatible interface to the popular MySQL database
+ server that provides the Python database API.
+.
+(Variant for Python3).
+    (Contains the Python3 sources for this package).
+https://mysqlclient.readthedocs.io/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

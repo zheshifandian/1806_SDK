@@ -1,0 +1,23 @@
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/sta_info.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/sta_info.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/sta_info.c
+@@ -1556,12 +1556,12 @@ static void ap_sta_delayed_1x_auth_fail_
+ 		"IEEE 802.1X: Scheduled disconnection of " MACSTR
+ 		" after EAP-Failure", MAC2STR(sta->addr));
+ 
+-	reason = sta->disconnect_reason_code;
+-	if (!reason)
+-		reason = WLAN_REASON_IEEE_802_1X_AUTH_FAILED;
+-	ap_sta_disconnect(hapd, sta, sta->addr, reason);
+-	if (sta->flags & WLAN_STA_WPS)
+-		hostapd_wps_eap_completed(hapd);
++	//reason = sta->disconnect_reason_code;
++	//if (!reason)
++	//	reason = WLAN_REASON_IEEE_802_1X_AUTH_FAILED;
++	//ap_sta_disconnect(hapd, sta, sta->addr, reason);
++	//if (sta->flags & WLAN_STA_WPS)
++	//	hostapd_wps_eap_completed(hapd);
+ }
+ 
+ 

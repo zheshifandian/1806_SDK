@@ -1,0 +1,89 @@
+
+/* SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+ * SPDX-FileCopyrightText: 2020 the prplMesh contributors (see AUTHORS.md)
+ *
+ * This code is subject to the terms of the BSD+Patent license.
+ * See LICENSE file for more details.
+ */
+
+%config {
+    define-behavior = {
+        existing-object = "update"
+    };
+}
+
+%define {
+    select Device.WiFi.DataElements.Network.Device.Radio {
+
+        %read-only string ID = "00:00:00:00:00:00";
+        bool Enabled = false;
+
+        %read-only uint32 Noise = 0 {
+            on action validate call check_range [0, 220];
+        }
+        %read-only uint32 Utilization = 0 {
+            on action validate call check_range [0, 255];
+        }
+        %read-only uint32 Transmit = 0 {
+            on action validate call check_range [0, 255];
+        }
+        %read-only uint32 ReceiveSelf = 0 {
+            on action validate call check_range [0, 255];
+        }
+        %read-only uint32 ReceiveOther = 0 {
+            on action validate call check_range [0, 255];
+        }
+
+        object CurrentOperatingClasses [] {
+            counted with CurrentOperatingClassesNumberOfEntries;
+            %read-only datetime TimeStamp = "2020-08-31T11:22:39Z";
+            %read-only uint32 Class = 0 {
+                on action validate call check_range [0, 255];
+            }
+            %read-only uint32 Channel = 0 {
+                on action validate call check_range [0, 255];
+            }
+            %read-only int32 TxPower = 0 {
+                on action validate call check_range [-128, 127];
+            }
+        }
+
+        %template %instance bool ScanTrigger(
+            %in %mandatory string channels_list,
+            %in %mandatory uint32 channels_num
+        );
+
+        object Capabilities;
+
+        object BSS [] {
+            counted with BSSNumberOfEntries;
+        }
+
+        object BackhaulSta {
+            %read-only string MACAddress = "";
+        }
+
+        %read-only object ScanResult [] {
+            counted with ScanResultNumberOfEntries;
+        }
+
+        /**
+        ** CACStatus object decided to leave at Radio layer
+        ** (not correspond to TR-181, should be at Device layer)
+        **/
+        %read-only object CACStatus {
+            %read-only datetime TimeStamp = "2020-08-31T11:22:39Z";
+
+            %read-only object CACAvailableChannel [] {
+                counted with CACAvailableChannelNumberOfEntries;
+                %read-only uint32 OpClass = 0 {
+                    on action validate call check_range [0, 255];
+                }
+                %read-only uint32 Channel = 0 {
+                    on action validate call check_range [0, 255];
+                }
+            }
+        }
+    }
+}

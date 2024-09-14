@@ -1,0 +1,17 @@
+#
+---
+# implementation of
+# v2 specificarion:
+# 17.2.63 Status Code
+
+_namespace: wfa_map
+
+tlvProfile2StatusCode:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_PROFILE2_STATUS_CODE  # line 1 (value)
+  length: uint16_t                          # line 2 (length)
+  status_code: uint16_t                     # line 3
+

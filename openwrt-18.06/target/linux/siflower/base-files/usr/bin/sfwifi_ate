@@ -49,10 +49,10 @@ band_reload_smac(){
 band_reload_fmac(){
 	local band="$1"
 	[ lb = "$band" ] && {
-        insmod_fmac_lb
+        insmod_fmac
 	}
 	[ hb = "$band" ] && {
-        insmod_fmac_hb
+        insmod_fmac
 	}
 	[ all = "$band" ] && {
 		insmod_fmac

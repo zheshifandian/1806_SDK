@@ -1,0 +1,33 @@
+#
+---
+_namespace: ieee1905_1
+
+# TLVF does not currently support optional fields and this TLV contains one.
+# As a workaround, we define two different TLVs instead of a single tlvLinkMetricQuery with an
+# optional field. Application must then check the length of received message to know if optional 
+# field is present or not and then create an instance of either of these classes.
+
+tlvLinkMetricQueryAllNeighbors:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvType
+    _value_const: TLV_LINK_METRIC_QUERY
+  length: uint16_t
+  neighbor_type: 
+    _type: eLinkMetricNeighborType
+    _value_const: ALL_NEIGHBORS
+  link_metrics_type: eLinkMetricsType
+
+tlvLinkMetricQuery:
+  _type: class
+  _is_tlv_class : True
+  type:
+    _type: eTlvType
+    _value_const: TLV_LINK_METRIC_QUERY
+  length: uint16_t
+  neighbor_type: eLinkMetricNeighborType
+  mac_al_1905_device:
+    _type: sMacAddr
+  link_metrics_type: eLinkMetricsType
+

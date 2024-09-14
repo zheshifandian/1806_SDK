@@ -1,0 +1,35 @@
+#
+---
+_include: {
+  tlvf/association_frame/eElementID.h,
+  tlvf/AssociationRequestFrame/assoc_frame_bitfields.h,
+}
+_namespace: assoc_frame
+
+cStaHtCapability:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eElementID
+    _value: ID_HT_CAPABILITY
+  length:
+    _type: uint8_t
+  ht_cap_info: assoc_frame::sStaHtCapabilityInfo
+  a_mpdu_param:
+    _type: sA_MpduParam
+  ht_mcs_set: # TODO parse as in Figure 9-334
+    _type: uint8_t
+    _length: [16]
+  ht_extended_caps: uint16_t 
+  tx_beamforming_caps: uint32_t
+  asel_caps: uint8_t
+
+sA_MpduParam:
+  _type: struct
+  _bit_field: uint8_t
+  reserved:
+    _bit_range: [7,5]
+  min_mpdu_start_spacing:
+    _bit_range: [4,2]
+  max_ampdu_len_expo:
+    _bit_range: [1,0]

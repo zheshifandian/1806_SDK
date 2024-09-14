@@ -1,0 +1,10 @@
+config SFAX8_HNAT_DRIVER
+	tristate "vender siflower hardware nat driver support sf16AX8"
+	select CRC32
+	help
+	  This driver supports hardware nat
+
+config SFAX8_HNAT_TEST_TOOL
+	bool "enable hardware nat"
+	select DEBUG_FS
+	depends on (SFAX8_HNAT_DRIVER)

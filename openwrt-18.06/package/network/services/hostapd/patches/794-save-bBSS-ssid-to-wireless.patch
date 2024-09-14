@@ -1,0 +1,65 @@
+Index: hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wps_supplicant.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/wpa_supplicant/wps_supplicant.c
++++ hostapd-2019-08-08-ca8c2bd2/wpa_supplicant/wps_supplicant.c
+@@ -34,6 +34,7 @@
+ #include "p2p_supplicant.h"
+ #include "wps_supplicant.h"
+ #include "ubus.h"
++#include <uci.h>
+ 
+ 
+ #ifndef WPS_PIN_SCAN_IGNORE_SEL_REG
+@@ -359,6 +360,25 @@ static void wpas_wps_remove_dup_network(
+ 	}
+ }
+ 
++static void uci_set_value(char *package, char *section, char *option, char *value)
++{
++    struct uci_context *now = uci_alloc_context();
++    struct uci_package *pack = NULL;
++    struct uci_ptr ptr = {
++        .package = package,
++        .section = section,
++        .option = option,
++        .value = value
++    };
++
++    uci_load(now, ptr.package, &pack);
++    uci_set(now, &ptr);
++    uci_save(now, pack);
++    uci_commit(now, &pack, true);
++    uci_unload(now, pack);
++    uci_free_context(now);
++    now = NULL;
++}
+ 
+ static int wpa_supplicant_wps_cred(void *ctx,
+ 				   const struct wps_credential *cred)
+@@ -476,6 +496,26 @@ static int wpa_supplicant_wps_cred(void
+ 	wpa_config_set_network_defaults(ssid);
+ 	ssid->wps_run = wpa_s->wps_run;
+ 
++    // If it is a backahaul sta, update bBSS ssid and key into wirelss.
++    if (ssid && ssid->multi_ap_backhaul_sta) {
++        char *package = "wireless";
++        char *option1 = "ssid";
++        char *option2 = "key";
++        char *section1 = "default_radio11";
++        char *section2 = "default_radio22";
++        char *value1 = cred->ssid;
++        char *value2 = cred->key;
++        char *path = "/var/run/wpa_supplicant-wlan0-2.conf";
++
++        if (os_memcmp(path, wpa_s->confname, strlen(path)) == 0) {
++            uci_set_value(package, section1, option1, value1);
++            uci_set_value(package, section1, option2, value2);
++        } else {
++            uci_set_value(package, section2, option1, value1);
++            uci_set_value(package, section2, option2, value2);
++        }
++    }
++
+ 	os_free(ssid->ssid);
+ 	ssid->ssid = os_malloc(cred->ssid_len);
+ 	if (ssid->ssid) {

@@ -1,0 +1,48 @@
+Source-Makefile: feeds/packages/lang/python/python-wcwidth/Makefile
+
+Package: python3-wcwidth
+Submenu: Python
+Version: 0.1.7-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: Terminal width calculation library
+Maintainer: Jan Pavlinec <jan.pavlinec@nic.cz>
+Source: wcwidth-0.1.7.tar.gz
+License: MIT
+LicenseFiles: LICENSE.txt
+Type: ipkg
+Description:   Python library that measures the width of unicode strings rendered to a terminal
+https://github.com/jquast/wcwidth
+Jan Pavlinec <jan.pavlinec@nic.cz>
+@@
+
+Package: python3-wcwidth-src
+Submenu: Python
+Version: 0.1.7-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: Terminal width calculation library (sources)
+Maintainer: Jan Pavlinec <jan.pavlinec@nic.cz>
+Source: wcwidth-0.1.7.tar.gz
+License: MIT
+LicenseFiles: LICENSE.txt
+Type: ipkg
+Description:       Python library that measures the width of unicode strings rendered to a terminal.
+    (Contains the Python3 sources for this package).
+https://github.com/jquast/wcwidth
+Jan Pavlinec <jan.pavlinec@nic.cz>
+@@
+
+

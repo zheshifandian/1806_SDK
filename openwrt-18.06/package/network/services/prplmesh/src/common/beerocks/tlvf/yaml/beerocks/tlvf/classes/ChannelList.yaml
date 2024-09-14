@@ -1,0 +1,35 @@
+#
+---
+_include:
+  { ../enums/eDfsState.h, ../structs/sSupportedBandwidth.h }
+
+_namespace: beerocks_message
+
+cChannelList:
+  _type: class
+  _is_tlv_class : False
+  channels_list_length:
+    _type: uint8_t
+    _length_var: True
+  channels_list:
+    _type: cChannel
+    _length: [ channels_list_length ]
+
+cChannel:
+  _type: class
+  _is_tlv_class : False
+  beacon_channel:
+    _type: uint8_t
+    _comment: Beaconing channel (20MHz)
+  tx_power_dbm:
+    _type: int8_t
+    _value: INT8_MIN
+  dfs_state: 
+      _type: eDfsState
+      _comment: Represent the state only on the 20 MHz beaconing channel
+  supported_bandwidths_length:
+    _type: uint8_t
+    _length_var: True
+  supported_bandwidths:
+    _type: sSupportedBandwidth
+    _length: [ supported_bandwidths_length ]

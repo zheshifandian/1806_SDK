@@ -1,0 +1,48 @@
+Source-Makefile: feeds/packages/lang/python/python3-drf-nested-routers/Makefile
+
+Package: python3-drf-nested-routers
+Submenu: Python
+Version: 0.91-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-django-restframework +python3-django +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: Nested resources for the Django Rest Framework
+Maintainer: Peter Stadler <peter.stadler@student.uibk.ac.at>
+Source: drf-nested-routers-0.91.tar.gz
+License: Apache-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description:   Nested resources for the Django Rest Framework
+https://github.com/alanjds/drf-nested-routers
+Peter Stadler <peter.stadler@student.uibk.ac.at>
+@@
+
+Package: python3-drf-nested-routers-src
+Submenu: Python
+Version: 0.91-1
+Depends: +libc +GCC_LIBSSP:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: python3
+Section: lang
+Category: Languages
+Repository: base
+Title: Nested resources for the Django Rest Framework (sources)
+Maintainer: Peter Stadler <peter.stadler@student.uibk.ac.at>
+Source: drf-nested-routers-0.91.tar.gz
+License: Apache-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description:       Nested resources for the Django Rest Framework.
+    (Contains the Python3 sources for this package).
+https://github.com/alanjds/drf-nested-routers
+Peter Stadler <peter.stadler@student.uibk.ac.at>
+@@
+
+

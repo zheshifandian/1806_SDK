@@ -1,0 +1,14 @@
+MAIN TASK FOR RF DRIVERS:
+1,load RF firmware & run the pmem, make the rf ready for BB
+2,provide ml_apb_access to platform, so use to access the rf by a proc/ node
+3,response to RF's watchdog
+4,response to RF's interruption
+
+
+
+
+TODO:
+1,use the request_firmware standard API to load rf firmware instead of use the header file
+2,load the data & table ram
+3,use a standard platform device to get the irq & memory mapping
+4,do not use the global g_rf_pl_ctx , but to allocate a priv space for the rf priv driver data

@@ -1,0 +1,45 @@
+#
+---
+_namespace: wfa_map
+
+tlvServicePrioritizationRule:
+  _type: class
+  _is_tlv_class: True
+  type:
+    _type: eTlvTypeMap
+    _value_const: TLV_SERVICE_PRIORITIZATION_RULE
+  length: uint16_t
+  rule_params: sServicePrioritizationRule
+
+sServicePrioritizationRuleBitsField1:
+  _type: struct
+  _bit_field: uint8_t
+  add_remove:
+    _bit_range: [7, 7]
+    _comment: 0 - remove this rule, 1 -  add this rule
+  reserved:
+    _bit_range: [6, 0]
+
+sServicePrioritizationRuleBitsField2:
+  _type: struct
+  _bit_field: uint8_t
+  always_match:
+    _bit_range: [7, 7]
+    _comment: Rule Always Matches
+  reserved:
+    _bit_range: [6, 0]
+
+sServicePrioritizationRule:
+  _type: struct
+  id: uint32_t
+  bits_field1: sServicePrioritizationRuleBitsField1
+  precedence: 
+    _type: uint8_t
+    _comment: |
+      Rule Precedence - higher number means higher priority. Possible values: 0x00 - 0xFE
+  output:
+    _type: uint8_t
+    _comment: |
+      Rule Output. The value of, or method used to select, the 802.1Q C-TAG PCP output value.
+      Possible values: 0x00 - 0x09
+  bits_field2: sServicePrioritizationRuleBitsField2
