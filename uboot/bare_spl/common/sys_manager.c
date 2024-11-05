@@ -238,7 +238,6 @@ void sys_module_select(enum bus_sel module)
 
 int sys_gmac_reset(void)
 {
-#define RGMII	1
 	sys_module_select(gmac);
 
 	writew(0x0, EMAC_SYSM_RESETN);

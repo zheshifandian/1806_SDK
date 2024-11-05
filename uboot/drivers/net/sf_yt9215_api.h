@@ -23,6 +23,7 @@
 
 #define SWCHIP_YT9215RB			0x3
 #define SWCHIP_YT9215S          0x2
+#define SWCHIP_YT9215SC          0x1
 
 #define MAC8_SPEED_SET			0x80120
 #define MAC9_SPEED_SET			0x80124

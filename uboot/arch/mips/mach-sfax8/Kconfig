@@ -81,6 +81,21 @@ config TARGET_SFA28_REP
 config TARGET_SFA28_AC10
 	bool "SFA28 ac10 board"
 
+config TARGET_SFA28_JL5106
+	bool "SFA28 jl5106 board"
+
+config TARGET_SFA28_BPI
+	bool "SFA28 bpi board"
+
+config TARGET_SFA28_AC80
+	bool "SFA28 ac80 board"
+
+config TARGET_SFA28_REP_SW
+	bool "SFA28 rep_sw board"
+
+config TARGET_SFA28_REP_PHY
+	bool "SFA28 rep_phy board"
+
 endchoice
 
 source "board/siflower/sfax8_common/Kconfig"
