@@ -107,5 +107,10 @@ source "board/siflower/sfa28_ac28/Kconfig"
 source "board/siflower/sfa28_ac28nand/Kconfig"
 source "board/siflower/sfa28_rep/Kconfig"
 source "board/siflower/sfa28_ac10/Kconfig"
+source "board/siflower/sfa28_jl5106/Kconfig"
+source "board/siflower/sfa28_bpi/Kconfig"
+source "board/siflower/sfa28_ac80/Kconfig"
+source "board/siflower/sfa28_rep_sw/Kconfig"
+source "board/siflower/sfa28_rep_phy/Kconfig"
 
 endif

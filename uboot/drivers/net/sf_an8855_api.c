@@ -76,22 +76,22 @@ int an8855_phy_read(struct sgmac_priv *priv, u32 port_num, u32 reg, u32 *p_val)
 
 void set_gphy_reg_cl45(uint8_t prtid, uint8_t devid, uint16_t reg, uint16_t value)
 {
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_CTRL, devid);
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_DATA, reg);
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_CTRL, devid | MII_MMD_CTRL_NOINCR);
+	an8855_phy_write(g_priv, prtid, MII_MMD_CTRL, devid);
+	an8855_phy_write(g_priv, prtid, MII_MMD_DATA, reg);
+	an8855_phy_write(g_priv, prtid, MII_MMD_CTRL, devid | MII_MMD_CTRL_NOINCR);
 
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_DATA, value);
+	an8855_phy_write(g_priv, prtid, MII_MMD_DATA, value);
 }
 
 //todo
 uint16_t get_gphy_reg_cl45(uint8_t prtid, uint8_t devid, uint16_t reg)
 {
 	uint32_t rdata = 0;
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_CTRL, devid);
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_DATA, reg);
-	an8855_phy_write(g_priv, prtid-g_smi_addr, MII_MMD_CTRL, devid | MII_MMD_CTRL_NOINCR);
+	an8855_phy_write(g_priv, prtid, MII_MMD_CTRL, devid);
+	an8855_phy_write(g_priv, prtid, MII_MMD_DATA, reg);
+	an8855_phy_write(g_priv, prtid, MII_MMD_CTRL, devid | MII_MMD_CTRL_NOINCR);
 
-	an8855_phy_read(g_priv, prtid-g_smi_addr, MII_MMD_DATA, &rdata);
+	an8855_phy_read(g_priv, prtid, MII_MMD_DATA, &rdata);
 	return ((uint16_t)rdata);
 }
 

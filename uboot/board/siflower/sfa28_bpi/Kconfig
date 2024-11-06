@@ -1,7 +1,7 @@
-if TARGET_SFA28_A28PHY
+if TARGET_SFA28_BPI
 
 config SYS_BOARD
-	default "sfa28_a28phy"
+	default "sfa28_bpi"
 
 config SYS_VENDOR
 	default "siflower"

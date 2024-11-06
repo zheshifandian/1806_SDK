@@ -1,0 +1,8 @@
+if TARGET_SFA28_JL5106
+config SYS_BOARD
+	default "sfa28_jl5106"
+config SYS_VENDOR
+	default "siflower"
+config SYS_CONFIG_NAME
+	default "sfa28"
+endif

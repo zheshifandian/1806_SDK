@@ -345,7 +345,7 @@ err:
 	return 0;
 }
 
-#ifndef SF19A28
+#ifdef LED_ID
 static int do_led(int id, int cmd)
 {
 	int i, blink_time = 10;
@@ -422,6 +422,11 @@ int main(int cpu_num, char **arv)
 		/* set RGMII iomux */
 		sf_module_set_pad_func(SF_RGMII);
 
+#ifdef RMII
+		/* set RGMII GTX_CLK as a ref clk input */
+		sf_pad_set_func(13, GPIO_INPUT);
+#endif
+
 		/* disable clk_out */
 #ifndef SF19A28_FULLMASK
 		sf_pad_set_func(48, GPIO_INPUT);
@@ -438,21 +443,11 @@ int main(int cpu_num, char **arv)
 
 		preloader_console_init();
 
-
-        /*don't flash gpio 36 case 36 is an function pad for A28*/
-#ifndef SF19A28
 		/* set led on */
-		do_led(
 #ifdef LED_ID
-                LED_ID,
-#else
-                36,
+		do_led(LED_ID, LED_ON);
 #endif
-                LED_ON);
-#endif
-
-		printf("SiFlower SFAX8 Bootloader (%s - %s)\n",
-							   __DATE__, __TIME__);
+		printf("SiFlower SFAX8 Bootloader (%s - %s)\n", __DATE__, __TIME__);
 
 		ddr_init();
 #ifdef POE

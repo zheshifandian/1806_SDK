@@ -18,6 +18,7 @@
 #include "sf_nf_api.h"
 #include "sf_yt9215_api.h"
 #include "sf_an8855_api.h"
+#include "sf_jl51xx_api.h"
 
 int sf_gmac_vlan_all_enable = 0;
 int sf_gmac_first_recv_vlan = 0;
@@ -667,28 +668,62 @@ int sf_gmac_register(void)
 #ifndef CONFIG_SFA18_GMAC_PHY
 	// trigger switch hw reset first
 	sf_trigger_eswitch_hwReset();
-	// chip id to read realtek 8367c
-	rtk_phy_id = 0;
-	rtk_rgmii_port = 16;
-	rtl8367c_setAsicReg(priv, 0x13C2, 0x0249);
-	rtl8367c_getAsicReg(priv, 0x1300, &chip_id);
 
-	if (chip_id == 0xFFFF) {
-		// chip id to read realtek 8367s
+	// chip id to read realtek 8367c
+	if (chip_id == 0) {
+		rtk_phy_id = 0;
+		rtk_rgmii_port = 16;
+		rtl8367c_setAsicReg(priv, 0x13C2, 0x0249);
+		rtl8367c_getAsicReg(priv, 0x1300, &chip_id);
+		if (chip_id != 0x6367)
+			chip_id = 0;
+	}
+
+	// chip id to read realtek 8367s
+	if (chip_id == 0) {
 		rtk_phy_id = 29;
 		rtk_rgmii_port = 17;
 		rtl8367c_setAsicReg(priv, 0x13C2, 0x0249);
 		rtl8367c_getAsicReg(priv, 0x1300, &chip_id);
+		if (chip_id != 0x6367)
+			chip_id = 0;
 	}
-	if (!chip_id || chip_id == 0xFFFF)
+
+	//chip id to read an8855
+	if (chip_id == 0) {
+		an8855_phy_read(priv, 1, 2, (u32 *)&read_data);
+		chip_id = (read_data & 0xffff) << 16;
+		an8855_phy_read(priv, 1, 3, (u32 *)&read_data);
+		chip_id |= read_data & 0xffff;
+		if (chip_id != 0xc0ff0410)
+			chip_id = 0;
+	}
+
+	//chip id to read intel7084/7082
+	if (chip_id == 0) {
 		gsw_reg_rd(priv, 0xFA11, 0, 16, (unsigned int *)&chip_id);
-	if (chip_id == 0 || chip_id == 0xFFFF) {
+		if (chip_id != 0x2003 && chip_id != 0x3003)
+			chip_id = 0;
+	}
+
+	//chip id to read intel7084/7082
+	if (chip_id == 0) {
 		intel_phy_addr = 0x1F;
 		gsw_reg_rd(priv, 0xFA11, 0, 16, (unsigned int*)&chip_id);
+		if (chip_id != 0x2003 && chip_id != 0x3003)
+			chip_id = 0;
+	}
+
+	//chip id to read intel7084/7082
+	if (chip_id == 0) {
+		intel_phy_addr = 0x4;
+		gsw_reg_rd(priv, 0xFA11, 0, 16, (unsigned int*)&chip_id);
+		if (chip_id != 0x2003 && chip_id != 0x3003)
+			chip_id = 0;
 	}
 
 	//chip id to read yt9215rb
-	if (chip_id == 0 || chip_id == 0xFFFF) {
+	if (chip_id == 0) {
 		yt9215_reg_read(priv, CHIP_CHIP_ID_REG, (u32 *)&chip_id);
 		yt9215_reg_read(priv, CHIP_CHIP_MODE_REG, &chip_mode);
 
@@ -702,23 +737,26 @@ int sf_gmac_register(void)
 			//force gmac8 1G full
 			yt9215_reg_write(priv, MAC8_SPEED_SET, 0x1fa);
 		} else if ((chip_id >> 16 & 0xffff) == YT_SW_ID_9215 &&
-		    (chip_mode & 0x3) == SWCHIP_YT9215S) {
+		    (chip_mode & 0x3) == SWCHIP_YT9215S || (chip_mode & 0x3) == SWCHIP_YT9215SC) {
 				priv->gswitch = 1;
 				//set gmac9 rgmii and tx/rx delay 0ns
 				yt9215_reg_write(priv, CHIP_INTERFACE_SELECT_REG, 0x1);
 				yt9215_reg_write(priv, CHIP_INTERFACE_MAC9, 0x841c0000);
 				//force gmac9 1G full
 				yt9215_reg_write(priv, MAC9_SPEED_SET, 0x1fa);
-			}
+		}else {
+			chip_id = 0;
+		}
 	}
 
-	//chip id to read an8855
-	if (chip_id == 0 || (chip_id & 0xFFFF) == 0xFFFF) {
-		an8855_phy_read(priv, 1, 2, (u32 *)&read_data);
-		chip_id = (read_data & 0xffff) << 16;
-		an8855_phy_read(priv, 1, 3, (u32 *)&read_data);
-		chip_id |= read_data & 0xffff;
+	//chip id to read jl5106c
+	if (chip_id == 0) {
+		chip_id = jl_get_chip_id();
+		if (chip_id != CHIP_ID_JL5106)
+			chip_id = 0;
 	}
+
+	printf("%d chid_id 0x%08x\n", __LINE__, chip_id);
 
 	if (chip_id == 0xc0ff0410) {
 		priv->gswitch = 1;
@@ -736,8 +774,6 @@ int sf_gmac_register(void)
 		}
 		mdelay(10);
 	}
-
-	printf("%d chid_id 0x%08x\n", __LINE__, chip_id);
 
 	if (chip_id == 0x6367) {
 		// realtek giga switch
@@ -784,6 +820,9 @@ int sf_gmac_register(void)
 		// RM#10001 intel enable vlan to fix ip error
 		sf_gmac_vlan_all_enable = 1;
 		intel7084_vlan_set();
+	}else if (chip_id == CHIP_ID_JL5106) {
+		priv->gswitch = 1;
+		jl_switch_init();
 	}
 #else
 	sgmac_phy_init(priv, dev);
@@ -817,7 +856,11 @@ int sf_gmac_register(void)
 	if (priv->gswitch) {
 		int reg = readl(priv->base + GMAC_CONTROL);
 		reg &= ~GMAC_CONTROL_SPD_MASK;
-		reg |= GMAC_SPEED_1000M | GMAC_CONTROL_DM;
+		/* 100M switch should force speed here */
+		if (chip_id == CHIP_ID_JL5106)
+			reg |= GMAC_SPEED_100M | GMAC_CONTROL_DM;
+		else
+			reg |= GMAC_SPEED_1000M | GMAC_CONTROL_DM;
 		writel(reg, priv->base + GMAC_CONTROL);
 	} else {
 		ret = phy_startup(priv->phydev);

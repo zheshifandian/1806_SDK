@@ -1,0 +1,8 @@
+if TARGET_SFA28_REP_PHY
+config SYS_BOARD
+	default "sfa28_rep_phy"
+config SYS_VENDOR
+	default "siflower"
+config SYS_CONFIG_NAME
+	default "sfa28"
+endif
