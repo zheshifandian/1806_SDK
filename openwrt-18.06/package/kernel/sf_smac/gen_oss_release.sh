@@ -1,7 +1,7 @@
 #!/bin/bash
 cd $(dirname "$0")
 find config -name '*.pdf' | xargs rm
-rm src/umac/fullmac/siwifi_repeater*
+rm src/bb_src/umac/fullmac/siwifi_repeater*
 
 find src -name '*.c' -o -name '*.h' | while read i
 do
@@ -10,4 +10,5 @@ do
 	mv tmp $i
 done
 
+sed -i '/SIWIFI_REPEATER/d' Makefile
 rm gen_oss_release.sh

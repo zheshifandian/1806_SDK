@@ -1,9 +1,0 @@
-#!/bin/sh
-uci batch <<-EOF
-	set uhttpd.main.index_page='luci2.html'
-	del luci2.themes
-	set luci2.themes='internal'
-	commit uhttpd
-	commit luci2
-EOF
-
