@@ -1,0 +1,14 @@
+#!/bin/sh
+
+phy_num=`uci -q get network.@switch_vlan[1].ports | awk -F ' ' '{print $1}' | tr -d '\n'`
+
+if [ "x$phy_num" != "x" -a $phy_num -ge 0 -a $phy_num -le 5 &> /dev/null ]; then
+	result=`cat /sys/kernel/debug/esw_debug |grep phy$phy_num |awk '{print $3}'`
+	if [ "$result" != "0" -a "$result" != "1" ]; then
+		result=`cat /sys/kernel/debug/esw_debug |grep phy0 |awk '{print $3}'`
+	fi
+else
+	result=`cat /sys/kernel/debug/esw_debug |grep phy0 |awk '{print $3}'`
+fi
+
+echo $result

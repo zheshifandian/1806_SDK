@@ -1,0 +1,145 @@
+#!/bin/sh
+
+usage() {
+    echo "usage"
+}
+
+version_compare() {
+    ota_version=$1
+    current_version=$2
+
+    current_a=$(echo "$current_version" | sed 's/V\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\1/')
+    current_b=$(echo "$current_version" | sed 's/V\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\2/')
+    current_c=$(echo "$current_version" | sed 's/V\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\3/')
+
+    ota_a=$(echo "$ota_version" | sed 's/V\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\1/')
+    ota_b=$(echo "$ota_version" | sed 's/V\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\2/')
+    ota_c=$(echo "$ota_version" | sed 's/V\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\3/')
+
+    if [ "$current_a" -gt "$ota_a" ]; then
+        return 0
+    elif [ "$current_a" -lt "$ota_a" ]; then
+        return 1
+    else
+        if [ "$current_b" -gt "$ota_b" ]; then
+            return 0
+        elif [ "$current_b" -lt "$ota_b" ]; then
+            return 1
+        else
+            if [ "$current_c" -gt "$ota_c" ]; then
+                return 0
+            elif [ "$current_c" -lt "$ota_c" ]; then
+                return 1
+            else
+                return 0
+            fi
+        fi
+    fi
+}
+
+auto_ota() {
+    local device_model=$1
+    local url="http://ota.siflower.com/ota/files/getLatestByDevice/"
+
+    # Perform the curl request and capture the response
+    response=$(curl -s -X POST "$url" -F "device_model=$device_model")
+
+    # Extract values from the JSON response using sed
+    mongoFileId=$(echo "$response" | sed -n 's/.*"mongoFileId":"\([^"]*\)".*/\1/p')
+    name=$(echo "$response" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
+    downloadUrl=$(echo "$response" | sed -n 's/.*"downloadUrl":"\([^"]*\)".*/\1/p')
+    md5Str=$(echo "$response" | sed -n 's/.*"md5Str":"\([^"]*\)".*/\1/p')
+    deviceModel=$(echo "$response" | sed -n 's/.*"deviceModel":"\([^"]*\)".*/\1/p')
+    ota_version=$(echo "$response" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+
+    if [ -z "$downloadUrl" ]; then
+        echo "Error: downloadUrl is empty" > /dev/console
+        update_fail_config "downloadUrl is empty"
+        exit 1
+    fi
+
+    current_version=$(grep '^DISTRIB_DESCRIPTION' /etc/openwrt_release | sed 's/^DISTRIB_DESCRIPTION=.*V\([0-9]\+\.[0-9]\+\.[0-9]\+\).*/V\1/')
+
+    version_compare "$ota_version" "$current_version"
+    need_upgrade=$?
+
+    if [ $need_upgrade -eq 0 ]; then
+        echo "No need to upgrade" > /dev/console
+        update_fail_config "No need to upgrade"
+        exit 1
+    fi
+
+    # Download the file
+    rm /tmp/firmware.bin > /dev/null 2>&1
+    curl -s -o /tmp/firmware.bin "$downloadUrl"
+    download_result=$?
+
+    # Check the result of the download
+    if [ $download_result -eq 0 ]; then
+        download_md5sum=$(md5sum /tmp/firmware.bin | awk '{print $1}')
+        echo "$download_md5sum $md5Str"
+        if [ "$download_md5sum" = "$md5Str" ]; then
+            echo "Download successful" > /dev/console
+        else
+            echo "Download checksum error" > /dev/console
+            update_fail_config "Download checksum error"
+            rm /tmp/firmware.bin > /dev/null 2>&1
+            exit 1
+        fi
+    else
+        echo "Download failed" > /dev/console
+        update_fail_config "Download failed"
+        rm /tmp/firmware.bin > /dev/null 2>&1
+        exit 1
+    fi
+
+    upgrade_prepare $md5Str $ota_version
+
+    ubus call luci2.system upgrade_start
+}
+
+update_fail_config() {
+    uci set basic_setting.ota_confirm_fail='setting'
+    local current_time=$(date '+%Y-%m-%d %H:%M:%S')
+    uci set basic_setting.ota_confirm_fail.updatetime="$current_time"
+    uci set basic_setting.ota_confirm_fail.fail_reason="$1"
+
+    uci commit basic_setting
+}
+
+update_config() {
+    uci set basic_setting.ota_confirm='setting'
+    local current_time=$(date '+%Y-%m-%d %H:%M:%S')
+    uci set basic_setting.ota_confirm.updatetime="$current_time"
+    uci set basic_setting.ota_confirm.md5sum="$1"
+    uci set basic_setting.ota_confirm.ota_ver="$2"
+
+    uci commit basic_setting
+}
+
+upgrade_prepare() {
+    echo 3 > /proc/sys/vm/drop_caches
+    update_config $1 $2
+}
+
+case "$1" in
+    auto_ota)
+        rm /tmp/firmware.bin > /dev/null 2>&1
+        auto_ota_en=$(uci get basic_setting.auto_ota.enable)
+        if [ $auto_ota_en -eq 1 ]; then
+            romtype=$(uci get basic_setting.ota.romtype)
+            auto_ota "$romtype"
+        fi
+        ;;
+    upgrade_prepare)
+        if [ "$#" -ne 3 ]; then
+            echo "Error: Invalid number of arguments for 'update_config'"
+            usage
+            exit 1
+        fi
+        upgrade_prepare "$2" "$3"
+        ;;
+    *|--help|help)
+        usage
+        ;;
+esac

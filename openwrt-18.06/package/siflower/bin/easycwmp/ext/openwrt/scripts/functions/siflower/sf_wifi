@@ -1,0 +1,577 @@
+#!/bin/sh
+# Copyright (C) 2016 MOHAMED Kallel <mohamed.kallel@yahoo.fr>
+
+#common_execute_method_param "$parameter" "$permission" "$get_cmd" "$set_cmd" "xsd:$type" "$forcedinform"
+#  $forcedinform should be set to 1 if the parameter is included in the inform message otherwise empty
+#  Default of $type = string
+
+#############################
+#   Entry point functions   #
+#############################
+
+prefix_list="$prefix_list $DMROOT.WiFi."
+entry_execute_method_list="$entry_execute_method_list entry_execute_method_root_WiFi"
+
+entry_execute_method_root_WiFi() {
+	case "$1" in ""|"$DMROOT."|"$DMROOT.WiFi."*)
+		common_execute_method_obj "$DMROOT.WiFi." "0"
+		common_execute_method_obj "$DMROOT.WiFi.Radio." "0" "" "" "wifi_radio_browse_instances $1"
+		common_execute_method_obj "$DMROOT.WiFi.Station." "1" "add_wifi_station_iface" "" "wifi_station_browse_instances $1"
+		common_execute_method_obj "$DMROOT.WiFi.AccessPoint." "1" "add_wifi_ap_iface" "" "wifi_ap_browse_instances $1"
+		return 0
+		;;
+	esac
+	return $E_INVALID_PARAMETER_NAME;
+}
+
+sub_entry_WiFi_Radio() {
+	local j="$2"
+	local radio="$3"
+	case_param "$1" belongto "$DMROOT.WiFi.Radio.$j." && {
+		common_execute_method_obj "$DMROOT.WiFi.Radio.$j." "0"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Enable" "1" "wifi_radio_get_Enable $radio" "wifi_radio_set_Enable $radio" "xsd:boolean" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Status" "0" "wifi_radio_get_Status $radio" "" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Name" "0" "wifi_radio_get_Name $radio" "" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Country" "1" "wifi_radio_get_Country $radio" "wifi_radio_set_Country $radio" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.OperatingFrequencyBand" "0" "wifi_radio_get_FrequencyBands $radio" "" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.ChannelsInUse" "0" "wifi_radio_get_ChannelsInUse $radio" "" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.Channel" "1" "wifi_radio_get_Channel $radio" "wifi_radio_set_Channel $radio" "xsd:unsignedInt" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.AutoChannelSupported" "0" "echo 1" "" "xsd:boolean" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.AutoChannelEnable" "1" "wifi_radio_get_AutoChannelEnable $radio" "wifi_radio_set_AutoChannelEnable $radio" "xsd:boolean" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.SupportedBandwidth" "0" "wifi_radio_get_SupportedBandwidth $radio" "" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.OperatingBandwidth" "1" "wifi_radio_get_OperatingBandwidth $radio" "wifi_radio_set_OperatingBandwidth $radio" "" "1"
+		common_execute_method_param  "$DMROOT.WiFi.Radio.$j.OperatingStandards" "1" "wifi_radio_get_OperatingStandards $radio" "wifi_radio_set_OperatingStandards $radio" "" "1"
+		return 0
+	}
+	return $E_INVALID_PARAMETER_NAME;
+}
+
+sub_entry_WiFi_Station() {
+	local j="$2"
+	local iface="$3"
+	case_param "$1" belongto "$DMROOT.WiFi.Station.$j." && {
+		common_execute_method_obj "$DMROOT.WiFi.Station.$j." "1" "" "del_wifi_iface $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.Enable" "1" "wifi_sta_get_Enable $iface" "wifi_sta_set_Enable $iface" "xsd:boolean"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.Status" "0" "wifi_sta_get_Status $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.Radio" "1" "wifi_iface_get_Radio $iface" "wifi_iface_set_Radio $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.IFName" "1" "wifi_iface_get_ifname $iface" "wifi_iface_set_ifname $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.SSID" "1" "wifi_station_get_SSID $iface" "wifi_station_set_SSID $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.Network" "1" "wifi_iface_get_network $iface" "wifi_iface_set_network $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.Hidden" "1" "wifi_get_Hidden $iface" "wifi_set_Hidden $iface" "xsd:boolean"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.WDS" "1" "wifi_get_WDS $iface" "wifi_set_WDS $iface" "xsd:boolean"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.SecurityModesSupported" "0" "wifi_get_ModesSupported $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.SecurityModeEnabled" "1" "wifi_get_ModeEnabled $iface" "wifi_set_ModeEnabled $iface"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.SecurityWEPKey" "1" "wifi_get_WEPKey" "wifi_set_WEPKey $iface" "xsd:hexBinary"
+		common_execute_method_param  "$DMROOT.WiFi.Station.$j.SecurityKeyPassphrase" "1" "wifi_get_KeyPassphrase $iface" "wifi_set_KeyPassphrase $iface"
+
+		return 0
+	}
+	return $E_INVALID_PARAMETER_NAME;
+}
+
+sub_entry_WiFi_AccessPoint() {
+	local j="$2"
+	local iface="$3"
+	case_param "$1" belongto "$DMROOT.WiFi.AccessPoint.$j." && {
+		common_execute_method_obj "$DMROOT.WiFi.AccessPoint.$j." "1" "" "del_wifi_iface $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.Enable" "1" "wifi_ap_get_Enable $iface" "wifi_ap_set_Enable $iface" "xsd:boolean"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.Status" "0" "wifi_ap_get_Status $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.Radio" "1" "wifi_iface_get_Radio $iface" "wifi_iface_set_Radio $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.IFName" "1" "wifi_iface_get_ifname $iface" "wifi_iface_set_ifname $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.SSID" "1" "wifi_ap_get_SSID $iface" "wifi_ap_set_SSID $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.Network" "1" "wifi_iface_get_network $iface" "wifi_iface_set_network $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.Hidden" "1" "wifi_get_Hidden $iface" "wifi_set_Hidden $iface" "xsd:boolean"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.WDS" "1" "wifi_get_WDS $iface" "wifi_set_WDS $iface" "xsd:boolean"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.SecurityModesSupported" "0" "wifi_get_ModesSupported $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.SecurityModeEnabled" "1" "wifi_get_ModeEnabled $iface" "wifi_set_ModeEnabled $iface"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.SecurityWEPKey" "1" "wifi_get_WEPKey" "wifi_set_WEPKey $iface" "xsd:hexBinary"
+		common_execute_method_param  "$DMROOT.WiFi.AccessPoint.$j.SecurityKeyPassphrase" "1" "wifi_get_KeyPassphrase $iface" "wifi_set_KeyPassphrase $iface"
+		return 0
+	}
+	return $E_INVALID_PARAMETER_NAME;
+}
+
+
+wifi_radio_get_max_instance() {
+	local max=`$UCI_SHOW  wireless | grep "wifi_radio_instance" | cut -d'=' -f2 | sed 's/[^0-9]*//g' | sort -nru | head -1`
+	echo ${max:-0}
+}
+
+wifi_iface_get_max_instance() {
+	local max=`$UCI_SHOW  wireless | grep "wifi_iface_instance" | cut -d'=' -f2 | sed 's/[^0-9]*//g' | sort -nru | head -1`
+	echo ${max:-0}
+}
+
+wifi_radio_update_instance() {
+	local radio="$1"
+	local instance=`$UCI_GET $radio.wifi_radio_instance`
+	if [ -z "$instance" ]; then
+		instance=`wifi_radio_get_max_instance`
+		$UCI_SET $radio.wifi_radio_instance=$((++instance))
+		$UCI_COMMIT
+	fi
+	echo $instance
+}
+
+wifi_iface_update_instance() {
+	local iface="$1"
+	local instance=`$UCI_GET $iface.wifi_iface_instance`
+	if [ -z "$instance" ]; then
+		instance=`wifi_iface_get_max_instance`
+		$UCI_SET $iface.wifi_iface_instance=$((++instance))
+		$UCI_COMMIT
+	fi
+	echo $instance
+}
+
+wifi_radio_browse_instances() {
+	local radio radios=`$UCI_SHOW  wireless | grep "wireless\..*=wifi-device" | cut -d "=" -f 1`
+	for radio in $radios; do
+		local j=`wifi_radio_update_instance $radio`
+		sub_entry_WiFi_Radio  "$1" "$j" "$radio"
+	done
+}
+
+wifi_filter_ifaces_by_mode() {
+        local iface in_ifaces="$1"
+        local expected_mode="$2"
+        local out_ifaces
+        local mode
+
+        for iface in ${in_ifaces}; do
+                mode=$(uci get $iface.mode 2>/dev/null)
+                if [ "$mode" = "${expected_mode}" ]; then
+                        out_ifaces="${out_ifaces} $iface"
+                fi
+        done
+
+        echo "${out_ifaces}"
+}
+
+wifi_station_browse_instances() {
+	local iface ifaces=`$UCI_SHOW  wireless | grep "wireless\..*=wifi-iface" | cut -d "=" -f 1`
+	ifaces=$(wifi_filter_ifaces_by_mode "$ifaces" "sta")
+	for iface in $ifaces; do
+		local j=`wifi_iface_update_instance $iface`
+		sub_entry_WiFi_Station  "$1" "$j" "$iface"
+	done
+}
+
+wifi_ap_browse_instances() {
+	local iface ifaces=`$UCI_SHOW  wireless | grep "wireless\..*=wifi-iface" | cut -d "=" -f 1`
+	ifaces=$(wifi_filter_ifaces_by_mode "$ifaces" "ap")
+	for iface in $ifaces; do
+		local j=`wifi_iface_update_instance $iface`
+		sub_entry_WiFi_AccessPoint  "$1" "$j" "$iface"
+	done
+}
+
+add_wifi_station_iface() {
+	local instance=`wifi_iface_get_max_instance`
+	local section="iface$((++instance))_station"
+	$UCI_SET wireless.$section=wifi-iface
+	$UCI_SET wireless.$section.wifi_iface_instance=$instance
+	$UCI_SET wireless.$section.mode=sta
+	$UCI_SET wireless.$section.ssid=default_ssid
+	$UCI_SET wireless.$section.encryption=none
+	$UCI_SET wireless.$section.key=12345678
+	$UCI_SET wireless.$section.disabled=1
+	$UCI_COMMIT
+	echo $instance
+}
+
+add_wifi_ap_iface() {
+	local instance=`wifi_iface_get_max_instance`
+	local section="iface$((++instance))_ap"
+	$UCI_SET wireless.$section=wifi-iface
+	$UCI_SET wireless.$section.wifi_iface_instance=$instance
+	$UCI_SET wireless.$section.mode=ap
+	$UCI_SET wireless.$section.ssid=default_ssid
+	$UCI_SET wireless.$section.encryption=none
+	$UCI_SET wireless.$section.key=12345678
+	$UCI_SET wireless.$section.disabled=1
+	$UCI_COMMIT
+	echo $instance
+}
+
+del_wifi_iface() {
+	local iface="$1"
+	$UCI_DELETE $iface
+	$UCI_COMMIT
+	return 0
+}
+
+wifi_radio_get_Enable() {
+	local val=`$UCI_GET $1.disabled`
+	[ "$val" = "1" ] && echo "0" || echo "1"
+}
+
+wifi_radio_set_Enable() {
+	local ret
+	common_set_bool "$1.disabled" "$2" "" "1"
+	ret=$?
+	return $ret
+}
+
+wifi_radio_get_Status() {
+	local device=${1#*.}
+	local res up
+
+	res=`ubus call network.wireless status`
+	if [ "$res" != "" ]; then
+		json_init
+		json_load "$res" >&2
+		json_select "$device" >&2
+		json_get_var up up >&2
+	fi
+	[ "$up" = "1" ] && echo Up || echo Down
+}
+
+wifi_radio_get_Name() {
+	echo ${1#*.}
+}
+
+wifi_radio_get_Country() {
+	local country=`$UCI_GET $1.country`
+	echo "$country"
+}
+
+wifi_radio_set_Country() {
+	local ret
+	$UCI_SET $1.country=$2
+	ret=$?
+	return $ret
+}
+
+wifi_radio_get_FrequencyBands() {
+	local phy="phy${1#*radio}"
+	local freq=`iw phy $phy info | grep  "MHz.*dBm" | head -1 | awk '{print $2}'`
+	[ "${freq#24}" = "$freq" ] && echo "5GHz" || echo "2.4GHz"
+}
+
+wifi_radio_get_ChannelsInUse() {
+	local phy="phy${1#*radio}"
+	local freq="`iw phy $phy info | grep  MHz.*dBm | awk -F'[][]' '{print $2}' |  tr '\n' ','`"
+	echo ${freq%,}
+}
+
+wifi_radio_get_Channel() {
+	local channel phy freq
+
+	channel=`$UCI_GET $1.channel`
+	[ "$channel" != "" -a "$channel" != "auto" ] && { echo $channel; return; }
+
+	phy="phy${1#*radio}"
+	freq=`iw phy $phy info | grep  "MHz.*dBm" | head -1 | awk '{print $2}'`
+	if [ "${freq#24}" != "$freq" ]; then
+		channel=`iw dev | grep "channel.*(24.*MHz)" | head -1 | awk '{print $2}'`
+	else
+		channel=`iw dev | grep "channel" | grep -v "channel.*(24.*MHz)" | head -1 | awk '{print $2}'`
+	fi
+	echo $channel
+}
+
+wifi_radio_set_Channel() {
+	local ret
+	$UCI_SET $1.channel=$2
+	ret=$?
+	return $ret
+}
+
+wifi_radio_get_AutoChannelEnable() {
+	local en=`$UCI_GET $1.channel`
+	[ "$en" = "" -o "$en" = "auto" ] && echo 1 || echo 0
+}
+
+wifi_radio_set_AutoChannelEnable() {
+	local val=`echo "$2" | tr '[A-Z]' '[a-z]'`
+	if [ "$val" = "1" -o "$val" = "true" ]; then
+		$UCI_SET $1.channel=auto
+	else
+		local channel=`wifi_radio_get_Channel $1`
+		$UCI_SET $1.channel=$channel
+	fi
+	return 0
+}
+
+wifi_radio_get_SupportedBandwidth() {
+	local band=`$UCI_GET $1.band`
+	case "$band" in
+		2.4G) echo "HT20 HT40";;
+		5G) echo "HT20 HT40 VHT20 VHT40 VHT80";;
+	esac
+}
+
+wifi_radio_get_OperatingBandwidth() {
+	local bw=`$UCI_GET $1.htmode`
+	echo $bw
+}
+
+wifi_radio_set_OperatingBandwidth() {
+	case $2 in "HT20"|"HT40"|"VHT20"|"VHT40"|"VHT80")
+		$UCI_SET $1.htmode=$2
+		return 0;;
+	esac
+	return $E_INVALID_PARAMETER_VALUE;
+}
+
+wifi_radio_get_OperatingStandards() {
+	local val=`$UCI_GET $1.hwmode`
+	echo ${val#11}
+}
+
+wifi_radio_set_OperatingStandards() {
+	$UCI_SET $1.hwmode=11$2
+	return 0
+}
+
+wifi_sta_get_Enable() {
+	local val=`$UCI_GET $1.disabled`
+	[ "$val" = "1" ] && echo "0" || echo "1"
+}
+
+wifi_sta_set_Enable() {
+	local ret
+	common_set_bool "$1.disabled" "$2" "" "1"
+	ret=$?
+	return $ret
+}
+
+wifi_sta_get_Status() {
+	local name=`wifi_iface_get_status $1`
+	[ "$name" != "" ] && echo Up || echo Down
+}
+
+wifi_iface_get_Radio() {
+	local radio=`$UCI_GET $1.device`
+	echo "$radio"
+}
+
+wifi_iface_set_Radio() {
+	$UCI_SET $1.device=$2
+	return 0
+}
+
+wifi_iface_get_status() {
+	local iface=$1
+	local res ifname section device e i=0
+
+	device=`$UCI_GET $1.device`
+	[ "$device" = "" ] && return 0
+	res=`ubus call network.wireless status`
+	[ "$res" = "" ] && return 0
+	json_init
+	json_load "$res"
+	json_select "$device"
+	json_select "interfaces"
+	while [ 1 ]; do
+		let i++
+		json_select "$i"  >&2
+		e=$?
+		[ "$e" != 0 ] && break
+		json_get_var section section >&2
+		[ "$section" != "${iface#*.}" ] && { json_select ".." >&2; continue; }
+		json_get_var ifname ifname >&2
+		echo $ifname
+		break;
+	done
+}
+
+wifi_iface_get_ifname() {
+	local ifname
+	ifname=`$UCI_GET $1.ifname`
+	echo $ifname
+}
+
+wifi_iface_set_ifname() {
+	$UCI_SET $1.ifname=$2
+	return 0
+}
+
+wifi_iface_get_network() {
+	local network=`$UCI_GET $1.network`
+	echo "$network"
+}
+
+wifi_iface_set_network() {
+	$UCI_SET $1.network=$2
+	return 0
+}
+
+wifi_get_Hidden() {
+	local val=`$UCI_GET $1.hidden`
+	[ "$val" = "1" ] && echo "1" || echo "0"
+}
+
+wifi_set_Hidden() {
+	local ret
+	common_set_bool "$1.hidden" "$2" "1" "0"
+	ret=$?
+	return $ret
+}
+
+wifi_get_WDS() {
+	local val=`$UCI_GET $1.wds`
+	[ "$val" = "1" ] && echo "1" || echo "0"
+}
+
+wifi_set_WDS() {
+	local ret
+	common_set_bool "$1.wds" "$2" "1" "0"
+	ret=$?
+	return $ret
+}
+
+wifi_station_get_SSID() {
+	local ssid=`$UCI_GET $1.ssid`
+	echo $ssid
+}
+
+wifi_station_set_SSID() {
+	$UCI_SET $1.ssid=$2
+	return 0
+}
+
+wifi_ap_get_Enable() {
+	local val=`$UCI_GET $1.disabled`
+	[ "$val" = "1" ] && echo "0" || echo "1"
+}
+
+wifi_ap_set_Enable() {
+	local ret
+	common_set_bool "$1.disabled" "$2" "" "1"
+	ret=$?
+	return $ret
+}
+
+wifi_ap_get_Status() {
+	local name=`wifi_iface_get_status $1`
+	[ "$name" != "" ] && echo Up || echo Down
+}
+
+wifi_ap_get_SSID() {
+	local ssid=`$UCI_GET $1.ssid`
+	echo $ssid
+}
+
+wifi_ap_set_SSID() {
+	$UCI_SET $1.ssid=$2
+	return 0
+}
+
+wifi_get_ModesSupported() {
+	echo "None,WEP-64,WEP-128,WPA-Personal,WPA2-Personal,WPA-WPA2-Personal,WPA-Enterprise,WPA2-Enterprise,WPA-WPA2-Enterprise"
+}
+
+wifi_get_ModeEnabled() {
+	local key
+	local encryption=`$UCI_GET $1.encryption`
+
+	case "$encryption" in
+		"psk2"*)
+			echo "WPA2-Personal"
+			;;
+		"psk-mixed"*)
+			echo "WPA-WPA2-Personal"
+			;;
+		"psk"*)
+			echo "WPA-Personal"
+			;;
+		"wpa2"*)
+			echo "WPA2-Enterprise"
+			;;
+		"wpa-mixed"*)
+			echo "WPA-WPA2-Enterprise"
+			;;
+		"wpa"*)
+			echo "WPA-Enterprise"
+			;;
+		"wep"*)
+			key=`$UCI_GET $1.key`
+			[ "$key" = "1" -o "$key" = "2" -o "$key" = "3" -o "$key" = "4" ] && key=`$UCI_GET $1.key$key`
+			[ ${#key} = "26" ] && echo "WEP-128" || echo "WEP-64"
+			;;
+		*)
+			echo "None"
+			;;
+	esac
+}
+
+wifi_set_ModeEnabled() {
+	local key
+	local encryption=`wifi_get_ModeEnabled $1`
+	[ "$encryption" = "$2" ] && return 0
+
+	case "$2" in
+		"WPA2-Personal")
+			$UCI_SET $1.encryption="psk2"
+			;;
+		"WPA-WPA2-Personal")
+			$UCI_SET $1.encryption="psk-mixed"
+			;;
+		"WPA-Personal")
+			$UCI_SET $1.encryption="psk"
+			;;
+		"WPA2-Enterprise")
+			$UCI_SET $1.encryption="wpa2"
+			;;
+		"WPA-WPA2-Enterprise")
+			$UCI_SET $1.encryption="wpa-mixed"
+			;;
+		"WPA-Enterprise")
+			$UCI_SET $1.encryption="wpa"
+			$UCI_SET $1.key1=
+			;;
+		"WEP-64")
+			$UCI_SET $1.encryption=wep
+			$UCI_SET $1.key=1
+			$UCI_SET $1.key1="0123456789012"
+			;;
+		"WEP-128")
+			$UCI_SET $1.encryption=wep
+			$UCI_SET $1.key=1
+			$UCI_SET $1.key1="01234567890123456789012345"
+			;;
+		"None")
+			$UCI_SET $1.encryption=
+			$UCI_SET $1.key=
+			;;
+	esac
+
+	if [ "$2" != "WEP-64" -a "$2" != "WEP-128" ];then
+		$UCI_SET $1.key1=
+	fi
+	return 0
+}
+
+wifi_get_secret() {
+	return 0
+}
+
+wifi_get_WEPKey() {
+	local key=`$UCI_GET $1.key1`
+	echo "$key"
+}
+
+wifi_get_KeyPassphrase() {
+	local key=`$UCI_GET $1.key`
+
+	echo "$key"
+}
+
+wifi_set_WEPKey() {
+	$UCI_SET $1.key=1
+	$UCI_SET $1.key1=$2
+	return 0
+}
+
+wifi_set_PreSharedKey() {
+	$UCI_SET $1.key=$2
+	return 0
+}
+
+wifi_set_KeyPassphrase() {
+	$UCI_SET $1.key=$2
+	return 0
+}
+

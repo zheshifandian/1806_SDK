@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+USE_PROCD=1
+PROG=/usr/bin/temp
+
+start_service ()
+{
+    procd_open_instance
+    procd_set_param respawn
+    procd_set_param command "$PROG"
+    procd_close_instance
+    echo "start tempservice" >> /tmp/tempservice.log
+}
+
+stop_service ()
+{
+    kill `ps | grep temp | awk '{print $1}'`
+    echo "stop tempservice" >> /tmp/tempservice.log
+}

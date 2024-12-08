@@ -1,0 +1,8 @@
+{
+	"advance/smartdns": {
+		"title": "SmartDNS",
+		"acls": [ "superuser" ],
+		"view": "advance/smartdns",
+		"index": 35
+	}
+}

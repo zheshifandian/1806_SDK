@@ -1,0 +1,79 @@
+<div class="thirdTitleContent">
+	<h2><%:Router Info%></h2>
+	<p class="description"><%:you can check the basic information of the router%></p>
+</div>
+<div class="tab-pane active">
+	<div class="title_line">
+		<h3 class="title_line" style="border-bottom:solid 1px #c9c9c9;"><%:Network Info%></h3>
+		<div style="margin-top:20px">
+			<div class="row">
+				<div><%:WAN IP address%></div>
+				<div class="form-control-static" id="wan_ip_address"><%:No internet connection%></div>
+			</div>
+			<div class="row">
+				<div><%:LAN IP address%></div>
+				<div class="form-control-static" id="lan_ip_address"></div>
+			</div>
+			<div class="row">
+				<div><%:Manage Domains%></div>
+				<div class="form-control-static" id="login_domain"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="title_line">
+		<h3 class="title_line" style="border-bottom:solid 1px #c9c9c9;"><%:Basic Info%></h3>
+		<div style="margin-top:20px">
+			<div class="row">
+				<div><%:Model%></div>
+				<div class="form-control-static" id="hw_ver"></div>
+			</div>
+			<div class="row">
+				<div><%:MAC address%></div>
+				<div class="form-control-static" id="mac_address"></div>
+			</div>
+			<div class="row">
+				<div><%:SN Code%></div>
+				<div class="form-control-static" id="sn_code"></div>
+			</div>
+		</div>
+	</div>
+	<div class="title_line">
+		<h3 class="title_line" style="border-bottom:solid 1px #c9c9c9;"><%:Memory%></h3>
+		<div style="margin-top:20px">
+			<div class="row">
+				<div><%:Total Available%></div>
+				<div class="cell clearfix content" style="margin-top:7px;">
+					<div class="progress">
+						<div id="memory_1" class="progress-bar progress-bar-info"></div><small id=memory_1_text></small>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div><%:Free%></div>
+				<div class="cell clearfix content" style="margin-top:7px;">
+					<div class="progress">
+						<div id="memory_2" class="progress-bar progress-bar-info"></div><small id=memory_2_text></small>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div><%:Cached%></div>
+				<div class="cell clearfix content" style="margin-top:7px;">
+					<div class="progress">
+						<div id="memory_3" class="progress-bar progress-bar-info"></div><small id=memory_3_text></small>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div><%:Buffered%></div>
+				<div class="cell clearfix content" style="margin-top:7px;">
+					<div class="progress">
+						<div id="memory_4" class="progress-bar progress-bar-info"></div><small id=memory_4_text></small>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

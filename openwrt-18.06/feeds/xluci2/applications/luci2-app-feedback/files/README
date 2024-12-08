@@ -1,0 +1,8 @@
+config feedback 'mailbox'				# name is not changeable
+        option smail 'A@xxx.com'		# Email address for sending feedback
+        option suser 'A@xxx.com'		# User name of mailbox sending feedback
+        option smtp 'smtp.xxx.com'		# Server of mailbox sending feedback
+        option spassword '12345678'		# Password of mailbox sending feedback
+        option dmail 'B@xxx.com'		# Email address for receving feedback
+        option mailfile '/tmp/mail'		# Absolute path to the temporary file stores feedback mail
+        option shfile '/tmp/send.sh'	# Absolute path to the temporary file stores shell script sending feedback

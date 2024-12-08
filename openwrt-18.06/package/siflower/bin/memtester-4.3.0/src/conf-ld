@@ -1,0 +1,2 @@
+mipsel-openwrt-linux-musl-gcc
+This will be used to link .o files into an executable.

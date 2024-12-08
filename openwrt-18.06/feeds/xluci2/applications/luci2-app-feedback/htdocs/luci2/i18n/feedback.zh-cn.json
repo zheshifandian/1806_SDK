@@ -1,0 +1,9 @@
+{
+	"Feedback": "问题反馈",
+	"You can input your feedback below and click [Send Feedback] to send your feedback to us.":"您可以通过下方输入反馈内容，点击“发送反馈”即可将反馈发送给我们。",
+	"Send Feedback": "发送反馈",
+	"Content must not be empty.": "内容不可为空。",
+	"Sent successfully!": "发送成功！",
+	"Send failed! Please check the Settings.": "发送失败！请检查设置。",
+	"Please wait while sending feedback email.": "发送反馈邮件中，请等待。"
+}
