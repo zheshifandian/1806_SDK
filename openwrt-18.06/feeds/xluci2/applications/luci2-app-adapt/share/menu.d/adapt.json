@@ -1,0 +1,8 @@
+{
+	"advance/adaptive": {
+		"title": "Port adaptive",
+		"acls": [ "adaptive" ],
+		"view": "advance/adaptive",
+		"index": 30
+	}
+}

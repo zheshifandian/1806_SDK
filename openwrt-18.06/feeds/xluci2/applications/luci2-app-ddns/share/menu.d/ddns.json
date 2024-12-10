@@ -1,0 +1,8 @@
+{
+	"advance/ddns": {
+        "title": "DDNS",
+        "acls": [ "ddns" ],
+        "view": "advance/ddns",
+        "index": 20
+    }
+}

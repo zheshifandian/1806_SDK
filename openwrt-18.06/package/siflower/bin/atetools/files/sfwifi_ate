@@ -1,0 +1,164 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+
+. /lib/sfwifi.sh
+. /usr/share/libubox/jshn.sh
+
+usage() {
+	cat <<EOF
+Usage: $0 [reset|remove|reload] [lb/hb]
+reset wifi firmware.
+EOF
+	exit 1
+}
+
+firmware_remove(){
+	#stop wifi first
+	/sbin/wifi down
+	sleep 1
+	#unregister softmac if have
+	unload_smac
+    #unregister fullmac if have
+    unload_fmac
+	#unregister emb firmware
+	unload_firmware
+	#unregist rf
+	unload_rf
+	rm /tmp/run/hostapd-phy*.conf
+	rm /tmp/run/wifi-phy*.pid
+}
+
+
+band_reload_smac(){
+    modprobe mac80211
+	local band="$1"
+	[ lb = "$band" ] && {
+        insmod_smac_lb
+	}
+	[ hb = "$band" ] && {
+        insmod_smac_hb
+	}
+	[ all = "$band" ] && {
+		insmod_smac
+	}
+	[ -z "$band" ] && {
+		insmod_smac
+	}
+}
+
+band_reload_fmac(){
+	local band="$1"
+	[ lb = "$band" ] && {
+        insmod_fmac
+	}
+	[ hb = "$band" ] && {
+        insmod_fmac
+	}
+	[ all = "$band" ] && {
+		insmod_fmac
+	}
+	[ -z "$band" ] && {
+		insmod_fmac
+	}
+}
+
+firmware_reload(){
+	#reload firmware
+	load_firmware
+	#reload rf
+	insmod_rf_ate
+    if [ fmac = "$2" ]; then
+        band_reload_fmac $1
+	elif [ fmac = "$1" ]; then
+		band_reload_fmac
+	elif [ smac = "$1" ]; then
+		band_reload_smac
+    else
+	    band_reload_smac $1
+    fi
+}
+
+firmware_reset(){
+	firmware_remove
+	firmware_reload $1 $2
+}
+
+band_remove_smac(){
+	local band="$1"
+	call_wifi_cmd down $band
+	sleep 1
+	[ lb = "$band" ] && {
+        unload_smac_lb
+	}
+	[ hb = "$band" ] && {
+        unload_smac_hb
+	}
+	[ all = "$band" ] && {
+		unload_smac
+	}
+	[ -z "$band" ] && {
+		unload_smac
+	}
+}
+
+band_remove_fmac(){
+	local band="$1"
+	call_wifi_cmd down $band
+	sleep 1
+	[ lb = "$band" ] && {
+        unload_fmac_lb
+	}
+	[ hb = "$band" ] && {
+        unload_fmac_hb
+	}
+	[ all = "$band" ] && {
+		unload_fmac
+	}
+	[ -z "$band" ] && {
+		unload_fmac
+	}
+}
+
+temp_disable(){
+	if [ "$1" = "lb1" ] || [ "$1" = "lb2" ] || [ "$1" = "lb" ]; then
+		local phy_lb=$(ls /sys/kernel/debug/ieee80211/ | awk 'NR==1')
+		# make sure the first phy is lb
+		local band_type=$(cat /sys/kernel/debug/ieee80211/$phy_lb/siwifi/band_type)
+		if [ "$band_type" = "hb" ]; then
+			phy_lb=$(ls /sys/kernel/debug/ieee80211/ | awk 'NR==2')
+		fi
+		echo 1 >  /sys/kernel/debug/ieee80211/$phy_lb/siwifi/temp_disable
+	elif [ "$1" = "hb1" ] || [ "$1" = "hb2" ] || [ "$1" = "hb" ]; then
+		local phy_hb=$(ls /sys/kernel/debug/ieee80211/ | awk 'NR==2')
+		# make sure the second phy is hb
+		local band_type=$(cat /sys/kernel/debug/ieee80211/$phy_hb/siwifi/band_type)
+		if [ "$band_type" = "lb"] ; then
+			phy_hb=$(ls /sys/kernel/debug/ieee80211/ | awk 'NR==1')
+		fi
+		echo 1 >  /sys/kernel/debug/ieee80211/$phy_hb/siwifi/temp_disable
+	fi
+}
+
+case "$1" in
+	reset) firmware_reset $2 $3;;
+	remove) firmware_remove;;
+	reload) firmware_reload $2 $3;;
+	reload_band)
+        if [ $3 = "fmac"]; then
+            band_reload_fmac $2
+        else
+            band_reload_smac $2
+        fi
+        ;;
+	remove_band)
+        if [ $3 = "fmac" ]; then
+            band_remove_fmac $2
+        else
+            band_remove_smac $2
+        fi
+        ;;
+	test) call_wifi_cmd $2 $3;;
+	temp_disable) temp_disable $2;;
+	--help|help) usage;;
+	*) firmware_reset;;
+esac

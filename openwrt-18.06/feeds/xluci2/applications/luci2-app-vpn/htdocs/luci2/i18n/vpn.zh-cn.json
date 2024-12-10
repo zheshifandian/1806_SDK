@@ -1,0 +1,6 @@
+{
+	"Enable VPN":"开启VPN",
+    "Config file":"配置文件",
+    "set correct config file and then start vpn":"导入正确的配置文件后即可开启vpn",
+    "not find openvpn config, please install openvpn first":"未找到openvpn配置文件，请先安装openvpn"
+}

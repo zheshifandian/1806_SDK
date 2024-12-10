@@ -1,0 +1,8 @@
+{
+	"advance/vpn": {
+        "title": "OPENVPN",
+        "acls": [ "superuser" ],
+        "view": "advance/vpn",
+        "index": 5
+    }
+}

@@ -1,0 +1,10 @@
+{
+	"Port adaptive":"WAN/LAN自适应",
+	"conveniently set wan port":"通过手动或自动的方式，快速配置路由器WAN口",
+	"Manual set":"手动配置",
+	"Auto set":"自动配置",
+	"Auto start":"开机自启动",
+	"select port to set":"一个按钮代表一个网口，右侧靠近电源。点击对应网口的按钮即可将该网口配置为WAN口",
+	"seek for wan and auto set":"点击后立即自寻找WAN口并自动配置",
+	"start wan/lan adapt when boot":"开启后，每次开机时自动进行一次WAN口自适应"
+}

@@ -4,6 +4,8 @@ dtb-$(CONFIG_DT_SF19A28_FULLMASK_AC28)	+= sf19a28_fullmask_ac28.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_PHY)	+= sf19a28_fullmask_phy.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_AC28NAND)	+= sf19a28_fullmask_ac28nand.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_BPI)	+= sf19a28_fullmask_bpi.dtb
+dtb-$(CONFIG_DT_SF19A28_FULLMASK_BPI_LUCI2)	+= sf19a28_fullmask_bpi_luci2.dtb
+dtb-$(CONFIG_DT_SF19A28_FULLMASK_BPI_LUCI2_NEUTRAL)	+= sf19a28_fullmask_bpi_luci2_neutral.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_AC28S)	+= sf19a28_fullmask_ac28s.dtb
 dtb-$(CONFIG_DT_SF19A28_FULLMASK_YTS)	+= sf19a28_fullmask_yts.dtb
 

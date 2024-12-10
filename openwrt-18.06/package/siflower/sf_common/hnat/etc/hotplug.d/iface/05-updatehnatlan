@@ -1,0 +1,99 @@
+#!/bin/sh
+
+iptohex() {
+	IFS=.
+	for str in $1
+	do
+		printf "%02x" $str
+	done
+}
+
+get_masklen () {
+	a=$(echo "$1" | awk -F "." '{print $1" "$2" "$3" "$4}')
+	for num in $a;
+	do
+		while [ $num != 0 ];
+		do
+			echo -n $(($num%2)) >> /tmp/num;
+			num=$(($num/2));
+		done
+	done
+	echo $(grep -o "1" /tmp/num | wc -l)
+	rm /tmp/num
+}
+
+update_guest_lan() {
+	if [ "$ACTION" = ifdown ]; then
+		echo "dellan 8" > /sys/kernel/debug/hnat_debug
+	elif [  "$ACTION" = ifup ]; then
+		lanip=`uci -q get network.guest.ipaddr`
+		if [ "x$lanip" != "x" ]; then
+			lanhex=`iptohex $lanip`
+			netmask=`uci -q get network.guest.netmask`
+			if [ "x$netmask" == "x" ]; then
+				netmask="255.255.255.0"
+			fi
+			masklen=`get_masklen $netmask`
+			echo "addlan 7 0x$lanhex $masklen" > /sys/kernel/debug/hnat_debug
+		fi
+	fi
+}
+
+if [ "$INTERFACE" == "guest" ]; then
+	update_guest_lan
+fi
+
+if echo "$INTERFACE" | grep -q "lan"
+then
+	echo "$INTERFACE is in lan"
+else
+	exit 0
+fi
+
+lan_index=${INTERFACE:3}
+[ "x$lan_index" == "x" ] && lan_index=1
+[ $lan_index -gt 0 -a $lan_index -lt 7 ] || exit 0
+
+clear_non_exist_lan() {
+	for i in $(seq 1 7)
+	do
+		lan_name="lan$i"
+		if [ $i == 1 ]; then
+			lan_name="lan";
+		fi
+		ifexist=`uci -q get network.$lan_name`
+		if [ "x$ifexist" == "x" ]; then
+			index=$(expr $i - 1)
+			echo "dellan $index 1" > /sys/kernel/debug/hnat_debug
+		fi
+	done
+	ifexist=`uci -q get network.guest`
+	if [ "x$ifexist" == "x" ]; then
+		echo "dellan 7 1" > /sys/kernel/debug/hnat_debug
+	fi
+}
+
+del_lan() {
+	clear_non_exist_lan
+	index=$(expr $lan_index - 1)
+	echo "dellan $index 1" > /sys/kernel/debug/hnat_debug
+}
+
+add_lan() {
+	index=$(expr $lan_index - 1)
+	lanip=`uci -q get network.$INTERFACE.ipaddr`
+	if [ "x$lanip" != "x" ]; then
+		lanhex=`iptohex $lanip`
+		netmask=`uci -q get network.$INTERFACE.netmask`
+		if [ "x$netmask" == "x" ]; then
+			netmask="255.255.255.0"
+		fi
+		masklen=`get_masklen $netmask`
+		echo "addlan $index 0x$lanhex $masklen br-$INTERFACE" > /sys/kernel/debug/hnat_debug
+	else
+		echo "dellan $index 1" > /sys/kernel/debug/hnat_debug
+	fi
+}
+
+[ "$ACTION" = ifdown ] && del_lan && exit 0
+[ "$ACTION" = ifup ] && add_lan && exit 0

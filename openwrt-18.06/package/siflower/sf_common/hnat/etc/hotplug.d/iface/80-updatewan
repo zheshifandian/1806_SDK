@@ -1,0 +1,28 @@
+#!/bin/sh
+
+iptohex() {
+	IFS=.
+	for str in $1
+	do
+		printf "%02x" $str
+	done
+}
+
+update_hnat_wanmask() {
+	wan_ip=`ubus call network.interface.wan status | grep 'ipv4-address' -A 6 | grep '"address"' | awk -F '[:"]' '{print $5}' | head -n 1 | tr -d '\n'`
+	wan_masklen=`ubus call network.interface.wan status | grep 'ipv4-address' -A 6 | grep mask | awk -F ' ' '{print $2}'| awk -F ',' '{print $1}' | head -n 1 |tr -d "\n"`
+	wan_ifname=`uci -q get network.wan.ifname`
+	if [ "x$wan_ifname" != "x" -a "x$wan_ip" != "x" -a "x$wan_masklen" != "x" -a "$wan_masklen" != "0" ]; then
+		proto=`uci -q get network.wan.proto`
+		wanhex=`iptohex $wan_ip`
+		if [ "$proto" == "pppoe" ]; then
+			echo addwan 7 0x$wanhex $wan_masklen pppoe-wan > /sys/kernel/debug/hnat_debug
+		else
+			echo addwan 0 0x$wanhex $wan_masklen $wan_ifname > /sys/kernel/debug/hnat_debug
+		fi
+	fi
+}
+
+[ "$ACTION" = ifup ] || exit 0
+[ "$INTERFACE" = "wwan" ] || [ "$INTERFACE" = "wan" ] || exit 0
+update_hnat_wanmask

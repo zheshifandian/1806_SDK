@@ -94,6 +94,12 @@ case ${board} in
 	a28_bpi)
 		target_board=target/linux/siflower/sf19a28_bpi_fullmask_def.config
 		;;
+	a28_bpi_luci2)
+		target_board=target/linux/siflower/sf19a28_bpi_luci2_fullmask_def.config
+		;;
+	a28_bpi_luci2_neutral)
+		target_board=target/linux/siflower/sf19a28_bpi_luci2_neutral_fullmask_def.config
+		;;
 	clean)
 		echo "clean build enviroment"
 		echo "delete build dir "

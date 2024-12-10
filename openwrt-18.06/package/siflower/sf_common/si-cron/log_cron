@@ -1,0 +1,2 @@
+# clean sf_log.txt every 20 minutes
+*/20 * * * * clean_log

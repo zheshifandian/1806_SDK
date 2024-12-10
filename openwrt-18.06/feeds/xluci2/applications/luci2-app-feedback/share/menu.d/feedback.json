@@ -1,0 +1,8 @@
+{
+	"advance/feedback": {
+		"title": "Feedback",
+		"acls": [ "superuser" ],
+		"view": "advance/feedback",
+		"index": 40
+	}
+}
