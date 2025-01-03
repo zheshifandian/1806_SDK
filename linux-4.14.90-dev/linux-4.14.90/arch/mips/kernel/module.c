@@ -30,6 +30,7 @@
 #include <linux/fs.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
+#include <linux/kmemleak.h>
 #include <linux/spinlock.h>
 #include <linux/jump_label.h>
 
@@ -124,12 +125,14 @@ static void *alloc_phys(unsigned long size)
 	unsigned order;
 	struct page *page;
 	struct page *p;
+	gfp_t gfp_mask;
+	void *va;
 
 	size = PAGE_ALIGN(size);
 	order = get_order(size);
+	gfp_mask = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN | __GFP_THISNODE;
 
-	page = alloc_pages(GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN |
-			__GFP_THISNODE, order);
+	page = alloc_pages(gfp_mask, order);
 	if (!page)
 		return NULL;
 
@@ -142,7 +145,9 @@ static void *alloc_phys(unsigned long size)
 	for (p = page + (size >> PAGE_SHIFT); p < page + (1 << order); ++p)
 		__free_page(p);
 
-	return page_address(page);
+	va = page_address(page);
+	kmemleak_alloc(va, size, 1, gfp_mask);
+	return va;
 }
 #endif
 
@@ -151,6 +156,7 @@ static void free_phys(void *ptr)
 	struct page *page;
 	bool free;
 
+	kmemleak_free(ptr);
 	page = virt_to_page(ptr);
 	do {
 		free = test_and_clear_bit(PG_owner_priv_1, &page->flags);

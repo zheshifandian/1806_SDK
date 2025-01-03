@@ -6,7 +6,7 @@
  * Common header for the Wireless Extension library...
  *
  * This file is released under the GPL license.
- *     Copyright (c) 1997-2007 Jean Tourrilhes <jt@hpl.hp.com>
+ *     Copyright @ 2024 Siflower
  */
 
 #ifndef IWLIB_H

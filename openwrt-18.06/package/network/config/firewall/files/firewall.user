@@ -52,3 +52,5 @@ else
 	iptables -t nat -R zone_lan_prerouting $tcpindex -p tcp --dport 53 -m set --match-set urllist_mac src -j DNAT --to-destination $lan
 fi
 
+ip6tables -A INPUT -p icmpv6 --icmpv6-type 134 -m limit --limit 10/min --limit-burst 5 -j ACCEPT
+ip6tables -A INPUT -p icmpv6 --icmpv6-type 134 -j DROP

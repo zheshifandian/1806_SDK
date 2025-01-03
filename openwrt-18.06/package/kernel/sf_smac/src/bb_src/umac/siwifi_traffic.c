@@ -224,7 +224,7 @@ void traffic_detect_be_edca(struct siwifi_hw *siwifi_hw, struct siwifi_vif *siwi
 
 #ifdef CONFIG_BRIDGE_ACCELERATE
 
-typedef int (*device_drv_hook_fn)(struct sk_buff *skb);
+typedef int (*device_drv_hook_fn)(struct sk_buff *skb, struct net_device *outdev);
 extern int backlog_skb_handler_register(device_drv_hook_fn hook);
 extern int backlog_skb_handler_unregister(device_drv_hook_fn hook);
 
@@ -256,7 +256,7 @@ void siwifi_device_traffic_init(void)
     }
 }
 
-int siwifi_xmit_hook(struct sk_buff *skb)
+int siwifi_xmit_hook(struct sk_buff *skb, struct net_device *outdev)
 {
     u16 protocol = 0;
     struct iphdr *ip4h;
@@ -267,7 +267,11 @@ int siwifi_xmit_hook(struct sk_buff *skb)
     //u16 vlan_tci;
 
     if(!accel_enable) return NET_RX_DROP;
-    if(!g_crrent_accel_dev) return NET_RX_DROP;
+    if(!g_crrent_accel_dev) {
+		return NET_RX_DROP;
+	} else if (g_crrent_accel_dev != outdev){
+		return NET_RX_DROP;
+	}
     // skip too small packet or skb_shared or unvlan packets
     if (skb->len < MIN_XMIT_SKB_LEN || skb_shared(skb) ||
             skb->protocol != cpu_to_be16(ETH_P_8021Q))
@@ -288,10 +292,14 @@ int siwifi_xmit_hook(struct sk_buff *skb)
 	vif = netdev_priv(dev);
 	if (!vif)
 		return NET_RX_DROP;
-	sta = siwifi_sta_hash_get(vif, eth_header);
-	if (!sta)
+	if (SIWIFI_VIF_TYPE(vif) == NL80211_IFTYPE_AP) {
+		sta = siwifi_sta_hash_get(vif, eth_header);
+		if (!sta)
+			return NET_RX_DROP;
+	} else if (SIWIFI_VIF_TYPE(vif) != NL80211_IFTYPE_STATION) {
 		return NET_RX_DROP;
-
+    }
+    
 	accelerate_cnt++;
 	// struct vlan_hdr *vhdr;
 	// vhdr = (struct vlan_hdr *)skb->data;

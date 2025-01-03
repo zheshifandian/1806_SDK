@@ -50,3 +50,6 @@ config setting 'auto_adapt'
 
 config setting 'arp_check_dev'
         option enable 0
+
+config setting 'web_guide'
+        option inited 1

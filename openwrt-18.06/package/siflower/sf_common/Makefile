@@ -111,11 +111,6 @@ ifdef CONFIG_PACKAGE_systems_sys-reset
 	$(CP) ./system/bin/sf_reset.sh $(1)/bin/
 endif
 
-ifdef CONFIG_PACKAGE_systems_sys-reboot
-	$(INSTALL_DIR) $(1)/bin
-	$(CP) ./system/bin/sf_reboot.sh $(1)/bin/
-endif
-
 ifdef CONFIG_PACKAGE_systems_sys-clean_log
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) ./system/usr/sbin/clean_log $(1)/usr/sbin/
@@ -155,11 +150,7 @@ endif
 
 ifdef CONFIG_PACKAGE_systems_sys-ota
 	$(INSTALL_DIR) $(1)/usr/sbin
-ifeq ($(CONFIG_VERSION_MANUFACTURER),JUOVI)
-	$(CP) ./ota/usr/sbin/ota_juovi $(1)/usr/sbin/ota
-else
 	$(CP) ./ota/usr/sbin/ota $(1)/usr/sbin/
-endif
 endif
 
 endef

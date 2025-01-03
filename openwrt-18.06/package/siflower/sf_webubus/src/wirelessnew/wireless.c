@@ -336,7 +336,7 @@ static int rpc_web_wireless_wds_wifi_connect(struct ubus_context *ctx,
 	blobmsg_parse(rpc_wificonn_policy, __RPC_S_MAX, tb, blob_data(msg),
 				  blob_len(msg));
 
-	char wl[] = "wireless", s[32] = "wds", v[256] = "";
+	char wl[] = "wireless", s[32] = "wds", d0[] ="default_radio0",d1[] ="default_radio1",v[256] = "";
 	set(wl, s, NULL, "wifi-iface");
 	if (!strcmp(blobmsg_data(tb[RPC_S_DEVICE]), "radio0")) {
 		set(wl, s, "device", "radio0");
@@ -358,8 +358,12 @@ static int rpc_web_wireless_wds_wifi_connect(struct ubus_context *ctx,
 		strcpy(v, "psk-mixed");
 	}
 	set(wl, s, "encryption", v);
+	set(wl, d0, "encryption", v);
+	set(wl, d1, "encryption", v);
 	if (strcmp(v, "none")) {
 		set(wl, s, "key", blobmsg_data(tb[RPC_S_KEY]));
+		set(wl, d0, "key", blobmsg_data(tb[RPC_S_KEY]));
+		set(wl, d1, "key", blobmsg_data(tb[RPC_S_KEY]));
 	}
 	set(wl, s, "mode", "sta");
 
@@ -378,7 +382,7 @@ static int rpc_web_wireless_wds_wifi_connect_new(struct ubus_context *ctx,
 	blobmsg_parse(rpc_wificonnnew_policy, __RPC_SN_MAX, tb, blob_data(msg),
 				  blob_len(msg));
 
-	char wl[] = "wireless", s[32] = "wds", v[256] = "";
+	char wl[] = "wireless", s[32] = "wds",d0[] ="default_radio0",d1[] ="default_radio1", v[256] = "";
 	set(wl, s, NULL, "wifi-iface");
 	if (!strcmp(blobmsg_data(tb[RPC_SN_FLAG]), "2.4G")) {
 		set(wl, s, "device", "radio0");
@@ -400,10 +404,15 @@ static int rpc_web_wireless_wds_wifi_connect_new(struct ubus_context *ctx,
 		strcpy(v, "psk-mixed");
 	}
 	set(wl, s, "encryption", v);
+	set(wl, d0, "encryption", v);
+	set(wl, d1, "encryption", v);
 	if (strcmp(v, "none")) {
 		set(wl, s, "key", blobmsg_data(tb[RPC_SN_KEY]));
+		set(wl, d0, "key", blobmsg_data(tb[RPC_SN_KEY]));
+		set(wl, d1, "key", blobmsg_data(tb[RPC_SN_KEY]));
 	}
 	set(wl, s, "mode", "sta");
+
 	system("wifi reload");
 	system("usr/sbin/sf_wpad start_wpa &");
 
@@ -462,10 +471,7 @@ static int rpc_web_wireless_wds_enable(struct ubus_context *ctx,
 	char *ip = blobmsg_data(tb[RPC_W_IP]);
 	char cmd[128];
 	char iface[16];
-#ifdef WDS_SSID_FOLLOW
-	char ossid[32];
-	char wds_ssid[32];
-#endif
+
 	set("network", "lan", "proto", "dhcp");
 	set("network", "lan", "oip", ip);
 	del("network", "lan", "ipaddr");
@@ -478,24 +484,14 @@ static int rpc_web_wireless_wds_enable(struct ubus_context *ctx,
 	memset(cmd, 0, sizeof(cmd));
 	sprintf(cmd, "uci show wireless | grep \"'%s'\" | awk -F . '{print $2}' | tr -d '\n'", ifname);
 	get_cmd_result(cmd, iface, sizeof(iface));
-#ifdef WDS_SSID_FOLLOW
-	if (!strcmp(ifname, "wlan0-1")) {
-		get("wireless", "default_radio0", "ssid", ossid);
-		set("wireless", "default_radio0", "ossid", ossid);
-		get("wireless", "wds", "ssid", wds_ssid);
-		set("wireless", "default_radio0", "ssid", wds_ssid);
-	} else if(!strcmp(ifname, "wlan1-1")) {
-		get("wireless", "default_radio1", "ssid", ossid);
-		set("wireless", "default_radio1", "ossid", ossid);
-		get("wireless", "wds", "ssid", wds_ssid);
-		set("wireless", "default_radio1", "ssid", wds_ssid);
-	}
-#endif
+
 	memset(cmd, 0, sizeof(cmd));
 	sprintf(cmd, "uci set wireless.%s.network=lan", iface);
 	system(cmd);
 	system("uci commit wireless 2>/dev/console");
+
 	system("/etc/init.d/network restart");
+
 	memset(cmd, 0, sizeof(cmd));
 	sprintf(cmd, "sh /www/luci2/scripts/wds_status.sh %s", ifname);
 	system(cmd);
@@ -513,47 +509,22 @@ static int rpc_web_wireless_wds_disable(struct ubus_context *ctx,
 	char htmode[6] = {};
 	char oip[20] = {};
 	int ret = 0;
-#ifdef WDS_SSID_FOLLOW
-	char ossid[32];
-	char iface[8];
-#endif
-	char command[100];
-
 	get("wireless", "radio0", "htmode", htmode);
 	ret = get("network", "lan", "oip", oip);
 	htmode[5] = '\0';
 	set("wireless", "radio0", "htmode", htmode);
 
-#ifdef WDS_SSID_FOLLOW
-	get("wireless", "wds", "device", iface);
-	iface[6] = '\0';
-	if (!strcmp(iface, "radio0")) {
-		ret = get("wireless", "default_radio0", "ossid", ossid);
-		if(ret == 0) {
-			set("wireless", "default_radio0", "ssid", ossid);
-			del("wireless", "default_radio0", "ossid");
-		}
-	} else if(!strcmp(iface, "radio1")) {
-		ret = get("wireless", "default_radio1", "ossid", ossid);
-		if(ret == 0) {
-			set("wireless", "default_radio1", "ssid", ossid);
-			del("wireless", "default_radio1", "ossid");
-		}
-	}
-#endif
 	del("wireless", "wds", NULL);
 	if (ret == 0) {
 		set("network", "lan", "proto", "static");
 		set("network", "lan", "ipaddr", oip);
 		set("network", "lan", "netmask", "255.255.255.0");
 		set("network", "lan", " ip6assign", "60");
-		sprintf(command, "/etc/init.d/dns_redirect.sh juovi.wifi enable %s", oip);
-        system(command);
-		system("/etc/init.d/network restart");
-	    return 0;
 	}
+
 	system("/etc/init.d/dnsmasq start");
 	system("/etc/init.d/network restart");
+
 	return 0;
 }
 

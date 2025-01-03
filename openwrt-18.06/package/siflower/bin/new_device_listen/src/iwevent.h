@@ -65,8 +65,6 @@ struct arp_info{
 	u_int8_t mac[6];
 };
 
-#define MESH_PORT   1112
-
 #define GENLMSG_DATA(glh)       ((void *)(NLMSG_DATA(glh) + GENL_HDRLEN))
 #define NLA_DATA(na)            ((void *)((char *)(na) + NLA_HDRLEN))
 #define NLA_NEXT(na)			((void *)((char *)(na) + NLA_ALIGN(na->nla_len)))
@@ -80,6 +78,3 @@ void rtnl_close(struct rtnl_handle *rth);
 int wait_for_event(struct rtnl_handle * rth);
 void check_dev_from_boot(void);
 int name2index(char *name);
-#ifdef USE_CUSTOM_SOCKET
-int init_wifi_custom_socket(struct rtnl_handle *rth,int port);
-#endif

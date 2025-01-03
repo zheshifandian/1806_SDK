@@ -1082,6 +1082,38 @@
 						L.uci.save();
 					});
 				}
+				if(ori_value == 'pppoe' && value != 'pppoe'){
+					L.uci.set('network', 'wan6', 'reqprefix', 'auto');
+					L.uci.set('network', 'wan6', 'reqaddress', 'try');
+					L.uci.load('dhcp').then(function(data) {
+						L.uci.set('dhcp', 'wan', 'dhcpv6', 'relay');
+						L.uci.set('dhcp', 'wan', 'ra', 'relay');
+						L.uci.set('dhcp', 'wan', 'ndp', 'relay');
+						L.uci.set('dhcp', 'wan', 'master', '1');
+						L.uci.set('dhcp', 'lan', 'ndp', 'relay');
+						L.uci.set('dhcp', 'lan', 'ra_management', '1');
+						L.uci.set('dhcp', 'lan', 'dhcpv6', 'relay');
+						L.uci.set('dhcp', 'lan', 'ra', 'relay');
+						L.uci.unset('dhcp', 'lan', 'ra_default');
+						L.uci.save();
+					});
+				}
+				if(ori_value != 'pppoe' && value == 'pppoe'){
+					L.uci.unset('network', 'wan6', 'reqprefix');
+					L.uci.unset('network', 'wan6', 'reqaddress');
+					L.uci.load('dhcp').then(function(data) {
+						L.uci.unset('dhcp', 'wan', 'dhcpv6');
+						L.uci.unset('dhcp', 'wan', 'ra');
+						L.uci.unset('dhcp', 'wan', 'ndp');
+						L.uci.unset('dhcp', 'wan', 'master');
+						L.uci.unset('dhcp', 'lan', 'ndp');
+						L.uci.unset('dhcp', 'lan', 'ra_management');
+						L.uci.set('dhcp', 'lan', 'dhcpv6', 'server');
+						L.uci.set('dhcp', 'lan', 'ra', 'server');
+						L.uci.set('dhcp', 'lan', 'ra_default', '1');
+						L.uci.save();
+					});
+				}
 				if(value == 'pppoe'){
 					var id = wanstatus.id(sid);
 					L.uci.unset('network', 'wan', 'ipaddr');

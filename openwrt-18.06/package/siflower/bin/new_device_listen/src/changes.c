@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include <uci.h>
 #include <curl/curl.h>
-#include <netinet/in.h>
 
 #include "utils.h"
 #include "cJSON.h"

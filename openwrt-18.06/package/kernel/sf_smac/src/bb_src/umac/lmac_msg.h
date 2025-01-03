@@ -1910,6 +1910,8 @@ enum
     ME_STA_DEL_CFM,
     /// Insert information in assoc req
     ME_ASSOC_REQ_INSERT_INFO_REQ,
+    ///Insert information in auth
+    ME_AUTH_INSERT_INFO_REQ,
     /// Indication of a TX RA/TID queue credit update
     ME_TX_CREDITS_UPDATE_IND,
     /// Request indicating to the FW that there is traffic buffered on host
@@ -1922,6 +1924,8 @@ enum
     ME_RC_STATS_CFM,
     /// RC fixed rate request
     ME_RC_SET_RATE_REQ,
+    /// RC set no_ss request
+    ME_RC_SET_NO_SS_REQ,
     /// Configure monitor interface
     ME_CONFIG_MONITOR_REQ,
     /// Configure monitor interface response
@@ -2144,6 +2148,13 @@ struct me_rc_set_rate_req
     u8_l sta_idx;
     /// Rate configuration to be set
     u16_l fixed_rate_cfg;
+};
+
+/// Structure containing the parameters of the @ref ME_RC_SET_NO_SS_REQ message.
+struct me_rc_set_no_ss_req
+{
+    /// number of spatial streams to set
+    u8_l no_ss;
 };
 
 /// Structure containing the parameters of the @ref ME_ASSOC_REQ_INSERT_INFO_REQ message.

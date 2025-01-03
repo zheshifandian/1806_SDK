@@ -1,0 +1,35 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+iface=$1
+new_state=$2
+find=0
+
+check_iface_in_dhcp()
+{
+    local interface ignore
+
+    config_get interface "$1" interface
+    config_get_bool ignore "$1" ignore 0
+
+    if [ -n "$interface" -a $ignore -eq 0 -a "$interface" = "$2" ]; then
+        find=1
+    fi
+}
+
+if [ "${new_state}" = "connectivity" ]; then
+    config_load dhcp
+    config_foreach check_iface_in_dhcp dhcp "$iface"
+
+    if [ "$find" = "1" ]; then
+        sleep 1
+        num=$(ps | grep '/usr/sbin/dnsmasq' | grep -v grep -c)
+        if [ "$num" = "2" ]; then
+            logger -t sf_dnsmasq "dnsmasq has started normally"
+        else
+            logger -t sf_dnsmasq "reload dnsmasq"
+            /etc/init.d/dnsmasq reload
+        fi
+    fi
+fi

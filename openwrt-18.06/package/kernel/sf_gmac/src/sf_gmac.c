@@ -52,6 +52,11 @@ unsigned int debug_log = 0;
 unsigned int g_ethtool_phyad = 0;
 spinlock_t sf_gmac_tx_lock;
 
+unsigned int sf_dev_ct_limit = 50;
+EXPORT_SYMBOL(sf_dev_ct_limit);
+unsigned long sf_oom_drop_level = 0;
+EXPORT_SYMBOL(sf_oom_drop_level);
+
 /* EMAC_Soft_Clkgate[3] */
 #define EMAC_ETH_BYPREF_CLK		(1 << 2) /* supply for gmii transmit clk */
 #define EMAC_ETH_TSU_CLK		(1 << 3) /* supply for timestamp unit */
@@ -3442,7 +3447,7 @@ static int sgmac_probe(struct platform_device *pdev) {
 #endif
 	u32 data_line_delay[2] = {0};
 #ifdef CONFIG_SFAX8_FACTORY_READ
-	unsigned char buf[4] = {0};
+	char buf[8] = {0};
 	int gmac_delay = 0;
 #endif
 

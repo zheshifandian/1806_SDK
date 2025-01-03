@@ -55,58 +55,10 @@ case $mode in
 		;;
 esac
 
-wps_led=$(uci get basic_setting.led.wps_led)
-led_enable=$(uci get basic_setting.led.enable)
-wps_option=$(uci get basic_setting.led.wps_option)
-default_led=$(uci get basic_setting.led.default_led)
-
-wps_time=$(uci get basic_setting.vendor.wps_time)
-if [ -z "$wps_time" ]; then
-	wps_time=10
-fi
-flash_times=$((wps_time / 2))
-
 cd /var/run/$directory
 for socket in *; do
 	[ -S "$socket" ] || continue
 	"$mode" -i "$socket" wps_pbc
-
-	if [ -n "$wps_led" ] && [ "$led_enable" -eq 1 ]; then
-		if [ "$wps_option" = "on" ]; then
-			echo 0 > /sys/class/leds/$default_led/brightness
-			echo 1 > /sys/class/leds/$wps_led/brightness
-		fi
-	fi
-done
-
-if [ -n "$wps_led" ] && [ "$led_enable" -eq 1 ]; then
-	if [ "$wps_option" = "flash" ]; then
-		echo 0 > /sys/class/leds/$default_led/brightness
-		for i in `seq 1 $flash_times`; do
-			echo 1 > /sys/class/leds/$wps_led/brightness
-			sleep 1
-			echo 0 > /sys/class/leds/$wps_led/brightness
-			sleep 1
-		done
-		echo 1 > /sys/class/leds/$default_led/brightness
-		sh /sbin/wan_detect.sh 2
-	else
-		sleep $wps_time
-	fi
-else
-	sleep $wps_time
-fi
-
-for socket in *; do
-	[ -S "$socket" ] || continue
-	"$mode" -i "$socket" wps_cancel
-	if [ -n "$wps_led" ] && [ "$led_enable" -eq 1 ]; then
-		if [ "$wps_option" = "on" ]; then
-			echo 0 > /sys/class/leds/$wps_led/brightness
-			echo 1 > /sys/class/leds/$default_led/brightness
-			sh /sbin/wan_detect.sh 2
-		fi
-	fi
 done
 
 #rm wps button event flag.

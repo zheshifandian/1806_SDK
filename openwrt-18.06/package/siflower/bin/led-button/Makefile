@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015-2018 neil.zhang@siflower.com.cn
+# Copyright @ 2024 Siflower
 #
 # sifiower Software.
 #
@@ -56,7 +56,6 @@ define Package/led-button/install
 	$(INSTALL_BIN) ./files/wps_func.sh  $(1)/usr/share/led-button/
 	$(INSTALL_BIN) ./files/wps_config.sh  $(1)/usr/share/led-button/
 	$(INSTALL_BIN) ./files/wifi_ctrl.sh  $(1)/usr/share/led-button/
-	$(INSTALL_BIN) ./files/button_test.sh  $(1)/usr/share/led-button/
 endef
 
 

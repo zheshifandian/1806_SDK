@@ -1,0 +1,15 @@
+#!/bin/sh
+
+START=13
+
+ts_init(){
+	local devs=$(uci show $1 | grep '.mac=' | awk -F '=' '{print $2}' | sed -e 's/_/:/g')
+
+	for i in $(eval echo $devs)
+	do
+		tscript add $i
+	done
+}
+
+ts_init devlist
+ts_init wldevlist

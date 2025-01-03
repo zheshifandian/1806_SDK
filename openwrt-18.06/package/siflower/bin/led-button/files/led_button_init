@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-# Copyright (c) 2011-2012 OpenWrt.org
+# Copyright @ 2024 Siflower
 
 START=50
 

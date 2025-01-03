@@ -272,8 +272,6 @@ static int air_an8855_reset_vlan(struct switch_dev *dev)
 		list_del(pos);
 		kfree(entry);
 	}
-	memset(&vlan_entries, 0, sizeof(struct vlan_entry));
-	INIT_LIST_HEAD(&(vlan_entries.entry_list));
 	return 0;
 }
 

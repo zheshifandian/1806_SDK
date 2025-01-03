@@ -19,8 +19,8 @@ siflower_setup_interfaces()
 siflower_setup_macs()
 {
 	local board="$1"
-	local lan_mac=$(cat /sys/class/net/eth0/address)
-	local wan_mac=$(macaddr_add "$lan_mac" 1)
+	local lan_mac=$(cat /sys/devices/platform/factory-read/macaddr_lan)
+	local wan_mac=$(cat /sys/devices/platform/factory-read/macaddr_wan)
 
 	[ -n "$lan_mac" ] && ucidef_set_interface_macaddr lan $lan_mac
 	[ -n "$wan_mac" ] && ucidef_set_interface_macaddr wan $wan_mac

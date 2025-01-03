@@ -1567,6 +1567,25 @@ int siwifi_send_me_rc_set_rate(struct siwifi_hw *siwifi_hw,
     return siwifi_send_msg(siwifi_hw, req, 0, 0, NULL);
 }
 
+int siwifi_send_me_rc_set_no_ss(struct siwifi_hw *siwifi_hw, u8 no_ss)
+{
+    struct me_rc_set_no_ss_req *req;
+
+    SIWIFI_DBG(SIWIFI_FN_ENTRY_STR);
+
+    /* Build the ME_RC_SET_NO_SS_REQ message */
+    req = siwifi_msg_zalloc(ME_RC_SET_NO_SS_REQ, TASK_ME, DRV_TASK_ID,
+                          sizeof(struct me_rc_set_no_ss_req));
+    if (!req)
+        return -ENOMEM;
+
+    /* Set parameters for the ME_RC_SET_NO_SS_REQ message */
+    req->no_ss = no_ss;
+
+    /* Send the ME_RC_SET_NO_SS_REQ message to FW */
+    return siwifi_send_msg(siwifi_hw, req, 0, 0, NULL);
+}
+
 int siwifi_send_assoc_req_insert_info(struct siwifi_hw *siwifi_hw)
 {
     struct me_assoc_req_insert_info_req *req = NULL;

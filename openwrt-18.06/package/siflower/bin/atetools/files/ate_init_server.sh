@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2006 OpenWrt.org
+# Copyright @ 2024 Siflower
 
 sfwifi_ate remove
 sleep 1

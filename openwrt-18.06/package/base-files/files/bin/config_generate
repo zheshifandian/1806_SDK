@@ -107,6 +107,8 @@ generate_network() {
 		set network.wan6='interface'
 		set network.wan6.ifname='$ifname'
 		set network.wan6.proto='dhcpv6'
+		set network.wan6.reqprefix='auto'
+		set network.wan6.reqaddress='try'
 	EOF
 	;;
 	wwan)
@@ -200,6 +202,8 @@ generate_network() {
 					set network.${1}6='interface'
 					set network.${1}6.ifname='$ifname'
 					set network.${1}6.proto='dhcpv6'
+					set network.wan6.reqprefix='auto'
+					set network.wan6.reqaddress='try'
 				EOF
 			}
 		;;

@@ -698,7 +698,6 @@ static int siwifi_check_vif_channel_same(struct siwifi_vif *vif, u8 ch_idx,
         if (ctxt2->chan_def.chan == NULL || chandef_sta->chan == NULL) {
             continue;
         }
-        /* RM#1001922  Superior ap switch from 80M to 40M on the same channel may exist the case that vif_tmp->ch_index == sta_ch_idx.
         if (ctxt2->chan_def.chan->center_freq != chandef_sta->chan->center_freq || vif_tmp->ch_index != sta_ch_idx){
             printk("NL80211_IFTYPE_AP(%s freq %d ch_idx %d) should follow NL80211_IFTYPE_STATION (%s freq %d ch_idx %d) \n",
                     vif_tmp->ndev->name, ctxt2->chan_def.chan->center_freq, vif_tmp->ch_index,
@@ -711,14 +710,6 @@ static int siwifi_check_vif_channel_same(struct siwifi_vif *vif, u8 ch_idx,
             // Txq will not start because the channel has changed in @siwifi_rx_chan_switch_ind
             siwifi_txq_vif_start(vif_tmp, SIWIFI_TXQ_STOP_CHAN, vif_tmp->siwifi_hw);
         }
-        */
-        // RM#1001922 Notify upper layer channel has changed
-        cfg80211_ch_switch_notify(vif_tmp->ndev, chandef_sta);
-        siwifi_chanctx_unlink(vif_tmp);
-        vif_tmp->ch_index = sta_ch_idx;
-        ctxt_sta->count++;
-        // Txq will not start because the channel has changed in @siwifi_rx_chan_switch_ind
-        siwifi_txq_vif_start(vif_tmp, SIWIFI_TXQ_STOP_CHAN, vif_tmp->siwifi_hw);
     }
     return 0;
 }
@@ -5252,7 +5243,7 @@ int siwifi_cfg80211_init(struct siwifi_plat *siwifi_plat, void **platform_data)
     siwifi_hw->tx_ctrl = 0;
     siwifi_hw->rx_ctrl = 0;
     siwifi_hw->debug_get_survey = 0;
-    siwifi_hw->disable_wmm_edca = 0;
+    siwifi_hw->disable_wmm_edca = 1;
     siwifi_hw->disable_cca_channel_switch = 1;
     siwifi_hw->amsdu_threshold = AMSDU_THRESHOLD_M;
     siwifi_hw->wmm_edca_interval = EDCA_CHECK_INTERVAL;
@@ -5266,7 +5257,7 @@ int siwifi_cfg80211_init(struct siwifi_plat *siwifi_plat, void **platform_data)
 #endif
     siwifi_hw->scan_timeout = 5000;
     siwifi_hw->enable_dbg_sta_conn = 0;
-    siwifi_hw->atf.enable = 1;
+    siwifi_hw->atf.enable = 0;
 #ifdef CONFIG_SIWIFI_PROCFS
     siwifi_hw->procfsdir = proc_mkdir(siwifi_hw->mod_params->is_hb ? "hb" : "lb", NULL);
 #endif
@@ -5666,16 +5657,8 @@ void siwifi_cfg80211_deinit(struct siwifi_hw *siwifi_hw)
 static int __init siwifi_mod_init(void)
 {
 #ifdef CONFIG_SIWIFI_REPEATER
-    int ret = 0;
-#endif
-    SIWIFI_DBG(SIWIFI_FN_ENTRY_STR);
-    siwifi_print_version();
-    siwifi_init_debug_mem();
-
-#ifdef CONFIG_SIWIFI_REPEATER
-    ret = repeater_init();
-    if (ret)
-        return ret;
+    if (repeater_init())
+       printk("repeater_init failed\n");
 #endif
 
 #ifdef CONFIG_SIWIFI_AMSDUS_TX
@@ -5703,7 +5686,6 @@ static void __exit siwifi_mod_exit(void)
     repeater_exit();
 #endif
     siwifi_platform_unregister_drv();
-    siwifi_deinit_debug_mem();
 #ifdef CONFIG_SIWIFI_CACHE_ALLOC
     kmem_cache_destroy(sw_txhdr_cache);
 #endif

@@ -18,8 +18,38 @@ int siwifi_hw_set_gpio(struct siwifi_hw *hw, u32 val)
 int siwifi_set_gpio_pin(struct siwifi_hw *hw, char *name)
 {
     int ret = 0;
-    hw->led_pin = of_get_named_gpio(hw->dev->of_node, name, 0);
+#ifdef CONFIG_LED_MULTICOLOUR
+    struct device_node *np, *child;
+    const char *state;
+    int default_on_gpio;
+#endif
     hw->led_on = 1;
+    hw->led_pin = of_get_named_gpio(hw->dev->of_node, name, 0);
+
+#ifdef CONFIG_LED_MULTICOLOUR
+    np = of_find_node_by_path("/gpio-leds");
+    if (!np) {
+        printk(KERN_ERR "Failed to find /gpio-leds node\n");
+        return -ENODEV;
+    }
+
+    for_each_child_of_node(np, child) {
+        if (!of_property_read_string(child, "default-state", &state)
+            && strcmp(state, "on") == 0) {
+            default_on_gpio = of_get_named_gpio(child, "gpios", 0);
+            if (default_on_gpio >= 0) {
+                printk(KERN_INFO "Node %pOF has GPIO %d\n", child, default_on_gpio);
+#ifdef CONFIG_LED_PIN_ACTIVE_LOW
+                gpio_direction_output(default_on_gpio, hw->led_on);
+#else
+                gpio_direction_output(default_on_gpio, !hw->led_on);
+#endif
+                break;
+            }
+        }
+    }
+#endif
+
     if (hw->led_pin < 0) {
         printk(KERN_ERR "error: of_get_named_gpio failed!<<<<<<<<<<<<<<<<<<<<<<<\n");
         return -ENODEV;
@@ -43,7 +73,11 @@ int siwifi_set_gpio_pin(struct siwifi_hw *hw, char *name)
         printk(KERN_ERR "error ret = %d: gpio_request gpio-%u is failed!<<<<<<<<<<<<<<<<<<<<<<<\n", ret, hw->led_pin);
         return -ENODEV;
     } else
+#ifdef CONFIG_LED_PIN_ACTIVE_LOW
+        ret = gpio_direction_output(hw->led_pin, !hw->led_on);
+#else
         ret = gpio_direction_output(hw->led_pin, hw->led_on); // hw->led_on or hw->led_off
+#endif
     if (ret)
         printk(KERN_ERR "error: gpio_direction_output failed!<<<<<<<<<<<<<<<<<<<<<<<\n");
     else

@@ -1,0 +1,38 @@
+From de6c22851eac867dbbac3b2d5e1f38382b0de539 Mon Sep 17 00:00:00 2001
+From: "gongcheng.liu" <gongcheng.liu@siflower.com.cn>
+Date: Thu, 14 Nov 2024 03:01:35 +0000
+Subject: [PATCH] fix iPhone sending deauth frames to unknown devices
+
+---
+ src/ap/ieee802_11.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/src/ap/ieee802_11.c b/src/ap/ieee802_11.c
+index 0caf5a9..6b19636 100644
+--- a/src/ap/ieee802_11.c
++++ b/src/ap/ieee802_11.c
+@@ -5351,10 +5351,17 @@ tag:
+ 		hostapd_drv_sta_disassoc(
+ 			hapd, src,
+ 			WLAN_REASON_CLASS3_FRAME_FROM_NONASSOC_STA);
+-	else
+-		hostapd_drv_sta_deauth(
+-			hapd, src,
+-			WLAN_REASON_CLASS3_FRAME_FROM_NONASSOC_STA);
++	else if (sta == NULL) {
++		wpa_printf(MSG_DEBUG, "An empty data frame from an unassociated STA that exists in a linked list"
++		   MACSTR, MAC2STR(src));
++		return;
++	}else {
++		wpa_printf(MSG_DEBUG, "Empty data frame from unassociated STA"
++		   MACSTR, MAC2STR(src));
++		ap_free_sta(hapd, sta);
++		return;
++	}
++
+ }
+ 
+ 
+-- 
+2.17.1
+
