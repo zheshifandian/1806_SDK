@@ -16,15 +16,11 @@ then
 	exit
 fi
 lanip=`uci get network.lan.ipaddr`
-hosts=$(uci get basic_setting.vendor.hosts 2>/dev/null)
-if [ -z "$hosts" ]; then
-	hosts="siwifi.cn"
-fi
 if [ "$redirect_ip" != "$lanip" ]
 then
 	uci set network.lan.ipaddr=$redirect_ip
 	uci commit network
-	echo $redirect_ip $hosts > /etc/hosts
+	echo $redirect_ip siwifi.cn > /etc/hosts
 	ubus call network reload
 	exit 0
 fi

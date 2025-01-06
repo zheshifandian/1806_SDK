@@ -129,6 +129,7 @@ int siwifi_send_assoc_req_insert_info(struct siwifi_hw *siwifi_hw);
 int siwifi_send_me_rc_set_rate(struct siwifi_hw *siwifi_hw,
                              u8 sta_idx,
                              u16 rate_idx);
+int siwifi_send_me_rc_set_no_ss(struct siwifi_hw *siwifi_hw, u8 no_ss);
 int siwifi_send_sm_connect_req(struct siwifi_hw *siwifi_hw,
                              struct siwifi_vif *siwifi_vif,
                              struct cfg80211_connect_params *sme,

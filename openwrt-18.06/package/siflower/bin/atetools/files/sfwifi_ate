@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2006 OpenWrt.org
+# Copyright @ 2024 Siflower
 
 . /lib/sfwifi.sh
 . /usr/share/libubox/jshn.sh

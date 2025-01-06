@@ -190,6 +190,19 @@ unsigned char sf_eswitch_init_swdev(struct platform_device *pdev, struct mii_bus
 #endif
 
 	do {
+		// chip id to read an8855
+		chip_id = air_an8855_phy_id_get();
+		if (chip_id == AN8855_ID) {
+			pesw_priv->model = AN8855;
+			pesw_priv->pesw_api = &an8855_api;
+			pesw_priv->port_list = SWITCH_PORT_LIST;
+#ifdef CONFIG_SWCONFIG
+			pswdev->ports = AN8855_NUM_PORTS;
+			pswdev->cpu_port = AN8855_CPU_PORT;
+#endif
+			break;
+		}
+		
 		//chip id to read intel
 		ethsw_init_pedev0();
 		intel7084_mdio_rd(0xFA11, 0, 16, &chip_id);
@@ -203,7 +216,7 @@ unsigned char sf_eswitch_init_swdev(struct platform_device *pdev, struct mii_bus
 #endif
 			break;
 		}
-		//chip id to read intel7082
+		//chip id to read intel7082 mdio_addr 0x1f
 		pedev0[0]->mdio_id = 0x1;
 		pedev0[0]->mdio_addr = 0x1F;
 		intel7084_mdio_rd(0xFA11, 0, 16, &chip_id);
@@ -218,15 +231,16 @@ unsigned char sf_eswitch_init_swdev(struct platform_device *pdev, struct mii_bus
 			break;
 		}
 
-		// chip id to read an8855
-		chip_id = air_an8855_phy_id_get();
-		if (chip_id == AN8855_ID) {
-			pesw_priv->model = AN8855;
-			pesw_priv->pesw_api = &an8855_api;
+		//chip id to read intel7082 mdio_addr 0x4
+		pedev0[0]->mdio_addr = 0x4;
+		intel7084_mdio_rd(0xFA11, 0, 16, &chip_id);
+		if(chip_id == INTEL7082_ID){
+			pesw_priv->model = INTEL7082;
+			pesw_priv->pesw_api = &intel7084_api;
 			pesw_priv->port_list = SWITCH_PORT_LIST;
 #ifdef CONFIG_SWCONFIG
-			pswdev->ports = AN8855_NUM_PORTS;
-			pswdev->cpu_port = AN8855_CPU_PORT;
+			pswdev->ports = INTEL_SWITCH_PORT_NUM;
+			pswdev->cpu_port = RGMII_PORT0;
 #endif
 			break;
 		}

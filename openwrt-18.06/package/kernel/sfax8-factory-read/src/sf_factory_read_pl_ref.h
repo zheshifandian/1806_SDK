@@ -50,6 +50,7 @@ struct sfax8_factory_read_context {
 	bool cali_exist;
 	unsigned char wifi_lb_macaddr[MACADDR_SIZE];
 	unsigned char wifi_hb_macaddr[MACADDR_SIZE];
+	unsigned char lan_macaddr[MACADDR_SIZE];
 	unsigned char wan_macaddr[MACADDR_SIZE];
 	unsigned char macaddr0[MACADDR_SIZE];
 #ifdef CONFIG_SFAX8_HNAT_MULTI_WAN

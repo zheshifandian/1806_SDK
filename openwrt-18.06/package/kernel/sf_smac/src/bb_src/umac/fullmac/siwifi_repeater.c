@@ -1019,12 +1019,13 @@ int repeater_unregister(struct repeater_info *rp_info)
 static int repeater_netdev_event_handle(struct notifier_block *this, unsigned long event, void *ptr)
 {
     struct net_device *dev = netdev_notifier_info_to_dev(ptr);
-    struct repeater_info *rp_info = NULL;
+    struct repeater_info *rp_info = NULL, *rp_info_tmp = NULL;
     repeater_dbg("Entry.\n");
     spin_lock_bh(&g_repeater_lock);
-    list_for_each_entry(rp_info, &g_rp_info_list, list) {
-        if (rp_info->vif_dev == dev) {
+    list_for_each_entry(rp_info_tmp, &g_rp_info_list, list) {
+        if (rp_info_tmp->vif_dev == dev) {
             repeater_dbg("VIF_dev %s, MAC %pM\n", dev->name, dev->dev_addr);
+            rp_info = rp_info_tmp;
             break;
         }
     }

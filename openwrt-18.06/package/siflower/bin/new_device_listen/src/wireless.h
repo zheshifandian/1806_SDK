@@ -4,7 +4,7 @@
  * Version :	21	14.3.06
  *
  * Authors :	Jean Tourrilhes - HPL - <jt@hpl.hp.com>
- * Copyright (c) 1997-2005 Jean Tourrilhes, All Rights Reserved.
+ * Copyright @ 2024 Siflower
  */
 
 #ifndef _LINUX_WIRELESS_H

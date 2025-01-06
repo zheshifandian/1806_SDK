@@ -584,6 +584,10 @@ define Package/wpad/install
 	$(INSTALL_DIR) $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wpad $(1)/usr/sbin/
 	$(INSTALL_BIN) ./files/sf_wpad $(1)/usr/sbin/
+	$(INSTALL_BIN) ./files/rf_gain_table2_2g4.sh $(1)/usr/sbin/
+	$(INSTALL_BIN) ./files/rf_gain_table_def_2g4.sh $(1)/usr/sbin/
+	$(INSTALL_BIN) ./files/rf_gain_table2_5g.sh $(1)/usr/sbin/
+	$(INSTALL_BIN) ./files/rf_gain_table_def_5g.sh $(1)/usr/sbin/
 	$(LN) wpad $(1)/usr/sbin/hostapd
 	$(LN) wpad $(1)/usr/sbin/wpa_supplicant
 endef

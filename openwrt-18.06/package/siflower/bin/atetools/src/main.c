@@ -573,6 +573,8 @@ int32_t save_version_to_factory(char *version)
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + 10;
 
+  	printf("tmp.data------%s\n",tmp.data);
+
 	if(do_ioctl(SFCFG_PRIV_IOCTL_ATE, &wrq) < 0){
 		 printf("SFCFG_PRIV_IOCTL_ATE ioctl SFCFG_CMD_ATE_SAVE_TO_FLASH failed\n");
 		  return -1;
@@ -634,6 +636,7 @@ int32_t save_power_table_to_factory(uint32_t length,uint32_t offset){
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
 
 	printf("length :%d\n",length);
+  	//printf("tmp.data------%s\n",tmp.data);
 
 	if(do_ioctl(SFCFG_PRIV_IOCTL_ATE, &wrq) < 0){
 		 printf("SFCFG_PRIV_IOCTL_ATE ioctl SFCFG_CMD_ATE_SAVE_TO_FLASH failed\n");
@@ -777,6 +780,7 @@ int32_t read_iw_reg(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata,20);
+	printf("tmp.data= %s---------\n",tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -822,6 +826,7 @@ int32_t write_iw_reg(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata,tmp.length);
+	printf("tmp.data= %s---------\n",tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1011,6 +1016,7 @@ int32_t set_phy_bandwidth(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata,10);
+	//printf("tmp.data= %s---------\n",tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1038,6 +1044,7 @@ int32_t set_phy_chan_freq(char *tmpdata)
 	tmp.sequence    = 1;
 
 	strncpy(tmp.data,tmpdata,10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1065,6 +1072,7 @@ int32_t set_phy_center_freq1(char *tmpdata)
 	tmp.sequence    = 1;
 
 	strncpy(tmp.data,tmpdata,10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1091,6 +1099,7 @@ int32_t set_phy_mode(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1119,6 +1128,7 @@ int32_t set_phy_rate_idx(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1146,6 +1156,7 @@ int32_t set_phy_use_sgi(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1173,6 +1184,7 @@ int32_t set_phy_preamble(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1209,7 +1221,7 @@ int32_t get_factory_power(char *channel,char *bw,char *mode,char *mcs,char *gain
 	tmp.sequence    = 1;
 
 	sprintf(tmp.data,"%s %s %s %s %s %s",channel,bw,mode,mcs,gain_mode,band);
-
+	printf("tmp.data==== %s--------------\n",tmp.data);
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
 
@@ -1218,7 +1230,7 @@ int32_t get_factory_power(char *channel,char *bw,char *mode,char *mcs,char *gain
 		return -1;
 	 }
 	 memcpy(&power, wrq.u.data.pointer, 4);
-	printf("power: %d\n", power);
+
 	 return power;
 }
 
@@ -1509,6 +1521,7 @@ int32_t set_pkg_bandwidth(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata,10);
+	//printf("tmp.data= %s---------\n",tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1593,6 +1606,7 @@ int32_t set_pkg_frame_length(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1619,6 +1633,7 @@ int32_t set_pkg_frame_num(char *tmpdata)
 	tmp.sequence    = 1;
 
 	strncpy(tmp.data,tmpdata,10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1644,6 +1659,7 @@ int32_t set_pkg_macbypass_interval(char *tmpdata)
 	tmp.sequence    = 1;
 
 	strncpy(tmp.data,tmpdata,10);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1669,6 +1685,7 @@ int32_t set_pkg_fc(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1696,6 +1713,7 @@ int32_t set_pkg_dur(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1723,6 +1741,7 @@ int32_t set_pkg_bssid(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1750,6 +1769,7 @@ int32_t set_pkg_da(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1777,6 +1797,7 @@ int32_t set_pkg_sa(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1801,6 +1822,7 @@ int32_t set_txvector_param(char *tmpdata){
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -1826,6 +1848,7 @@ int32_t set_pkg_seqc(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, 20);
+	//printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -2427,6 +2450,7 @@ int32_t save_XO_config_to_flash(char *tmpdata)
 	tmp.sequence    = 1;
 
 	memcpy(tmp.data,tmpdata, tmp.length);
+	printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
@@ -2452,6 +2476,7 @@ int32_t save_XO_config_to_flash(char *tmpdata)
 	tmp.sequence    = 1;
 
 	sprintf(tmp.data,"%s %s %s %s",channel,bw,mode,mcs);
+	printf("tmp.data==== %s--------------\n",tmp.data);
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;
 
@@ -2594,6 +2619,7 @@ int32_t save_power_config_to_flash(uint16_t tmpdata, uint16_t channel, uint16_t 
 	}
 	printf("offset:%d\n",offset);
 	sprintf(tmp.data,"1%02hu0%4d",tmpdata,offset + 2048 + 4);//factory form 2048 begin and 4 bytes form 2048 to 2052  save xo;
+	printf("tmp.data= %s---------\n", tmp.data);
 
 	wrq.u.data.pointer = (caddr_t)&tmp;
 	wrq.u.data.length = sizeof(struct sfcfghdr) - sizeof(((struct sfcfghdr *)0)->data) + tmp.length;

@@ -1,9 +1,0 @@
-config setting 'andlink'
-	option gwtoken	""
-	option deviceid ""
-	option devicetoken ""
-	option andlinktoken ""
-	option SSID	""
-	option password ""
-	option encrypt ""
-	option channel ""	

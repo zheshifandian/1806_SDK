@@ -1,0 +1,12 @@
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/hostapd.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.c
+@@ -210,7 +210,6 @@ void hostapd_sta_deauth_all(struct hosta
+ 	for (j = 0; j < iface->num_bss; j++) {
+ 		hostapd_flush_old_stations(iface->bss[j],
+ 					   WLAN_REASON_PREV_AUTH_NOT_VALID);
+-		hostapd_broadcast_wep_clear(iface->bss[j]);
+ 
+ #ifndef CONFIG_NO_RADIUS
+ 		/* TODO: update dynamic data based on changed configuration

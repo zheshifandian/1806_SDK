@@ -403,6 +403,9 @@ flowoffload_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	if (ct == NULL)
 		return XT_CONTINUE;
 
+	ct->udp_frag_stat &= ~0x3;
+	ct->udp_checksum_stat &= ~0x3;
+
 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
 	case IPPROTO_TCP:
 		if (ct->proto.tcp.state != TCP_CONNTRACK_ESTABLISHED)
@@ -461,13 +464,13 @@ flowoffload_tg(struct sk_buff *skb, const struct xt_action_param *par)
 		}
 
 		if(sf_hnat_udp_check & 0x1){
-			if (ct->udp_checksum_stat != 0x3){
+			if ((ct->udp_checksum_stat & 0x3) != 0x3) {
 				//printk("============bypass checksum!=3  sport is:%d dport is:%d\n",ntohs(udph->source), ntohs(udph->dest));
 				return XT_CONTINUE;
 			}
 		}
 
-		if (ct->udp_frag_stat != 0x3){
+		if ((ct->udp_frag_stat & 0x3)!= 0x3) {
 			// bypass udp fragment pkt
 			return XT_CONTINUE;
 		}

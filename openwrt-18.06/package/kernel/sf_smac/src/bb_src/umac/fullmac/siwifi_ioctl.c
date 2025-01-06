@@ -3066,7 +3066,7 @@ static int siwifi_ioctl_do_ate_macbypass_tx_start(struct siwifi_hw *siwifi_hw,
     int status = SIWIFI_IOCTL_RET_SUCCESS;
     uint32_t base_addr = 0xB1000000;
     struct cfg80211_chan_def *chandef;
-    uint8_t txvec[15] = {0};
+    uint8_t txvec[16] = {0};
     uint32_t txvec_idx_max = 15;
     uint32_t txvec_idx=0;
     uint32_t delay =1000;

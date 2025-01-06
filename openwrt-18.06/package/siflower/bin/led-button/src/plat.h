@@ -26,6 +26,8 @@ enum {
 	BOARD_13, /* SF19A28_REP */
 	BOARD_14, /* SF19A28_AC28S */
 	BOARD_15, /* SF19A28_BPI */
+	BOARD_16, /* SF19A28_REP_SW */
+	BOARD_17, /* SF19A28_REP_PHY */
 	BOARD_MAX, /* not used */
 };
 

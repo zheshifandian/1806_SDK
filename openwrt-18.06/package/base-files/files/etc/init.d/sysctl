@@ -8,7 +8,7 @@ apply_defaults() {
 	local min_free frag_low_thresh frag_high_thresh
 
 	#Fixed SF oom bug
-	min_free=4096
+	min_free=1024
 	#if [ "$mem" -gt 65536 ]; then # 128M
 	#	min_free=16384
 	#elif [ "$mem" -gt 32768 ]; then # 64M

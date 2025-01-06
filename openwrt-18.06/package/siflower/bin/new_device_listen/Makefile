@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2012 OpenWrt.org
+# Copyright @ 2024 Siflower
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -53,10 +53,7 @@ define Package/new_device_listen/install
 	$(INSTALL_BIN) ./files/device_listen $(1)/etc/init.d/
 	$(INSTALL_BIN) ./files/devlist $(1)/etc/config/
 	$(INSTALL_BIN) ./files/wldevlist $(1)/etc/config/
-	$(INSTALL_BIN) ./files/meshlist $(1)/etc/config/
 	$(INSTALL_BIN) ./files/dev.sh $(1)/sbin/
-	$(INSTALL_BIN) ./files/wan_detect.sh $(1)/sbin/
-	$(INSTALL_BIN) ./files/easy_mesh.sh $(1)/sbin/
 endef
 
 $(eval $(call BuildPackage,new_device_listen))

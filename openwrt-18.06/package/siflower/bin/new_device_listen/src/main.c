@@ -27,6 +27,7 @@
 #include "cJSON.h"
 #include "sf_factory_read.h"
 
+#define BUFFER_SIZE 1024
 #define WDS_PORT    1111
 
 #ifdef URLLIST
@@ -46,18 +47,13 @@
 #define WIFI_CUSTOM_LISTEN_PORT 7892
 #endif
 
-#define FETCH_MESSAGE_WAIT_TIMEOUT_SECONDS 5
-
 char XCLOUD_REMOTE_ADDR[64] = {0};
 char XCLOUD_REMOTE_FUNCTION_ADDR[64] = {0};
 char XCLOUD_REMOTE_DATA_ADDR[64] = {0};
 
 volatile int g_force_exit_signal = 0;
-volatile bool g_mesh_slave = false;
-mesh_msg_q *g_mesh_msg_queue = NULL;
 
 struct uloop_fd wds_fd;
-struct uloop_fd mesh_fd;
 struct uloop_fd netlink_fd;
 struct uloop_fd arp_event_fd;
 struct uloop_fd dps_fd;
@@ -75,6 +71,7 @@ extern void handle_ts_netlink_event(struct uloop_fd *rth, unsigned int uevents);
 #ifdef USE_CUSTOM_SOCKET
 extern void handle_custom_wifi_events(struct uloop_fd *rth, unsigned int uevents);
 #endif
+
 
 typedef struct wds_msg{
 	int fd;
@@ -104,7 +101,7 @@ static int iwevent_process(void* args)
 	ret = getUciConfig("network", "wan", "ifname", wan_if);
 	if(ret < 0 ){
 		LOG("Get wan ifname fail\n");
-		return ret;
+		return NULL;
 	}
 
 	wan_ifi = name2index(wan_if);
@@ -296,7 +293,7 @@ static void wds_cb(struct uloop_fd *u,unsigned int events){
 	struct sockaddr_in clt_addr;
 	socklen_t sock_len;
 	char buf[BUFFER_SIZE] = {0};
-	int32_t len = 0, ret = -1;
+	int32_t len = 0, val = 1, ret = -1;
 	int32_t fd = u->fd;
 
 	pthread_attr_init(&att);
@@ -322,7 +319,6 @@ static void wds_cb(struct uloop_fd *u,unsigned int events){
 	}
 	return;
 }
-
 static int wds_socket_server(void *args)
 {
 	int32_t fd;
@@ -362,287 +358,16 @@ static int wds_socket_server(void *args)
 	return 0;
 }
 
-/**
- * Create the mesh msg queue
- */
-mesh_msg_q *create_mesh_msg_queue(void)
-{
-	mesh_msg_q *newQueue = (mesh_msg_q *)malloc(sizeof(mesh_msg_q));
-	newQueue->count = 0;
-	newQueue->header = NULL;
-	newQueue->tail = NULL;
-	pthread_mutex_init(&newQueue->lock,NULL);
-	sem_init (&newQueue->sem, 0, 0);
-	return newQueue;
-}
-
-/**
- * Free the mesh msg queue
- */
-int destory_mesh_msg_queue(mesh_msg_q *msgQueue)
-{
-	int ret = -1;
-	if(msgQueue)
-	{
-		pthread_mutex_lock(&msgQueue->lock);
-		mesh_msg *msg = msgQueue->header;
-		while(msg){
-			mesh_msg *next = msg->next;
-			free(msg);
-			msg = next;
-		}
-		msgQueue->header = NULL;
-		msgQueue->tail = NULL;
-		ret = sem_destroy(&msgQueue->sem);
-		pthread_mutex_unlock(&msgQueue->lock);
-		ret |= pthread_mutex_destroy(&msgQueue->lock);
-		free(msgQueue);
-	}
-	return ret;
-}
-
-/*
- * Get the msg from the queue
- */
-mesh_msg *fetch_mesh_msg(mesh_msg_q *msg_queue, int blocked, int timeouts)
-{
-	mesh_msg *ret = NULL;
-	if(blocked)
-	{
-		if(timeouts == -1){
-			sem_wait(&msg_queue->sem);
-		}else{
-			struct timespec ts;
-			clock_gettime(CLOCK_REALTIME, &ts);
-			ts.tv_sec += timeouts;
-			sem_timedwait(&msg_queue->sem, &ts);
-		}
-	}
-	else{
-			sem_trywait(&msg_queue->sem);
-		}
-
-	pthread_mutex_lock(&msg_queue->lock);
-	if(msg_queue->header == NULL){
-			ret = NULL;
-	}else{
-		ret = msg_queue->header;
-		msg_queue->header = ret->next;
-		if(ret == msg_queue->tail) msg_queue->tail = NULL;
-		msg_queue->count--;
-	}
-	pthread_mutex_unlock (&msg_queue->lock);
-	return ret;
-}
-
-/*
- * Send the message into the queue
- */
-int send_mesh_message(mesh_msg_q *msg_queue, void *msg)
-{
-	int ret = -1;
-	pthread_mutex_lock(&msg_queue->lock);
-	mesh_msg *Msg = (mesh_msg *)msg;
-	Msg->next = NULL;
-
-	if(!msg_queue->tail){
-		Msg->next = NULL;
-		msg_queue->tail = Msg;
-		msg_queue->header = Msg;
-	}else{
-		mesh_msg *tail = msg_queue->tail;
-		tail->next = Msg;
-		msg_queue->tail = Msg;
-	}
-	msg_queue->count++;
-	ret = sem_post(&msg_queue->sem);
-	pthread_mutex_unlock(&msg_queue->lock);
-	return ret;
-}
-
-/**
- * Mesh slave device updown msg handler
- */
-static void *mesh_msg_handler(void *param)
-{
-	char cmd[256] = {0}, *rtMac = NULL, *devMac = NULL, *dev_name = NULL;
-	int devPort, updown, is_wireless;
-
-	mesh_msg_q *mesh_msg_queue = (mesh_msg_q *)param;
-	while(1) {
-		mesh_msg *msg = fetch_mesh_msg(mesh_msg_queue, 0, FETCH_MESSAGE_WAIT_TIMEOUT_SECONDS);
-		if(msg != NULL){
-
-			cJSON *data = cJSON_Parse(msg->buf);
-			if (data == NULL){
-				LOG("[server] mesh json msg format error\n");
-				free(msg);
-				continue;
-			}
-
-			is_wireless = cJSON_GetObjectItem(data, "is_wireless")->valueint;
-			if (is_wireless) {
-				devMac = cJSON_GetObjectItem(data, "devMac")->valuestring;
-				dev_name = cJSON_GetObjectItem(data, "dev")->valuestring;
-			}else {
-				devPort = cJSON_GetObjectItem(data, "devPort")->valueint;
-			}
-
-			updown  = cJSON_GetObjectItem(data, "updown")->valueint;
-			cJSON *tmp = cJSON_GetObjectItem(data, "rtMac");
-			if (tmp)
-				rtMac = tmp->valuestring;
-
-			if (!rtMac){
-				LOG("[server] mesh updown msg error!!! can not get rtMac\n");
-				cJSON_Delete(data);
-				free(msg);
-				return NULL;
-			}
-
-			if (is_wireless) {
-				sprintf(cmd, "/sbin/dev.sh %d %s %s %d %s",
-						is_wireless, devMac, dev_name, updown, rtMac);
-			}else {
-				sprintf(cmd, "/sbin/dev.sh %d %d %d %s",
-						is_wireless, devPort, updown, rtMac);
-			}
-
-			LOG("[server] mesh exec cmd:%s\n", cmd);
-			system(cmd);
-			cJSON_Delete(data);
-			memset(cmd, 0, sizeof(cmd));
-			free(msg);
-		}
-	}
-}
-
-/**
- * Mesh master handle slave device updown event
- */
-static void mesh_cb(struct uloop_fd *u, unsigned int events){
-	socklen_t sock_len;
-	struct sockaddr_in clt_addr;
-	char buf[BUFFER_SIZE] = {0};
-	int32_t len = 0, ret = -1;
-	int32_t fd = u->fd;
-
-	sock_len = sizeof(clt_addr);
-	if ((len = recvfrom(fd, buf, BUFFER_SIZE, 0,
-					(struct sockaddr*)&clt_addr, &sock_len)) < 0){
-		LOG( "[server] mesh receive message fail from:%s, break\n",
-				inet_ntoa(clt_addr.sin_addr));
-		return;
-	}
-
-	LOG( "[server] mesh receive message from:ip %s, len:%d content:%s\n",
-			inet_ntoa(clt_addr.sin_addr), len, buf);
-
-	struct mesh_msg *msg = malloc(sizeof(struct mesh_msg));
-	msg->fd = fd;
-	msg->sock_len = sock_len;
-	memcpy(msg->buf, buf, len);
-	memcpy(&msg->sock_addr, &clt_addr, sock_len);
-
-	ret = send_mesh_message(g_mesh_msg_queue, (void *)msg);
-}
-
-/**
- * Mesh master manage slave device updown event socket server
- */
-static int mesh_socket_server(void *args)
-{
-	int32_t fd;
-	struct sockaddr_in srv_addr;
-	int32_t val = 1;
-
-	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if(fd < 0)
-	{
-		LOG("[server] can't create mesh master socket!\n");
-		return -1;
-	}
-
-	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val))) {
-		LOG("[server] mesh master setsockopt error!\n");
-		return -1;
-	}
-
-	bzero(&srv_addr, sizeof(srv_addr));
-	srv_addr.sin_family = AF_INET;
-	srv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	srv_addr.sin_port = htons(MESH_PORT);
-
-	if (bind(fd, (struct sockaddr*)&srv_addr, sizeof(srv_addr)) < 0)
-	{
-		LOG("[server] mesh master bind error!\n");
-		return -1;
-	}
-
-	mesh_fd.fd = fd;
-	mesh_fd.cb = mesh_cb;
-	mesh_fd.registered = false;
-	mesh_fd.flags = ULOOP_READ;
-	LOG("[server] mesh master socket setup!\n");
-
-	return 0;
-}
-
 void init_devlist(){
 	system("/sbin/init_devlist");
-}
-
-void init_meshlist(){
-	system("/sbin/dev.sh 2");
-}
-
-bool is_mesh_master(void)
-{
-	struct uci_package *pkg;
-	struct uci_context *ctx = uci_alloc_context();;
-	struct uci_section *s;
-	struct uci_element *e;
-	const char *mode_name, *enable;
-	bool ret = false;
-
-	uci_set_confdir(ctx, "/etc/config");
-	if (uci_load(ctx, "prplmesh", &pkg) == 0){
-
-		uci_foreach_element(&pkg->sections, e)
-		{
-			s = uci_to_section(e);
-			if (strcmp(s->type, "prplmesh"))
-				continue;
-
-			mode_name = uci_lookup_option_string(ctx, s, "management_mode");
-			if (!mode_name)
-				continue;
-
-			enable = uci_lookup_option_string(ctx, s, "enable");
-			if (!enable)
-				continue;
-
-			if (strstr(mode_name, "Controller")) {
-				if (atoi(enable) == 1)
-					ret = true;
-				break;
-			} else {
-				g_mesh_slave = true;
-			}
-		}
-		uci_unload(ctx, pkg);
-	}
-
-	uci_free_context(ctx);
-	return ret;
 }
 
 int32_t main(int32_t argc, char *argv[])
 {
 
-	int wds_ret = -1, mesh_ret = -1, iwevent_ret = -1;
+	int wds_ret, iwevent_ret;
 
-	//signal(SIGINT, sighandler);
+//	signal(SIGINT, sighandler);
 
 	init_devlist();
 
@@ -653,22 +378,6 @@ int32_t main(int32_t argc, char *argv[])
 		LOG("start listen wds event\n");
 		uloop_fd_add(&wds_fd,ULOOP_READ);
 	}
-
-	if (is_mesh_master()) {
-		init_meshlist();
-		mesh_ret = mesh_socket_server(NULL);
-		if(mesh_ret == 0){
-			LOG("start listen mesh device updown event\n");
-			uloop_fd_add(&mesh_fd,ULOOP_READ);
-			pthread_t meshThread;
-			pthread_attr_t att;
-			pthread_attr_init(&att);
-			pthread_attr_setdetachstate(&att, PTHREAD_CREATE_DETACHED);
-			g_mesh_msg_queue = create_mesh_msg_queue();
-			pthread_create(&meshThread, &att, mesh_msg_handler, g_mesh_msg_queue);
-		}
-	}
-
 	iwevent_ret = iwevent_process(NULL);
 	if(iwevent_ret == 0){
 		LOG("start listen event about ts nl80211 arp dps usb wifi\n");
@@ -683,14 +392,11 @@ int32_t main(int32_t argc, char *argv[])
 	}
 
 	system("/sbin/dev.sh");
+
 	uloop_run();
 
 	if(wds_ret == 0){
 		uloop_fd_delete(&wds_fd);
-	}
-	if(mesh_ret == 0){
-		uloop_fd_delete(&mesh_fd);
-		destory_mesh_msg_queue(g_mesh_msg_queue);
 	}
 	if(iwevent_ret == 0){
 		uloop_fd_delete(&ts_fd);

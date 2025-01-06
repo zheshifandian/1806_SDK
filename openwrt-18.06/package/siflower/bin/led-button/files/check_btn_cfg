@@ -66,4 +66,3 @@ comfirm_press_action
 fi
 config_foreach check_btn_event btn_config
 return ${retval}
-

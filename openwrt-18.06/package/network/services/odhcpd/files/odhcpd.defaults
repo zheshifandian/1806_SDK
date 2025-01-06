@@ -3,17 +3,36 @@ uci -q get dhcp.odhcpd && exit 0
 touch /etc/config/dhcp
 
 protocol=`uci get network.lan.proto`
+wan_protocol=`uci get network.wan.proto`
 
-case "$protocol" in
-# only enable server mode on statically addressed lan ports
-"static") [ -e /proc/sys/net/ipv6 ] && MODE=server || MODE=disabled ;;
-*) MODE=disabled ;;
-esac
+if [ "$wan_protocol" != "pppoe" ]; then
+    MODE=relay
+else
+    case "$protocol" in
+    # only enable server mode on statically addressed lan ports
+    "static") [ -e /proc/sys/net/ipv6 ] && MODE=server || MODE=disabled ;;
+    *) MODE=disabled ;;
+    esac
+fi
 
 if [ "$MODE" == "server" ]; then
-    a="1"
+    ra_default="1"
 else
-    a=""
+    ra_default=""
+fi
+
+if [ "$MODE" == "relay" ]; then
+    ra_management="1"
+    ndp="relay"
+    wan_dhcpv6="relay"
+    wan_ra="relay"
+    wan_master="1"
+else
+    ra_management=""
+    ndp=""
+    wan_dhcpv6=""
+    wan_ra=""
+    wan_master=""
 fi
 
 uci batch <<EOF
@@ -24,6 +43,13 @@ set dhcp.odhcpd.leasetrigger=/usr/sbin/odhcpd-update
 set dhcp.odhcpd.loglevel=4
 set dhcp.lan.dhcpv6=$MODE
 set dhcp.lan.ra=$MODE
-set dhcp.lan.ra_default=$a
+set dhcp.lan.ndp=$MODE
+set dhcp.lan.ra_default=$ra_default
+set dhcp.lan.ra_management=$ra_management
+set dhcp.lan.ndp=$ndp
+set dhcp.wan.dhcpv6=$wan_dhcpv6
+set dhcp.wan.ra=$wan_ra
+set dhcp.wan.ndp=$ndp
+set dhcp.wan.master=$wan_master
 commit dhcp
 EOF

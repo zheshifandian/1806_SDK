@@ -469,11 +469,6 @@ static int intel7084_reset_vlan(struct switch_dev *dev)
 	struct list_head *pos = NULL;
 	struct list_head *tmp = NULL;
 
-	memset(&vlan_entries, 0, sizeof(struct vlan_entry));
-
-	if (!vlan_entries.entry_list.prev)
-		INIT_LIST_HEAD(&(vlan_entries.entry_list));
-
 	list_for_each_safe(pos, tmp, &(vlan_entries.entry_list)) {
 		entry = list_entry(pos, struct vlan_entry, entry_list);
 		list_del(pos);

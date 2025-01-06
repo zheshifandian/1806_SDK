@@ -34,16 +34,6 @@ define Package/webubus/description
  Siflower webubus interface api.
 endef
 
-ifeq ($(CONFIG_VERSION_MANUFACTURER),JUOVI)
-TARGET_CFLAGS += -DWDS_SSID_FOLLOW
-endif
-
-define Build/Compile
-    $(MAKE) -C $(PKG_BUILD_DIR) \
-    	CC="$(TARGET_CC)" \
-    	CFLAGS="$(TARGET_CFLAGS) -Wall -Werror"
-endef
-
 define Package/webubus/install
 	$(INSTALL_DIR) $(1)/usr/lib/rpcd
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/networknew/network.so $(1)/usr/lib/rpcd/

@@ -4,7 +4,7 @@
  * Version 2 by Charles Cazabon <charlesc-memtester@pyropus.ca>
  * Version 3 not publicly released.
  * Version 4 rewrite:
- * Copyright (C) 2004-2012 Charles Cazabon <charlesc-memtester@pyropus.ca>
+ * Copyright @ 2024 Siflower
  * Licensed under the terms of the GNU General Public License version 2 (only).
  * See the file COPYING for details.
  *

@@ -34,6 +34,36 @@
 #endif
 struct sfax8_factory_read_context *f_read_ctx = NULL;
 
+static char factory_read_names[27][22] = {
+	"mtd-mac-address",
+	"mtd-mac-address",
+	"mtd-mac-address",
+	"mtd-mac-address",
+	"mtd-mac-address",
+	"mtd-sn-number",
+	"mtd-sn-flag",
+	"mtd-pcba-boot",
+	"mtd-hardware-ver-flag",
+	"mtd-hardware-ver",
+	"mtd-model-ver-flag",
+	"mtd-model-ver",
+	"mtd-country-id",
+	"mtd-hw-feature",
+	"mtd-vender-flag",
+	"mtd-vender",
+	"mtd-product-key-flag",
+	"mtd-product-key",
+	"mtd-login-info-flag",
+	"mtd-login-info",
+	"mtd-rom-type-flag",
+	"mtd-rom-type",
+	"mtd-wifi-version",
+	"mtd-rf-xo-config",
+	"mtd-wifi-info",
+	"mtd-cooling-temp",
+	"mtd-gmac-delay",
+};
+
 int get_value_through_mtd(struct device_node *np,
 		const char *name, int start_offset, size_t len, unsigned char *buffer)
 {
@@ -183,6 +213,146 @@ static int set_mac_address_mtd(struct device_node *np,const char *name,char *mac
 	return ret;
 }
 
+int sfax8_set_int_mtd(int id, uint32_t *ctx_buf, uint32_t val)
+{
+	const char *name = factory_read_names[id];
+	struct device_node *np = NULL, *mtd_np = NULL;
+	struct mtd_info *mtd;
+	struct erase_info ei;
+	phandle phandle;
+	size_t retlen;
+	int i, size, ret, offset;
+	const char *part;
+	const __be32 *list;
+	unsigned char *buf = NULL;
+	unsigned char tmp_buf[4];
+
+	memset(tmp_buf, 0x0, 4);
+
+	if (name != NULL && f_read_ctx != NULL) {
+		np = f_read_ctx->np;
+		if (!np) {
+			printk("error! device node is null\n");
+			return -1;
+		}
+		list = of_get_property(np, name, &size);
+		if (!list)
+			return -2;
+
+		phandle = be32_to_cpup(list++);
+		if (phandle)
+			mtd_np = of_find_node_by_phandle(phandle);
+
+		if (!mtd_np)
+			return -3;
+
+		part = of_get_property(mtd_np, "label", NULL);
+		if (!part)
+			part = mtd_np->name;
+		mtd = get_mtd_device_nm(part);
+		offset = be32_to_cpup(list);
+	} else {
+		return -1;
+	}
+	if (IS_ERR(mtd)) {
+		return PTR_ERR(mtd);
+	}
+
+	buf = kmalloc(mtd->erasesize, GFP_KERNEL);
+	ret = mtd_read(mtd, offset - (offset % mtd->erasesize), mtd->erasesize, &retlen, buf);
+
+	ei.mtd = mtd;
+	ei.callback = NULL;
+	ei.addr = 0;
+	ei.len = mtd->erasesize;
+	ei.priv = 0;
+	ret = mtd_erase(mtd, &ei);
+
+	*ctx_buf = val;
+	for (i = 0; i < 4; i++, val >>= 8) {
+		tmp_buf[i] = val & 0xff;
+	}
+	memcpy(buf + (offset % mtd->erasesize), tmp_buf, 4);
+
+	ret = mtd_write(mtd, offset - (offset % mtd->erasesize), mtd->erasesize, &retlen, buf);
+	kfree(buf);
+	put_mtd_device(mtd);
+	printk("set %s: 0x%x\n", name, *ctx_buf);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(sfax8_set_int_mtd);
+
+int sfax8_set_char_mtd(int id, unsigned char *ctx_buf, unsigned char *str, const size_t len)
+{
+	const char *name = factory_read_names[id];
+	struct device_node *np = NULL, *mtd_np = NULL;
+	struct mtd_info *mtd;
+	struct erase_info ei;
+	phandle phandle;
+	size_t retlen;
+	int i, size, ret, offset;
+	const char *part;
+	const __be32 *list;
+	unsigned char *buf = NULL;
+	unsigned char tmp_buf[len];
+
+	memset(tmp_buf, 0x0, len);
+
+	if (name != NULL && f_read_ctx != NULL) {
+		np = f_read_ctx->np;
+		if (!np) {
+			printk("error! device node is null\n");
+			return -1;
+		}
+		list = of_get_property(np, name, &size);
+		if (!list)
+			return -2;
+
+		phandle = be32_to_cpup(list++);
+		if (phandle)
+			mtd_np = of_find_node_by_phandle(phandle);
+
+		if (!mtd_np)
+			return -3;
+
+		part = of_get_property(mtd_np, "label", NULL);
+		if (!part)
+			part = mtd_np->name;
+		mtd = get_mtd_device_nm(part);
+		offset = be32_to_cpup(list);
+	} else {
+		return -1;
+	}
+	if (IS_ERR(mtd)) {
+		return PTR_ERR(mtd);
+	}
+
+	buf = kmalloc(mtd->erasesize, GFP_KERNEL);
+	ret = mtd_read(mtd, offset - (offset % mtd->erasesize), mtd->erasesize, &retlen, buf);
+
+	ei.mtd = mtd;
+	ei.callback = NULL;
+	ei.addr = 0;
+	ei.len = mtd->erasesize;
+	ei.priv = 0;
+	ret = mtd_erase(mtd, &ei);
+
+	sprintf(ctx_buf, "%s", str);
+	sprintf(tmp_buf, "%s", str);
+	memcpy(buf + (offset % mtd->erasesize), tmp_buf, len);
+
+	ret = mtd_write(mtd, offset - (offset % mtd->erasesize), mtd->erasesize, &retlen, buf);
+	kfree(buf);
+	put_mtd_device(mtd);
+	printk("set %s: %s\n", name, str);
+	for (i = 0; i < len; i++) {
+		printk("0x%02x\n", str[i]);
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(sfax8_set_char_mtd);
+
 int sfax8_set_gmac_delay_mtd(const char *name, unsigned short gmac_delay)
 {
 	struct device_node *np = NULL, *mtd_np = NULL;
@@ -248,7 +418,7 @@ EXPORT_SYMBOL_GPL(sfax8_set_gmac_delay_mtd);
 
 #define SUPPORT_WIFI_VIF_CNT 4
 
-static void handle_macaddr_internal(struct device_node *np,struct sfax8_factory_read_context *priv)
+void handle_macaddr_internal(struct device_node *np,struct sfax8_factory_read_context *priv)
 {
 	//last char of wifi base address must be 4 aligned in current version
 	unsigned int last_char = (unsigned int)priv->macaddr[5];
@@ -265,6 +435,7 @@ static void handle_macaddr_internal(struct device_node *np,struct sfax8_factory_
 	memcpy(priv->macaddr0,priv->macaddr,MACADDR_SIZE);
 	memcpy(priv->wifi_lb_macaddr,priv->macaddr,MACADDR_SIZE);
 	memcpy(priv->wifi_hb_macaddr,priv->macaddr,MACADDR_SIZE);
+	memcpy(priv->lan_macaddr,priv->macaddr,MACADDR_SIZE);
 	memcpy(priv->wan_macaddr,priv->macaddr,MACADDR_SIZE);
 #ifdef CONFIG_SFAX8_HNAT_MULTI_WAN
 	memcpy(priv->lan2_macaddr,priv->macaddr,MACADDR_SIZE);
@@ -306,6 +477,7 @@ static void handle_macaddr_internal(struct device_node *np,struct sfax8_factory_
 	if(inc_lb == 0){
 		//pick the last 2 address as lan/wan address
 		inc_sf_mac_addr(priv->macaddr,8);
+		inc_sf_mac_addr(priv->lan_macaddr,8);
 		inc_sf_mac_addr(priv->wan_macaddr,9);
 	}else if(inc_lb == 3 || inc_lb == 2){
 		//pick the first 2 address as lan/wan address
@@ -320,6 +492,7 @@ static void handle_macaddr_internal(struct device_node *np,struct sfax8_factory_
 		printk("handle_macaddr_internal should nerver get here %d!!!\n",inc_lb);
 	}
 }
+EXPORT_SYMBOL_GPL(handle_macaddr_internal);
 
 static void factory_print_string(const char *info, const unsigned char *str, int len)
 {

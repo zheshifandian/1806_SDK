@@ -2211,7 +2211,7 @@ static ssize_t siwifi_dbgfs_txq_read(struct file *file ,
     if (*ppos)
         return 0;
     printk("sz= %d\n", bufsz);
-    bufsz = min_t(size_t, bufsz, count);
+    bufsz = min_t(size_t, bufsz, count * 2);
     buf = siwifi_kmalloc(bufsz, GFP_ATOMIC);
     if (buf == NULL)
         return 0;
@@ -2798,7 +2798,8 @@ static ssize_t siwifi_dbgfs_tx_ctrl_write(struct file *file,
     if (val == NX_TXDESC_CNT0) {
         siwifi_update_antenna_number(priv, 1);
     } else if (0 <= val && val < NX_TXDESC_CNT0) {
-        siwifi_update_antenna_number(priv, 2);
+        //siwifi_update_antenna_number(priv, 2);
+        printk("[DEBUG] ---reach limit temp, start ctrl--- \n");
     } else {
         printk("Input error !\n");
         return count;
@@ -5010,6 +5011,32 @@ static ssize_t siwifi_dbgfs_rc_fixed_rate_idx_write(struct file *file,
 
 DEBUGFS_WRITE_FILE_OPS(rc_fixed_rate_idx);
 
+static ssize_t siwifi_dbgfs_rc_set_no_ss_write(struct file *file,
+                                        const char __user *user_buf,
+                                        size_t count, loff_t *ppos)
+{
+    struct siwifi_hw *priv = private_data_proc_debug(file->private_data);
+    char buf[32];
+    u8 val;
+    size_t len = min_t(size_t, count, sizeof(buf) - 1);
+    if (copy_from_user(buf, user_buf, len))
+        return -EFAULT;
+
+    buf[len] = '\0';
+
+    if (sscanf(buf, "%hhu", &val) > 0) {
+        printk("siwifi_dbgfs_rc_set_no_ss_write %hhu", val);
+        if(val == 0 || val == 1)
+            siwifi_send_me_rc_set_no_ss(priv, val);
+        else
+            return 0;
+	}
+
+    return count;
+}
+
+DEBUGFS_WRITE_FILE_OPS(rc_set_no_ss);
+
 static ssize_t siwifi_dbgfs_disable_wmm_edca_read(struct file *file,
                                     char __user *user_buf,
                                     size_t count, loff_t *ppos)
@@ -6196,7 +6223,7 @@ int siwifi_dbgfs_register(struct siwifi_hw *siwifi_hw, const char *name)
     DEBUGFS_ADD_FILE(vendor_stat, dir_drv, S_IWUSR | S_IRUSR);
 #endif
     DEBUGFS_ADD_FILE(send_frame_custom, dir_drv, S_IWUSR | S_IRUSR);
-
+    DEBUGFS_ADD_FILE(rc_set_no_ss, dir_drv, S_IWUSR);
 #ifdef CONFIG_ENABLE_RFGAINTABLE
     DEBUGFS_ADD_FILE(rf_gain_tb_idx, dir_drv, S_IWUSR | S_IRUSR);
 #endif

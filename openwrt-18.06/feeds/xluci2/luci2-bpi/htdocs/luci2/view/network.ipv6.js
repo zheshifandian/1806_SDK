@@ -23,12 +23,20 @@ L.ui.view.extend({
 		};
 		ip6.save = function (sid) {
 			var enable = ip6.formvalue(sid);
+			var wan_proto = L.uci.get("network", "wan", "proto");
 			if (enable == false) {
 				L.uci.set("network", "wan6", "disabled", "1");
 				L.uci.set("dhcp", "lan", "dhcpv6", "disabled");
 				L.uci.set("dhcp", "lan", "ra", "disabled");
 			} else {
 				L.uci.unset("network", "wan6", "disabled");
+				if (wan_proto == "pppoe") {
+					L.uci.set("dhcp", "lan", "dhcpv6", "server");
+					L.uci.set("dhcp", "lan", "ra", "server");
+				} else {
+					L.uci.set("dhcp", "lan", "dhcpv6", "relay");
+					L.uci.set("dhcp", "lan", "ra", "relay");
+				}
 			}
 			L.uci.save();
 		};
@@ -167,37 +175,52 @@ L.ui.view.extend({
 			.value("auto", L.tr("Auto"))
 			.value("manual", L.tr("Manual"))
 			.value("disable", L.tr("Disable"));
-		dm.save = function (sid) {
-			var dhcpmode = dm.formvalue(sid);
-			if (dhcpmode == "auto") {
-				L.uci.set("dhcp", "lan", "dhcpv6", "server");
-				L.uci.set("dhcp", "lan", "ra", "server");
-				L.uci.set("network", "wan6", "ip6prefix", "");
-				L.uci.set("dhcp", "lan", "dns", "");
-				L.uci.set("dhcp", "lan", "domain", "");
-				dhcpm = "1";
-			} else if (dhcpmode == "disable") {
-				L.uci.set("dhcp", "lan", "dhcpv6", "disabled");
-				L.uci.set("dhcp", "lan", "ra", "disabled");
-				L.uci.set("network", "wan6", "ip6prefix", "");
-				L.uci.set("dhcp", "lan", "dns", "");
-				L.uci.set("dhcp", "lan", "domain", "");
-				dhcpm = "2";
-			} else if (dhcpmode == "manual") {
-				L.uci.set("dhcp", "lan", "dhcpv6", "server");
-				L.uci.set("dhcp", "lan", "ra", "server");
-				dhcpm = "3";
+			dm.save = function (sid) {
+				var dhcpmode = dm.formvalue(sid);
+				var wan_proto = L.uci.get("network", "wan", "proto");
+				if (dhcpmode == "auto") {
+					if (wan_proto == "pppoe") {
+						L.uci.set("dhcp", "lan", "dhcpv6", "server");
+						L.uci.set("dhcp", "lan", "ra", "server");
+					} else {
+						L.uci.set("dhcp", "lan", "dhcpv6", "relay");
+						L.uci.set("dhcp", "lan", "ra", "relay");
+					}
+					L.uci.unset("network", "wan6", "ip6prefix");
+					L.uci.unset("dhcp", "lan", "dns");
+					L.uci.unset("dhcp", "lan", "domain");
+				} else if (dhcpmode == "disable") {
+					L.uci.set("dhcp", "lan", "dhcpv6", "disabled");
+					L.uci.set("dhcp", "lan", "ra", "disabled");
+					L.uci.unset("network", "wan6", "ip6prefix");
+					L.uci.unset("dhcp", "lan", "dns");
+					L.uci.unset("dhcp", "lan", "domain");
+					dhcpm = "2";
+				} else if (dhcpmode == "manual") {
+					if (wan_proto == "pppoe") {
+						L.uci.set("dhcp", "lan", "dhcpv6", "server");
+						L.uci.set("dhcp", "lan", "ra", "server");
+					} else {
+						L.uci.set("dhcp", "lan", "dhcpv6", "relay");
+						L.uci.set("dhcp", "lan", "ra", "relay");
+					}
+					dhcpm = "3";
+				}
+				L.uci.save();
+			};
+			dm.ucivalue = function (sid) {
+				var lan_dhcpv6 = L.uci.get("dhcp", "lan", "dhcpv6");
+				var wan_ip6prefix = L.uci.get("network", "wan6", "ip6prefix");
+				if (lan_dhcpv6 == "server" || lan_dhcpv6 == "relay") {
+					if (wan_ip6prefix == undefined || wan_ip6prefix == "auto") {
+						return "auto";
+					} else {
+						return "manual";
+					}
+				} else if (lan_dhcpv6 == "disabled") {
+					return "disable";
+				};
 			}
-			L.uci.save();
-		};
-		dm.ucivalue = function (sid) {
-			var a = L.uci.get("dhcp", "lan", "dhcpv6");
-			var b = L.uci.get("network", "wan6", "ip6prefix");
-			if (a == "server") {
-				if (b == undefined) return "auto";
-				else return "manual";
-			} else if (a == "disabled") return "disable";
-		};
 		var prefix = l
 			.option(L.cbi.InputValue, "__ip6pre", {
 				caption: L.tr("Prefix"),

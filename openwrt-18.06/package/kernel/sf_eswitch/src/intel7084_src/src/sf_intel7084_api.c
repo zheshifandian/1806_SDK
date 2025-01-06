@@ -6676,8 +6676,6 @@ int ethsw_swapi_register(void)
 		/* Change depends on switch supported port number*/
 		pedev0[devid]->cport = RGMII_PORT0;
 		pedev0[devid]->gsw_dev = devid;
-		pedev0[devid]->mdio_id = gsw_mdio_id[devid];
-		pedev0[devid]->mdio_addr = gsw_mdio_addr[devid];
 	    if ( hw_init == 1) {
 			/* gsw software reset */
 			gsw_reg_wr(pedev0[devid],

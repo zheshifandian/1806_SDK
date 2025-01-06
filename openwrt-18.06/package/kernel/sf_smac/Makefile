@@ -58,6 +58,14 @@ define KernelPackage/sf_smac/config
 		config SFFMAC_ENABLE_RX_MEM_POOL
 			bool "enable rx memery pool for fmac"
 			default "n"
+
+		config LED_MULTICOLOUR
+			bool "enable multicolour led control"
+			default "n"
+
+		config LED_PIN_ACTIVE_LOW
+			bool "enable low active led gpio control"
+			default "n"
 	endif
 endef
 
@@ -188,6 +196,16 @@ endif
 
 ifdef CONFIG_SFAX8_FACTORY_READ
 NOSTDINC_FLAGS += -DCONFIG_SFAX8_FACTORY_READ
+endif
+
+ifdef CONFIG_LED_MULTICOLOUR
+EXTRA_KCONFIG += CONFIG_LED_MULTICOLOUR=y
+NOSTDINC_FLAGS += -DCONFIG_LED_MULTICOLOUR
+endif
+
+ifdef CONFIG_LED_PIN_ACTIVE_LOW
+EXTRA_KCONFIG += CONFIG_LED_PIN_ACTIVE_LOW=y
+NOSTDINC_FLAGS += -DCONFIG_LED_PIN_ACTIVE_LOW
 endif
 
 SFWIFI_COMPILE_TIME=$(shell date +%s)

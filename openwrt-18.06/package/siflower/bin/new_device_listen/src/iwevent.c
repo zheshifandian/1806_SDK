@@ -28,7 +28,6 @@
 struct wireless_iface * interface_cache = NULL;
 u_int16_t wan_ifi = 0;
 extern int g_force_exit_signal;
-extern bool g_mesh_slave;
 extern struct uloop_fd wifi_fd;
 void handle_custom_wifi_events(struct uloop_fd *rth, unsigned int uevents);
 
@@ -360,76 +359,6 @@ iw_get_interface_data(int   ifindex)
     return(curr);
 }
 
-static void mesh_mesg_broadcast(__u8 *devMac, char *intf, u_int32_t port, u_int32_t updown, u_int32_t is_wireless)
-{
-	struct sockaddr_in srv_addr;
-	FILE *fstream = NULL;
-	char cmd[64] = {0}, buf[20] = {0}, *s = NULL;
-	int32_t fd, val = 1;
-
-	bzero(&srv_addr, sizeof(srv_addr));
-	srv_addr.sin_family = AF_INET;
-	srv_addr.sin_port = htons(MESH_PORT);
-	srv_addr.sin_addr.s_addr = inet_addr("255.255.255.255");
-
-	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (fd < 0) {
-		LOG("[server] can't create mesh socket!\n");
-		return;
-	}
-
-	if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &val, sizeof(val))) {
-		LOG("[server] mesh clt setsockopt error!\n");
-		goto sock_err;
-	}
-
-	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val))) {
-		LOG("[server] mesh clt setsockopt error!\n");
-		goto sock_err;
-	}
-
-	cJSON *sendbuf = cJSON_CreateObject();
-	cJSON_AddNumberToObject(sendbuf, "is_wireless", is_wireless);
-	if (is_wireless) {
-		cJSON_AddStringToObject(sendbuf, "devMac", devMac);
-		cJSON_AddStringToObject(sendbuf, "dev", intf);
-		cJSON_AddNumberToObject(sendbuf, "updown", updown);
-	}else {
-		cJSON_AddNumberToObject(sendbuf, "devPort", port);
-		cJSON_AddNumberToObject(sendbuf, "updown", updown);
-	}
-
-	sprintf(cmd, "uci get network.lan.macaddr");
-	if((fstream = popen(cmd, "r")) != NULL){
-		while(fgets(buf, sizeof(buf), fstream) != NULL){
-			LOG("[server] mesh popen fsgets %s\n", buf);
-		}
-		pclose(fstream);
-		if (buf[0] != 0) {
-			// strip \n at end of buf
-			buf[strlen(buf) - 1] = 0;
-			cJSON_AddStringToObject(sendbuf, "rtMac", buf);
-		}
-	}
-
-	s = cJSON_PrintUnformatted(sendbuf);
-	if(s) {
-		LOG("[server] mesh sendbuf:%s\n", s);
-	}
-
-	if (sendto(fd, s, strlen(s), 0, (struct sockaddr*)&srv_addr, sizeof(srv_addr)) < 0){
-		LOG("[server] mesh send message fail, errno=%s\n", strerror(errno));
-	}
-
-	if (s)
-		free(s);
-	cJSON_Delete(sendbuf);
-
-sock_err:
-	close(fd);
-}
-
-
 /****************************************/
 //function: checknewdev_process
 //brief: this function is a new thread to check the associating device is new device, and update the devlist table.
@@ -474,16 +403,7 @@ void *checknewdev_process(custom_iface_ctx *custom_and_iface)
     }
 
     DB_LOG( "mac is %20s, interface is %10s, online is %d\n", mac, interface, custom_and_iface->online);
-	if (g_mesh_slave) {
-		// broadcast mesh wireless device updown event
-		mesh_mesg_broadcast(mac, interface, 1, custom_and_iface->online, 1);
-	} else {
-		// update meshlist here
-		memset(cmd, 0, sizeof(cmd));
-		sprintf(cmd, "/sbin/dev.sh 1 %s %s %d", mac, interface, custom_and_iface->online);
-		LOG("[server] mesh exec cmd: %s\n", cmd);
-		system(cmd);
-	}
+
     devinfo *device = NULL;
     device = (devinfo *)calloc(1, sizeof(devinfo));
 
@@ -724,7 +644,6 @@ void *checknewdev_process(custom_iface_ctx *custom_and_iface)
     free(device);
     free(custom_and_iface);
     LOG( "custom_and_iface free!  device free!");
-
     return NULL;
 }
 
@@ -886,9 +805,7 @@ void *check_new_wire_dev(void *arg){
 
     int ret = postDataToHttpdCommon(LOCAL_COMMAND_DEVICE_LIST_BACKSTAGE,postData,&response);
     DB_LOG( "===========periodSendDevinfoEvent======ret=%d",ret);
-	if(response.size > 0)
-		free(response.data);
-	return NULL;
+    if(response.size > 0) free(response.data);
 }
 
 void check_dev_from_boot(void){
@@ -976,9 +893,12 @@ void handle_dps_netlink_event(struct uloop_fd *rth, unsigned int uevents){
 	struct nlattr *nlattr;
 	msgtemplate_t *genlmsg;
 	socklen_t sanllen = sizeof(struct sockaddr_nl);
-	char buf[1024] = {0}, str[40] = {0};
-	u_int32_t port = 0, updown = 0;
-	int amt = 0, is_wan = 0, wan_port = -1;
+	int amt, i;
+	char buf[1024], str[40], *mac;
+	u_int32_t port;
+	u_int32_t updown;
+	int is_wan = 0, wan_port = -1;
+
 
 	amt = recvfrom(rth->fd, buf, sizeof(buf), MSG_DONTWAIT, (struct sockaddr*)&sanl, &sanllen);
 	if(amt < 0)
@@ -1005,38 +925,48 @@ void handle_dps_netlink_event(struct uloop_fd *rth, unsigned int uevents){
 	}
 
 	if(genlmsg->g.cmd == SF_CMD_GENERIC){
+		LOG("cmd SF_CMD_GENERIC\n");
 		nlattr = (struct nlattr *)GENLMSG_DATA(genlmsg);
 		if(nlattr->nla_type == SF_ETH_CMD_ATTR_DPS_PORT){
 			port = *((__u32 *)(NLA_DATA(nlattr)));
+			LOG("port is %d\n", port);
 		}
+		else
+			LOG("Not found port");
 
 		nlattr = ATTR_NEXT(nlattr);
 		if(nlattr->nla_type == SF_ETH_CMD_ATTR_DPS_LINK){
 			updown = *((__u32 *)(NLA_DATA(nlattr)));
-			}
+			LOG("updown is %d\n", updown);
+		}
+		else
+			LOG("Not found updown");
+
+		nlattr = ATTR_NEXT(nlattr);
+		if(nlattr->nla_type == SF_ETH_CMD_ATTR_DPS_MAC){
+			mac = (char *)(NLA_DATA(nlattr));
+			LOG("mac is %s\n", mac);
+		}
+		else
+			LOG("Not found mac");
 	}
 
 	get_wan_port(&wan_port);
 	if (port == wan_port)
 		is_wan = 1;
-
-	LOG("port:%u is_wan:%u updown:%u\n", port, is_wan, updown);
+	LOG("is_wan %d\n", is_wan);
 
 	if(!is_wan){
-		sprintf(str, "/sbin/dev.sh 0 %u %u", port, updown);
+		LOG("this port is lan");
+		if(updown)
+			sprintf(str, "/sbin/dev.sh %d %d %s", port, updown, mac);
+		else
+			sprintf(str, "/sbin/dev.sh %d %d", port, updown);
 		sleep(3);//when a new device connect to router,it can not get ip very soon, so sleep for waiting dhcp finsihed.
 		system(str);
-		if (g_mesh_slave) {
-			// broadcast mesh ethernet device updown event
-			mesh_mesg_broadcast(NULL, NULL, port, updown, 0);
-		}
 	}
-	else {
-		LOG("is wan\r\n");
-		sprintf(str, "sh /sbin/easy_mesh.sh %d", updown);
-		sprintf(str, "/sbin/wan_detect.sh %d", updown);
-		system(str);
-	}
+	else
+		LOG("this port is wan");
 
 	LOG( "dps_check_newdev_process has finished!");
 }
@@ -1120,7 +1050,7 @@ void handle_custom_wifi_events(struct uloop_fd *rth, unsigned int uevents)
 {
 	struct sockaddr_nl sanl;
 	socklen_t sanllen = sizeof(struct sockaddr_nl);
-	int buf_len = 0;
+	int data_len = 0,buf_len = 0;
 	char buf[1024];
 
 	struct wifi_custom_data *custom_data;

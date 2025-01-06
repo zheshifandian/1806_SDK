@@ -313,11 +313,6 @@ static int yt9215rb_reset_vlan(struct switch_dev *dev)
     }
 	SF_MDIO_UNLOCK();
 
-	memset(&vlan_entries, 0, sizeof(struct vlan_entry));
-
-	if (!vlan_entries.entry_list.prev)
-		INIT_LIST_HEAD(&(vlan_entries.entry_list));
-
 	list_for_each_safe(pos, tmp, &(vlan_entries.entry_list)) {
 		entry = list_entry(pos, struct vlan_entry, entry_list);
 		list_del(pos);
@@ -447,7 +442,7 @@ int yt9215rb_extPort_rgmii_init(int port) {
 	yt_stat_mib_enable_set(0, YT_ENABLE);
 
 	yt_nic_cpuport_mode_set(0, CPUPORT_MODE_EXTERNAL);
-	yt_nic_ext_cpuport_en_set(0, YT_ENABLE);
+	yt_nic_ext_cpuport_en_set(0, YT_DISABLE);
 	yt_nic_ext_cpuport_port_set(0, port);
 	yt_nic_ext_cputag_en_set(0, YT_DISABLE);
 

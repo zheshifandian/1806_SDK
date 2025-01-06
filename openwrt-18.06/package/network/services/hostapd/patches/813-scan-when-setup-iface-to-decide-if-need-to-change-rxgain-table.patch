@@ -1,0 +1,153 @@
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/hw_features.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/hw_features.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/hw_features.c
+@@ -520,6 +520,116 @@ static int ieee80211n_check_40mhz(struct
+ }
+
+
++static void choose_rxgain_by_scan_result(struct hostapd_iface *iface)
++{
++    struct wpa_scan_results *scan_res;
++    int i, count_co_channel_bss = 0, count_adjacent_channel_bss = 0;
++    int current_freq = hostapd_hw_get_freq(iface->bss[0], iface->conf->channel);
++
++    iface->scan_cb = NULL;
++
++    scan_res = hostapd_driver_get_scan_results(iface->bss[0]);
++    if (scan_res == NULL) {
++        hostapd_setup_interface_complete(iface, 1);
++        return;
++    }
++
++    for (i = 0; i < scan_res->num; i++) {
++        struct wpa_scan_res *bss = scan_res->res[i];
++
++        /* BSS which satisfies condition: Signal > -50 dBm */
++        if (bss->level > -50) {
++            if (bss->freq == current_freq) {
++                wpa_printf(MSG_ERROR,
++                        "co frequency BSS whose sigal gt -50dbm is found");
++                count_co_channel_bss ++;
++            }
++            else {
++                wpa_printf(MSG_ERROR,
++                        "adjacent frequency BSS whose sigal gt -50dbm is found");
++                count_adjacent_channel_bss ++;
++            }
++        }
++    }
++
++    if (count_co_channel_bss > 3) {
++        wpa_printf(MSG_ERROR,
++                "Set the RF gain table back to Level 2 which co_channel_bss's count %d", count_co_channel_bss);
++
++        if (system("/usr/sbin/rf_gain_table2_2g4.sh"))
++            wpa_printf(MSG_INFO, "Failed to invoke script");
++    }
++    else if (count_adjacent_channel_bss >= 10) {
++        wpa_printf(MSG_ERROR,
++                "Set the RF gain table back to Level 2 which adjacent_channel_bss's count %d", count_adjacent_channel_bss);
++
++        if (system("/usr/sbin/rf_gain_table2_2g4.sh"))
++            wpa_printf(MSG_INFO, "Failed to invoke script");
++    }
++    else {
++        if (system("/usr/sbin/rf_gain_table_def_2g4.sh"))
++            wpa_printf(MSG_INFO, "Failed to invoke script");
++    }
++
++    wpa_scan_results_free(scan_res);
++    hostapd_setup_interface_complete(iface, 0);
++}
++
++
++int ieee80211n_check_interference_2g4(struct hostapd_iface *iface)
++{
++    struct wpa_driver_scan_params params;
++    struct hostapd_hw_modes *mode;
++    int ret, i, pos;
++
++    if (iface->current_mode->mode != HOSTAPD_MODE_IEEE80211G)
++        return 0;
++
++    hostapd_set_state(iface, HAPD_IFACE_HT_SCAN);
++    wpa_printf(MSG_ERROR, "Scan for BSSes prior to choose rx gain table");
++    os_memset(&params, 0, sizeof(params));
++
++    mode = iface->current_mode;
++    params.freqs = os_calloc(mode->num_channels + 1, sizeof(int));
++    if (params.freqs == NULL)
++        return -1;
++
++    pos = 0;
++    for (i = 0; i < mode->num_channels; i++) {
++        struct hostapd_channel_data *chan = &mode->channels[i];
++        if (chan->flag & HOSTAPD_CHAN_DISABLED)
++            continue;
++
++        params.freqs[pos++] = chan->freq;
++    }
++
++    ret = hostapd_driver_scan(iface->bss[0], &params);
++    os_free(params.freqs);
++
++
++    if (ret == -EBUSY) {
++        wpa_printf(MSG_ERROR,
++                "Failed to request a scan of BSSes ret=%d (%s) - try to scan again",
++                ret, strerror(-ret));
++
++        iface->num_ht40_scan_tries = 1;
++        eloop_cancel_timeout(ap_ht40_scan_retry, iface, NULL);
++        eloop_register_timeout(1, 0, ap_ht40_scan_retry, iface, NULL);
++        return 1;
++    }
++
++    if (ret < 0) {
++        wpa_printf(MSG_ERROR,
++                "Failed to request a scan of BSSes ret=%d (%s)",
++                ret, strerror(-ret));
++        return -1;
++    }
++
++    iface->scan_cb = choose_rxgain_by_scan_result;
++    return 1;
++}
++
++
+ static int ieee80211n_supported_ht_capab(struct hostapd_iface *iface)
+ {
+ 	u16 hw = iface->current_mode->ht_capab;
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/hw_features.h
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/hw_features.h
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/hw_features.h
+@@ -21,6 +21,7 @@ const char * hostapd_hw_mode_txt(int mod
+ int hostapd_hw_get_freq(struct hostapd_data *hapd, int chan);
+ int hostapd_hw_get_channel(struct hostapd_data *hapd, int freq);
+ int hostapd_check_ht_capab(struct hostapd_iface *iface);
++int ieee80211n_check_interference_2g4(struct hostapd_iface *iface);
+ int hostapd_prepare_rates(struct hostapd_iface *iface,
+ 			  struct hostapd_hw_modes *mode);
+ void hostapd_stop_setup_timers(struct hostapd_iface *iface);
+Index: hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.c
+===================================================================
+--- hostapd-2019-08-08-ca8c2bd2.orig/src/ap/hostapd.c
++++ hostapd-2019-08-08-ca8c2bd2/src/ap/hostapd.c
+@@ -1654,6 +1654,15 @@ static int setup_interface2(struct hosta
+ 			wpa_printf(MSG_DEBUG, "Interface initialization will "
+ 				   "be completed in a callback");
+ 			return 0;
++                }
++
++               ret = ieee80211n_check_interference_2g4(iface);
++               if (ret < 0)
++	                goto fail;
++		if (ret == 1) {
++		        wpa_printf(MSG_DEBUG, "Interface initialization will "
++			        "be completed in a callback");
++		        return 0;
+ 		}
+ 
+ 		if (iface->conf->ieee80211h)

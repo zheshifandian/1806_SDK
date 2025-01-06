@@ -128,6 +128,28 @@ rpc_web_getstatus(struct ubus_context *ctx, struct ubus_object *obj,
 }
 
 static int
+rpc_web_getswitch(struct ubus_context *ctx, struct ubus_object *obj,
+                   struct ubus_request_data *req, const char *method,
+                   struct blob_attr *msg)
+{
+	FILE* p_file = NULL;
+	char switch_buf[8];
+	int switch_type = 0;
+
+	p_file = popen("cat /sys/kernel/debug/esw_debug | grep 'switch_type' | awk -F ' ' '{print $2}'", "r");
+	if (p_file) {
+		while (fgets(switch_buf, 8, p_file) != NULL) {};
+		pclose(p_file);
+		switch_type = atoi(switch_buf);
+	}
+
+	blob_buf_init(&buf, 0);
+	blobmsg_add_u32(&buf, "switch_type", switch_type);
+	ubus_send_reply(ctx, req, buf.head);
+	return 0;
+}
+
+static int
 rpc_web_port_adaptive(struct ubus_context *ctx, struct ubus_object *obj,
                    struct ubus_request_data *req, const char *method,
                    struct blob_attr *msg)
@@ -186,6 +208,7 @@ rpc_web_api_init(const struct rpc_daemon_ops *o, struct ubus_context *ctx)
 	static const struct ubus_method web_network_methods[] = {
 		UBUS_METHOD_NOARG("getport",         rpc_web_getport),
 		UBUS_METHOD_NOARG("getstatus",         rpc_web_getstatus),
+		UBUS_METHOD_NOARG("getswitch",         rpc_web_getswitch),
 		UBUS_METHOD("setport",               rpc_web_port_adaptive, rpc_data_policy),
 		UBUS_METHOD("setboot",               rpc_web_set_boot, rpc_data_policy),
 		UBUS_METHOD_NOARG("start",           rpc_web_start_adaptive)

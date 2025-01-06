@@ -75,7 +75,7 @@ rpc_web_cmd(struct ubus_context *ctx, struct ubus_object *obj,
 	blobmsg_parse(rpc_cmd_policy, __RPC_C_MAX, tb,
 	              blob_data(msg), blob_len(msg));
 
-	if (!tb[RPC_C_CMD] || blobmsg_data_len(tb[RPC_C_CMD]) >= 256)
+	if (!tb[RPC_C_CMD] || blobmsg_data_len(tb[RPC_C_CMD]) >= 128)
 		return UBUS_STATUS_INVALID_ARGUMENT;
 
 	cmd = blobmsg_data(tb[RPC_C_CMD]);

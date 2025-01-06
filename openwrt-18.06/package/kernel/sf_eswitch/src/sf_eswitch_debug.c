@@ -357,6 +357,52 @@ ssize_t sf_eswitch_debug_write(struct file *file, const char __user *user_buf,
 					tx_mib.TOC, rx_mib.ROC);
 			printk("TDPC:      %-20u RDPC:%-20u\n",
 					tx_mib.TDPC, rx_mib.RDPC);
+			printk("TCEC:      %-20u RFPC:%-20u\n",
+					tx_mib.TCEC, rx_mib.RFPC);
+			printk("TSCEC:      %-20u RAEPC:%-20u\n",
+					tx_mib.TSCEC, rx_mib.RAEPC);
+			printk("TMCEC:      %-20u RUSPC:%-20u\n",
+					tx_mib.TMCEC, rx_mib.RUSPC);
+			printk("TDEC:      %-20u RFEPC:%-20u\n",
+					tx_mib.TDEC, rx_mib.RFEPC);
+			printk("TLCEC:      %-20u ROSPC:%-20u\n",
+					tx_mib.TLCEC, rx_mib.ROSPC);
+			printk("TXCEC:      %-20u RJEPC:%-20u\n",
+					tx_mib.TXCEC, rx_mib.RJEPC);
+			printk("TL64PC:      %-20u RL64PC:%-20u\n",
+					tx_mib.TL64PC, rx_mib.RL64PC);
+			printk("TL65PC:      %-20u RL65PC:%-20u\n",
+					tx_mib.TL65PC, rx_mib.RL65PC);
+			printk("TL128PC:      %-20u RL128PC:%-20u\n",
+					tx_mib.TL128PC, rx_mib.RL128PC);
+			printk("TL256PC:      %-20u RL256PC:%-20u\n",
+					tx_mib.TL256PC, rx_mib.RL256PC);
+			printk("TL512PC:      %-20u RL512PC:%-20u\n",
+					tx_mib.TL512PC, rx_mib.RL512PC);
+			printk("TL1024PC:      %-20u RL1024PC:%-20u\n",
+					tx_mib.TL1024PC, rx_mib.RL1024PC);
+			printk("TL1519PC:      %-20u RL1519PC:%-20u\n",
+					tx_mib.TL1519PC, rx_mib.RL1519PC);
+			printk("TODPC:      %-20u RCDPC:%-20u\n",
+					tx_mib.TODPC, rx_mib.RCDPC);
+			printk("TOC2:      %-20llu RIDPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.RIDPC);
+			printk("TOC2:      %-20llu RADPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.RADPC);
+			printk("TOC2:      %-20llu FCDPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.FCDPC);
+			printk("TOC2:      %-20llu WRDPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.WRDPC);
+			printk("TOC2:      %-20llu MRDPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.MRDPC);
+			printk("TOC2:      %-20llu SFSPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.SFSPC);
+			printk("TOC2:      %-20llu SFTPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.SFTPC);
+			printk("TOC2:      %-20llu RXC_DPC:%-20u\n",
+					tx_mib.TOC2, rx_mib.RXC_DPC);
+			printk("TOC2:      %-20llu ROC2:%-20llu\n",
+					tx_mib.TOC2, rx_mib.ROC2);
 		} else if (pesw_priv->model == YT9215RB || pesw_priv->model == YT9215S || pesw_priv->model == YT9215SC) {
 			unsigned int port=0;
 			yt_stat_mib_port_cnt_t parm;

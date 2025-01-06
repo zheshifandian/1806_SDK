@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2006 OpenWrt.org
+# Copyright @ 2024 Siflower
 
 #save rf trx path config
 for _dev in /sys/class/ieee80211/*; do

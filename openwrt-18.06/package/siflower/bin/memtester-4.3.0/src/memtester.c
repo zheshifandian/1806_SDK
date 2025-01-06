@@ -6,7 +6,7 @@
  * Version 2 by Charles Cazabon <charlesc-memtester@pyropus.ca>
  * Version 3 not publicly released.
  * Version 4 rewrite:
- * Copyright (C) 2004-2012 Charles Cazabon <charlesc-memtester@pyropus.ca>
+ * Copyright @ 2024 Siflower
  * Licensed under the terms of the GNU General Public License version 2 (only).
  * See the file COPYING for details.
  *
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
     ul testmask = 0;
 
     printf("memtester version " __version__ " (%d-bit)\n", UL_LEN);
-    printf("Copyright (C) 2001-2012 Charles Cazabon.\n");
+    printf("Copyright @ 2024 Siflower\n");
     printf("Licensed under the GNU General Public License version 2 (only).\n");
     printf("\n");
     check_posix_system();

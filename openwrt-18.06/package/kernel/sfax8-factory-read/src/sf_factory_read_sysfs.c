@@ -124,6 +124,10 @@ static const struct file_operations sf_factory_read_dbgfs_##name##_ops = { \
 #define EXIST_HDR_MAX_LEN (sizeof(EXIST_HDR) + 16)
 
 extern int get_value_through_mtd(struct device_node *np,const char *name, int start_offset, size_t len, unsigned char *buffer);
+extern void handle_macaddr_internal(struct device_node *np,struct sfax8_factory_read_context *priv);
+extern int sfax8_set_gmac_delay_mtd(const char *name, unsigned short gmac_delay);
+extern int sfax8_set_char_mtd(int id, unsigned char *ctx_buf, unsigned char *str, const size_t len);
+extern int sfax8_set_int_mtd(int id, uint32_t *ctx_buf, uint32_t val);
 
 static ssize_t sf_factory_read_dbgfs_stats_read(struct file *file,
 		char __user *user_buf,
@@ -296,6 +300,34 @@ static ssize_t sf_factory_read_countryid_show(struct device *dev, struct device_
 	return sprintf(buf, "%c%c\n",fr_ctx->countryID[0], fr_ctx->countryID[1]);
 }
 
+static ssize_t sf_factory_read_countryid_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char ID[COUNTRYID_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(ID, 0x0, COUNTRYID_SIZE);
+	ret = sscanf(buf, "%c%c", &ID[0], &ID[1]);
+	if (ret < COUNTRYID_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (ID[0] >= 'A' && ID[0] <= 'Z' && \
+	    ID[1] >= 'A' && ID[1] <= 'Z') {
+		sfax8_set_char_mtd(READ_COUNTRY_ID, fr_ctx->countryID, ID, COUNTRYID_SIZE);
+	} else {
+		printk("invalid country ID!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_macaddr_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -303,8 +335,31 @@ static ssize_t sf_factory_read_macaddr_show(struct device *dev, struct device_at
 		printk("fr_ctx is null!!!\n");
 		return 0;
 	}
-	return sprintf(buf, "0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n",fr_ctx->macaddr[0], fr_ctx->macaddr[1], fr_ctx->macaddr[2],\
+	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\n",fr_ctx->macaddr[0], fr_ctx->macaddr[1], fr_ctx->macaddr[2],\
 										fr_ctx->macaddr[3],fr_ctx->macaddr[4], fr_ctx->macaddr[5]);
+}
+
+static ssize_t sf_factory_read_macaddr_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char addr[MACADDR_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(addr, 0x0, MACADDR_SIZE);
+	ret = sscanf(buf, "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx", &addr[0], &addr[1], &addr[2], \
+								&addr[3], &addr[4], &addr[5]);
+	if (ret < MACADDR_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_MAC_ADDRESS, fr_ctx->macaddr, addr, MACADDR_SIZE);
+	handle_macaddr_internal(fr_ctx->np, fr_ctx);
+	return count;
 }
 
 static ssize_t sf_factory_read_macaddr0_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -314,8 +369,31 @@ static ssize_t sf_factory_read_macaddr0_show(struct device *dev, struct device_a
 		printk("fr_ctx is null!!!\n");
 		return 0;
 	}
-	return sprintf(buf, "0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n",fr_ctx->macaddr0[0], fr_ctx->macaddr0[1], fr_ctx->macaddr0[2],\
+	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\n",fr_ctx->macaddr0[0], fr_ctx->macaddr0[1], fr_ctx->macaddr0[2],\
 										fr_ctx->macaddr0[3],fr_ctx->macaddr0[4], fr_ctx->macaddr0[5]);
+}
+
+static ssize_t sf_factory_read_macaddr0_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char addr[MACADDR_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(addr, 0x0, MACADDR_SIZE);
+	ret = sscanf(buf, "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx", &addr[0], &addr[1], &addr[2], \
+								&addr[3], &addr[4], &addr[5]);
+	if (ret < MACADDR_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_MAC_ADDRESS, fr_ctx->macaddr0, addr, MACADDR_SIZE);
+	handle_macaddr_internal(fr_ctx->np, fr_ctx);
+	return count;
 }
 
 static ssize_t sf_factory_read_macaddr_wan_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -325,7 +403,7 @@ static ssize_t sf_factory_read_macaddr_wan_show(struct device *dev, struct devic
 		printk("fr_ctx is null!!!\n");
 		return 0;
 	}
-	return sprintf(buf, "0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n",fr_ctx->wan_macaddr[0], fr_ctx->wan_macaddr[1], fr_ctx->wan_macaddr[2],\
+	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\n",fr_ctx->wan_macaddr[0], fr_ctx->wan_macaddr[1], fr_ctx->wan_macaddr[2],\
 										fr_ctx->wan_macaddr[3],fr_ctx->wan_macaddr[4], fr_ctx->wan_macaddr[5]);
 }
 
@@ -353,6 +431,71 @@ static ssize_t sf_factory_read_macaddr_lan2_show(struct device *dev, struct devi
 }
 #endif
 
+static ssize_t sf_factory_read_macaddr_wan_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char addr[MACADDR_SIZE];
+	int ret = 0, i = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(addr, 0x0, MACADDR_SIZE);
+	ret = sscanf(buf, "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx", &addr[0], &addr[1], &addr[2], \
+								&addr[3], &addr[4], &addr[5]);
+	if (ret < MACADDR_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	for (i = 0; i < MACADDR_SIZE; i++) {
+		fr_ctx->wan_macaddr[i] = addr[i];
+		printk("0x%02x\n", addr[i]);
+	}
+
+	handle_macaddr_internal(fr_ctx->np, fr_ctx);
+	return count;
+}
+
+static ssize_t sf_factory_read_macaddr_lan_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\n",fr_ctx->lan_macaddr[0], fr_ctx->lan_macaddr[1], fr_ctx->lan_macaddr[2],\
+										fr_ctx->lan_macaddr[3],fr_ctx->lan_macaddr[4], fr_ctx->lan_macaddr[5]);
+}
+
+static ssize_t sf_factory_read_macaddr_lan_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char addr[MACADDR_SIZE];
+	int ret = 0, i = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(addr, 0x0, MACADDR_SIZE);
+	ret = sscanf(buf, "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx", &addr[0], &addr[1], &addr[2], \
+								&addr[3], &addr[4], &addr[5]);
+	if (ret < MACADDR_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	for (i = 0; i < MACADDR_SIZE; i++) {
+		fr_ctx->lan_macaddr[i] = addr[i];
+		printk("0x%02x\n", addr[i]);
+	}
+
+	handle_macaddr_internal(fr_ctx->np, fr_ctx);
+	return count;
+}
+
 static ssize_t sf_factory_read_macaddr_lb_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -360,8 +503,35 @@ static ssize_t sf_factory_read_macaddr_lb_show(struct device *dev, struct device
 		printk("fr_ctx is null!!!\n");
 		return 0;
 	}
-	return sprintf(buf, "0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n",fr_ctx->wifi_lb_macaddr[0], fr_ctx->wifi_lb_macaddr[1], fr_ctx->wifi_lb_macaddr[2],\
+	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\n",fr_ctx->wifi_lb_macaddr[0], fr_ctx->wifi_lb_macaddr[1], fr_ctx->wifi_lb_macaddr[2],\
 										fr_ctx->wifi_lb_macaddr[3],fr_ctx->wifi_lb_macaddr[4], fr_ctx->wifi_lb_macaddr[5]);
+}
+
+static ssize_t sf_factory_read_macaddr_lb_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char addr[MACADDR_SIZE];
+	int ret = 0, i = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(addr, 0x0, MACADDR_SIZE);
+	ret = sscanf(buf, "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx", &addr[0], &addr[1], &addr[2], \
+								&addr[3], &addr[4], &addr[5]);
+	if (ret < MACADDR_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	for (i = 0; i < MACADDR_SIZE; i++) {
+		fr_ctx->wifi_lb_macaddr[i] = addr[i];
+		printk("0x%02x\n", addr[i]);
+	}
+
+	handle_macaddr_internal(fr_ctx->np, fr_ctx);
+	return count;
 }
 
 static ssize_t sf_factory_read_macaddr_hb_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -371,8 +541,35 @@ static ssize_t sf_factory_read_macaddr_hb_show(struct device *dev, struct device
 		printk("fr_ctx is null!!!\n");
 		return 0;
 	}
-	return sprintf(buf, "0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n",fr_ctx->wifi_hb_macaddr[0], fr_ctx->wifi_hb_macaddr[1], fr_ctx->wifi_hb_macaddr[2],\
+	return sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\n",fr_ctx->wifi_hb_macaddr[0], fr_ctx->wifi_hb_macaddr[1], fr_ctx->wifi_hb_macaddr[2],\
 										fr_ctx->wifi_hb_macaddr[3],fr_ctx->wifi_hb_macaddr[4], fr_ctx->wifi_hb_macaddr[5]);
+}
+
+static ssize_t sf_factory_read_macaddr_hb_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char addr[MACADDR_SIZE];
+	int ret = 0, i = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(addr, 0x0, MACADDR_SIZE);
+	ret = sscanf(buf, "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx", &addr[0], &addr[1], &addr[2], \
+								&addr[3], &addr[4], &addr[5]);
+	if (ret < MACADDR_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	for (i = 0; i < MACADDR_SIZE; i++) {
+		fr_ctx->wifi_hb_macaddr[i] = addr[i];
+		printk("0x%02x\n", addr[i]);
+	}
+
+	handle_macaddr_internal(fr_ctx->np, fr_ctx);
+	return count;
 }
 
 static ssize_t sf_factory_read_sn_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -382,11 +579,29 @@ static ssize_t sf_factory_read_sn_show(struct device *dev, struct device_attribu
 		printk("fr_ctx is null!!!\n");
 		return 0;
 	}
-	return sprintf(buf, "0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n0x%02x\n",\
-						fr_ctx->sn[0], fr_ctx->sn[1], fr_ctx->sn[2],fr_ctx->sn[3],\
-						fr_ctx->sn[4], fr_ctx->sn[5], fr_ctx->sn[6], fr_ctx->sn[7],\
-						fr_ctx->sn[8], fr_ctx->sn[9],fr_ctx->sn[10], fr_ctx->sn[11],\
-						fr_ctx->sn[12], fr_ctx->sn[13],fr_ctx->sn[14], fr_ctx->sn[15]);
+	return sprintf(buf, "%.16s\n", fr_ctx->sn);
+}
+
+static ssize_t sf_factory_read_sn_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char sn[SN_SIZE + 1];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(sn, 0x0, SN_SIZE + 1);
+	ret = sscanf(buf, "%16s", sn);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_SN, fr_ctx->sn, sn, SN_SIZE);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_sn_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -397,6 +612,27 @@ static ssize_t sf_factory_read_sn_flag_show(struct device *dev, struct device_at
 		return 0;
 	}
 	return sprintf(buf, "0x%02x\n",fr_ctx->sn_flag);
+}
+
+static ssize_t sf_factory_read_sn_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag = 0x0;
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	ret = sscanf(buf, "0x%2hhx", &flag);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_SN_FLAG, &fr_ctx->sn_flag, &flag, 1);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_hw_ver_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -410,6 +646,33 @@ static ssize_t sf_factory_read_hw_ver_flag_show(struct device *dev, struct devic
 	return sprintf(buf, "%.2s\n", fr_ctx->hw_ver_flag);
 }
 
+static ssize_t sf_factory_read_hw_ver_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag[HARDWARE_VER_FLAG_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(flag, 0x0, HARDWARE_VER_FLAG_SIZE);
+	ret = sscanf(buf, "%c%c", &flag[0], &flag[1]);
+	if (ret < HARDWARE_VER_FLAG_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (fr_ctx->hw_ver[0] != 0xff && flag[0] == 'h' && flag[1] == 'v') {
+		sfax8_set_char_mtd(READ_HARDWARE_VER_FLAG, fr_ctx->hw_ver_flag, flag, HARDWARE_VER_FLAG_SIZE);
+	} else {
+		printk("only when hw_ver is valid can fill in \"hv\"!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_hw_ver_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -418,6 +681,28 @@ static ssize_t sf_factory_read_hw_ver_show(struct device *dev, struct device_att
 		return 0;
 	}
 	return sprintf(buf, "%.32s\n", fr_ctx->hw_ver);
+}
+
+static ssize_t sf_factory_read_hw_ver_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char ver[HARDWARE_VER_SIZE + 1];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(ver, 0x0, HARDWARE_VER_SIZE + 1);
+	ret = sscanf(buf, "%32s", ver);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_HARDWARE_VER, fr_ctx->hw_ver, ver, HARDWARE_VER_SIZE);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_model_ver_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -430,6 +715,33 @@ static ssize_t sf_factory_read_model_ver_flag_show(struct device *dev, struct de
 	return sprintf(buf, "%.2s\n", fr_ctx->model_ver_flag);
 }
 
+static ssize_t sf_factory_read_model_ver_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag[MODEL_VER_FLAG_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(flag, 0x0, MODEL_VER_FLAG_SIZE);
+	ret = sscanf(buf, "%c%c", &flag[0], &flag[1]);
+	if (ret < MODEL_VER_FLAG_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (fr_ctx->model_ver[0] != 0xff && flag[0] == 'm' && flag[1] == 'v') {
+		sfax8_set_char_mtd(READ_MODEL_VER_FLAG, fr_ctx->model_ver_flag, flag, MODEL_VER_FLAG_SIZE);
+	} else {
+		printk("only when model_ver is valid can fill in \"mv\"!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_model_ver_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -438,6 +750,27 @@ static ssize_t sf_factory_read_model_ver_show(struct device *dev, struct device_
 		return 0;
 	}
 	return sprintf(buf, "%.32s\n", fr_ctx->model_ver);
+}
+
+static ssize_t sf_factory_read_model_ver_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char ver[MODEL_VER_SIZE + 1];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(ver, 0x0, MODEL_VER_SIZE + 1);
+	ret = sscanf(buf, "%32s", ver);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_MODEL_VER, fr_ctx->model_ver, ver, MODEL_VER_SIZE);
+	return count;
 }
 
 static ssize_t sf_factory_read_vender_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -450,6 +783,33 @@ static ssize_t sf_factory_read_vender_flag_show(struct device *dev, struct devic
 	return sprintf(buf, "%.2s\n", fr_ctx->vender_flag);
 }
 
+static ssize_t sf_factory_read_vender_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag[VENDER_FLAG_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(flag, 0x0, VENDER_FLAG_SIZE);
+	ret = sscanf(buf, "%c%c", &flag[0], &flag[1]);
+	if (ret < VENDER_FLAG_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (fr_ctx->vender[0] != 0xff && flag[0] == 'v' && flag[1] == 'd') {
+		sfax8_set_char_mtd(READ_VENDER_FLAG, fr_ctx->vender_flag, flag, VENDER_FLAG_SIZE);
+	} else {
+		printk("only when vender is valid can fill in \"vd\"!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_vender_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -458,6 +818,28 @@ static ssize_t sf_factory_read_vender_show(struct device *dev, struct device_att
 		return 0;
 	}
 	return sprintf(buf, "%.16s\n", fr_ctx->vender);
+}
+
+static ssize_t sf_factory_read_vender_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char vender[VENDER_SIZE + 1];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(vender, 0x0, VENDER_SIZE + 1);
+	ret = sscanf(buf, "%16s", vender);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_VENDER, fr_ctx->vender, vender, VENDER_SIZE);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_product_key_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -470,6 +852,33 @@ static ssize_t sf_factory_read_product_key_flag_show(struct device *dev, struct 
 	return sprintf(buf, "%.2s\n", fr_ctx->product_key_flag);
 }
 
+static ssize_t sf_factory_read_product_key_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag[PRODUCT_KEY_FLAG_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(flag, 0x0, PRODUCT_KEY_FLAG_SIZE);
+	ret = sscanf(buf, "%c%c", &flag[0], &flag[1]);
+	if (ret < PRODUCT_KEY_FLAG_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (fr_ctx->product_key[0] != 0xff && flag[0] == 'p' && flag[1] == 'k') {
+		sfax8_set_char_mtd(READ_PRODUCT_KEY_FLAG, fr_ctx->product_key_flag, flag, PRODUCT_KEY_FLAG_SIZE);
+	} else {
+		printk("only when product_key is valid can fill in \"pk\"!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_login_info_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -478,6 +887,27 @@ static ssize_t sf_factory_read_login_info_show(struct device *dev, struct device
 		return 0;
 	}
 	return sprintf(buf, "%#x\n", fr_ctx->login_info);
+}
+
+static ssize_t sf_factory_read_login_info_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	uint32_t info = 0x0;
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	ret = sscanf(buf, "0x%8x", &info);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_int_mtd(READ_LOGIN_INFO, &fr_ctx->login_info, info);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_login_info_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -490,6 +920,33 @@ static ssize_t sf_factory_read_login_info_flag_show(struct device *dev, struct d
 	return sprintf(buf, "%.2s\n", fr_ctx->login_info_flag);
 }
 
+static ssize_t sf_factory_read_login_info_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag[LOGIN_INFO_FLAG_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(flag, 0x0, LOGIN_INFO_FLAG_SIZE);
+	ret = sscanf(buf, "%c%c", &flag[0], &flag[1]);
+	if (ret < LOGIN_INFO_FLAG_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (flag[0] == 'l' && flag[1] == 'i') {
+		sfax8_set_char_mtd(READ_LOGIN_INFO_FLAG, fr_ctx->login_info_flag, flag, LOGIN_INFO_FLAG_SIZE);
+	} else {
+		printk("only when login_info is valid can fill in \"li\"!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_rom_type_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -498,6 +955,27 @@ static ssize_t sf_factory_read_rom_type_show(struct device *dev, struct device_a
 		return 0;
 	}
 	return sprintf(buf, "%#x\n", fr_ctx->rom_type);
+}
+
+static ssize_t sf_factory_read_rom_type_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	uint32_t type = 0x0;
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	ret = sscanf(buf, "0x%8x", &type);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_int_mtd(READ_ROM_TYPE, &fr_ctx->rom_type, type);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_rom_type_flag_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -510,6 +988,33 @@ static ssize_t sf_factory_read_rom_type_flag_show(struct device *dev, struct dev
 	return sprintf(buf, "%.2s\n", fr_ctx->rom_type_flag);
 }
 
+static ssize_t sf_factory_read_rom_type_flag_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char flag[ROM_TYPE_FLAG_SIZE];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(flag, 0x0, ROM_TYPE_FLAG_SIZE);
+	ret = sscanf(buf, "%c%c", &flag[0], &flag[1]);
+	if (ret < ROM_TYPE_FLAG_SIZE) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	if (fr_ctx->rom_type != 0xffffffff && flag[0] == 'r' && flag[1] == 't') {
+		sfax8_set_char_mtd(READ_ROM_TYPE_FLAG, fr_ctx->rom_type_flag, flag, ROM_TYPE_FLAG_SIZE);
+	} else {
+		printk("only when rom_type is valid can fill in \"rt\"!\n");
+		return -EFAULT;
+	}
+
+	return count;
+}
+
 static ssize_t sf_factory_read_gmac_delay_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -518,6 +1023,28 @@ static ssize_t sf_factory_read_gmac_delay_show(struct device *dev, struct device
 		return 0;
 	}
 	return sprintf(buf, "0x%.2s\n0x%.2s\n", &fr_ctx->gmac_delay[0], &fr_ctx->gmac_delay[2]);
+}
+
+static ssize_t sf_factory_read_gmac_delay_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned short tx_delay = 0, rx_delay = 0;
+	int ret = 0;
+
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	ret = sscanf(buf, "%2hx%2hx", &tx_delay, &rx_delay);
+	if (ret < 2) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_gmac_delay_mtd("mtd-gmac-delay", (tx_delay << 8) | rx_delay);
+
+	return count;
 }
 
 static ssize_t sf_factory_read_product_key_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -529,6 +1056,29 @@ static ssize_t sf_factory_read_product_key_show(struct device *dev, struct devic
 	}
 	return sprintf(buf, "%.32s\n", fr_ctx->product_key);
 }
+
+static ssize_t sf_factory_read_product_key_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	unsigned char key[PRODUCT_KEY_SIZE + 1];
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	memset(key, 0x0, PRODUCT_KEY_SIZE + 1);
+	ret = sscanf(buf, "%32s", key);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_char_mtd(READ_PRODUCT_KEY, fr_ctx->product_key, key, PRODUCT_KEY_SIZE);
+
+	return count;
+}
+
 static ssize_t sf_factory_read_hw_feature_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
@@ -539,37 +1089,56 @@ static ssize_t sf_factory_read_hw_feature_show(struct device *dev, struct device
 	return sprintf(buf, "%#x\n",fr_ctx->hw_feature);
 }
 
-static DEVICE_ATTR(countryid, S_IRUSR, sf_factory_read_countryid_show, NULL);
-static DEVICE_ATTR(macaddr, S_IRUSR, sf_factory_read_macaddr_show, NULL);
-static DEVICE_ATTR(macaddr_wan, S_IRUSR, sf_factory_read_macaddr_wan_show, NULL);
-#ifdef CONFIG_SFAX8_HNAT_MULTI_WAN
-static DEVICE_ATTR(macaddr_wwan, S_IRUSR, sf_factory_read_macaddr_wwan_show, NULL);
-static DEVICE_ATTR(macaddr_lan2, S_IRUSR, sf_factory_read_macaddr_lan2_show, NULL);
-#endif
-static DEVICE_ATTR(macaddr_lb, S_IRUSR, sf_factory_read_macaddr_lb_show, NULL);
-static DEVICE_ATTR(macaddr_hb, S_IRUSR, sf_factory_read_macaddr_hb_show, NULL);
-static DEVICE_ATTR(macaddr0, S_IRUSR, sf_factory_read_macaddr0_show, NULL);
-static DEVICE_ATTR(sn, S_IRUSR, sf_factory_read_sn_show, NULL);
-static DEVICE_ATTR(sn_flag, S_IRUSR, sf_factory_read_sn_flag_show, NULL);
-static DEVICE_ATTR(hw_ver_flag, S_IRUSR, sf_factory_read_hw_ver_flag_show, NULL);
-static DEVICE_ATTR(hw_ver, S_IRUSR, sf_factory_read_hw_ver_show, NULL);
-static DEVICE_ATTR(model_ver_flag, S_IRUSR, sf_factory_read_model_ver_flag_show, NULL);
-static DEVICE_ATTR(model_ver, S_IRUSR, sf_factory_read_model_ver_show, NULL);
-static DEVICE_ATTR(hw_feature, S_IRUSR, sf_factory_read_hw_feature_show, NULL);
-static DEVICE_ATTR(vender_flag, S_IRUSR, sf_factory_read_vender_flag_show, NULL);
-static DEVICE_ATTR(vender, S_IRUSR, sf_factory_read_vender_show, NULL);
-static DEVICE_ATTR(product_key_flag, S_IRUSR, sf_factory_read_product_key_flag_show, NULL);
-static DEVICE_ATTR(product_key, S_IRUSR, sf_factory_read_product_key_show, NULL);
-static DEVICE_ATTR(login_info_flag, S_IRUSR, sf_factory_read_login_info_flag_show, NULL);
-static DEVICE_ATTR(login_info, S_IRUSR, sf_factory_read_login_info_show, NULL);
-static DEVICE_ATTR(rom_type_flag, S_IRUSR, sf_factory_read_rom_type_flag_show, NULL);
-static DEVICE_ATTR(rom_type, S_IRUSR, sf_factory_read_rom_type_show, NULL);
-static DEVICE_ATTR(gmac_delay, S_IRUSR, sf_factory_read_gmac_delay_show, NULL);
+static ssize_t sf_factory_read_hw_feature_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct sfax8_factory_read_context *fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(to_platform_device(dev));
+	uint32_t feature = 0x0;
+	int ret = 0;
+	if (!fr_ctx) {
+		printk("fr_ctx is null!!!\n");
+		return 0;
+	}
+
+	ret = sscanf(buf, "0x%8x", &feature);
+	if (ret < 1) {
+		printk("can not sscanf the buf!\n");
+		return -EFAULT;
+	}
+
+	sfax8_set_int_mtd(READ_HW_FEATURE, &fr_ctx->hw_feature, feature);
+
+	return count;
+}
+
+static DEVICE_ATTR(countryid,        S_IRUSR | S_IWUSR, sf_factory_read_countryid_show, sf_factory_read_countryid_store);
+static DEVICE_ATTR(macaddr,          S_IRUSR | S_IWUSR, sf_factory_read_macaddr_show, sf_factory_read_macaddr_store);
+static DEVICE_ATTR(macaddr0,         S_IRUSR | S_IWUSR, sf_factory_read_macaddr0_show, sf_factory_read_macaddr0_store);
+static DEVICE_ATTR(macaddr_wan,      S_IRUSR | S_IWUSR, sf_factory_read_macaddr_wan_show, sf_factory_read_macaddr_wan_store);
+static DEVICE_ATTR(macaddr_lan,      S_IRUSR | S_IWUSR, sf_factory_read_macaddr_lan_show, sf_factory_read_macaddr_lan_store);
+static DEVICE_ATTR(macaddr_lb,       S_IRUSR | S_IWUSR, sf_factory_read_macaddr_lb_show, sf_factory_read_macaddr_lb_store);
+static DEVICE_ATTR(macaddr_hb,       S_IRUSR | S_IWUSR, sf_factory_read_macaddr_hb_show, sf_factory_read_macaddr_hb_store);
+static DEVICE_ATTR(sn,               S_IRUSR | S_IWUSR, sf_factory_read_sn_show, sf_factory_read_sn_store);
+static DEVICE_ATTR(sn_flag,          S_IRUSR | S_IWUSR, sf_factory_read_sn_flag_show, sf_factory_read_sn_flag_store);
+static DEVICE_ATTR(hw_ver,           S_IRUSR | S_IWUSR, sf_factory_read_hw_ver_show, sf_factory_read_hw_ver_store);
+static DEVICE_ATTR(hw_ver_flag,      S_IRUSR | S_IWUSR, sf_factory_read_hw_ver_flag_show, sf_factory_read_hw_ver_flag_store);
+static DEVICE_ATTR(model_ver,        S_IRUSR | S_IWUSR, sf_factory_read_model_ver_show, sf_factory_read_model_ver_store);
+static DEVICE_ATTR(model_ver_flag,   S_IRUSR | S_IWUSR, sf_factory_read_model_ver_flag_show, sf_factory_read_model_ver_flag_store);
+static DEVICE_ATTR(vender,           S_IRUSR | S_IWUSR, sf_factory_read_vender_show, sf_factory_read_vender_store);
+static DEVICE_ATTR(vender_flag,      S_IRUSR | S_IWUSR, sf_factory_read_vender_flag_show, sf_factory_read_vender_flag_store);
+static DEVICE_ATTR(product_key,      S_IRUSR | S_IWUSR, sf_factory_read_product_key_show, sf_factory_read_product_key_store);
+static DEVICE_ATTR(product_key_flag, S_IRUSR | S_IWUSR, sf_factory_read_product_key_flag_show, sf_factory_read_product_key_flag_store);
+static DEVICE_ATTR(login_info,       S_IRUSR | S_IWUSR, sf_factory_read_login_info_show, sf_factory_read_login_info_store);
+static DEVICE_ATTR(login_info_flag,  S_IRUSR | S_IWUSR, sf_factory_read_login_info_flag_show, sf_factory_read_login_info_flag_store);
+static DEVICE_ATTR(rom_type,         S_IRUSR | S_IWUSR, sf_factory_read_rom_type_show, sf_factory_read_rom_type_store);
+static DEVICE_ATTR(rom_type_flag,    S_IRUSR | S_IWUSR, sf_factory_read_rom_type_flag_show, sf_factory_read_rom_type_flag_store);
+static DEVICE_ATTR(gmac_delay,       S_IRUSR | S_IWUSR, sf_factory_read_gmac_delay_show, sf_factory_read_gmac_delay_store);
+static DEVICE_ATTR(hw_feature,       S_IRUSR | S_IWUSR, sf_factory_read_hw_feature_show, sf_factory_read_hw_feature_store);
 
 static struct attribute *factory_read_attr[] = {
 	&dev_attr_countryid.attr,
 	&dev_attr_macaddr.attr,
 	&dev_attr_macaddr_wan.attr,
+	&dev_attr_macaddr_lan.attr,
 #ifdef CONFIG_SFAX8_HNAT_MULTI_WAN
 	&dev_attr_macaddr_wwan.attr,
 	&dev_attr_macaddr_lan2.attr,
@@ -605,8 +1174,7 @@ int sf_factory_read_sysfs_register(struct platform_device *pdev, char *parent)
 	struct sfax8_factory_read_context *fr_ctx;
 	struct dentry *dir_drv;
 
-	fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(
-			pdev);
+	fr_ctx = (struct sfax8_factory_read_context *)platform_get_drvdata(pdev);
 	// 1.register debugfs
 	printk("%s, parent :%s\n", __func__,
 			(parent == NULL) ? "NULL" : parent);

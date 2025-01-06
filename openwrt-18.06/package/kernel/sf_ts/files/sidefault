@@ -1,0 +1,6 @@
+config setting 'acl'
+	option internet	'1'
+	option lan	'1'
+
+config setting 'ssstlog'
+	option level '0'

@@ -3658,11 +3658,44 @@ set_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 	return rflow;
 }
 
+
+struct net_device *find_wifi_ndev_by_dmac(struct sk_buff *skb)
+{
+	struct net_device *g_br_dev = NULL;
+	struct net_bridge *br = NULL;
+	struct net_bridge_fdb_entry *dst = NULL;
+	struct net_device *outdev = NULL;
+	struct ethhdr *tmp_ethhdr = eth_hdr(skb);
+	unsigned char* dmac = tmp_ethhdr->h_dest;
+
+	if(skb->dev->ieee80211_ptr)
+		return NULL;
+
+	g_br_dev = dev_get_by_name_rcu(&init_net, "br-lan");
+	if (!g_br_dev)
+		return NULL;
+
+	br = netdev_priv(g_br_dev);
+	if (!br)
+		return NULL;
+
+	dst = br_fdb_find_rcu(br, dmac, 0);
+	if (!dst || !dst->dst)
+		return NULL;
+
+	outdev = dst->dst->dev;
+	if (!outdev)
+		return NULL;
+
+	return outdev;
+}
+
 /*
  * get_rps_cpu is called from netif_receive_skb and returns the target
  * CPU from the RPS map of the receiving queue for a given skb.
  * rcu_read_lock must be held on entry.
  */
+#define DEFAULT_GMAC_RCPU 2
 static int get_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 		       struct rps_dev_flow **rflowp)
 {
@@ -3699,6 +3732,14 @@ static int get_rps_cpu(struct net_device *dev, struct sk_buff *skb,
 	    map && (map->len == 1))
 		return map->cpus[0];
 
+		if ((!flow_table || !sock_flow_table) && map && (map->len == 2)) {
+				struct net_device *outdev = find_wifi_ndev_by_dmac(skb);
+
+				if (outdev) {
+					if (strcmp("wlan1", outdev->name))
+						return DEFAULT_GMAC_RCPU;
+				}
+		}
 	skb_reset_network_header(skb);
 	hash = skb_get_hash(skb);
 	if (!hash)
@@ -5222,7 +5263,7 @@ static bool sd_has_rps_ipi_waiting(struct softnet_data *sd)
 }
 
 static DEFINE_RWLOCK(backlog_hook_lock);
-typedef int (*device_drv_hook_fn)(struct sk_buff *skb);
+typedef int (*device_drv_hook_fn)(struct sk_buff *skb, struct net_device *outdev);
 static device_drv_hook_fn g_wlan_hook_fn = NULL;
 
 int backlog_skb_handler_register(device_drv_hook_fn hook)
@@ -5246,12 +5287,65 @@ EXPORT_SYMBOL_GPL(backlog_skb_handler_unregister);
 static int hook_dev_xmit_path(struct sk_buff *skb)
 {
 	int ret = NET_RX_DROP;
-	rcu_read_lock();
-	device_drv_hook_fn hook_fn = rcu_dereference(g_wlan_hook_fn);
-	if (hook_fn)
-		ret = hook_fn(skb);
+	device_drv_hook_fn hook_fn;
 
-	rcu_read_unlock();
+	struct net_bridge_port *p = NULL;
+	struct net_bridge *br = NULL;
+	struct net_bridge_fdb_entry *dst = NULL;
+	struct net_device *outdev = NULL;
+	struct net_device *eth_dev = NULL;
+	const unsigned char *dest = NULL;
+	struct ethhdr *tmp_ethhdr = eth_hdr(skb);
+	//IFNAMSIZ = 16
+	unsigned char dev_name[32] = {'\0'};
+
+	if(skb->dev->ieee80211_ptr)
+		return ret;
+	if (eth_type_vlan(tmp_ethhdr->h_proto)) {
+		int name_len = strlen(skb->dev->name);
+		u16 vlanid = 0;
+		struct vlan_ethhdr *veth = (struct vlan_ethhdr *)tmp_ethhdr;
+		memcpy(dev_name, skb->dev->name, name_len);
+		vlanid = ntohs(veth->h_vlan_TCI);
+		//todo vlanid > 10
+		if (likely(vlanid < 10)) {
+		dev_name[name_len] = '.';
+		dev_name[name_len+1] = '0' + vlanid;
+		} else {
+			//avoid using sprintf,it's waste of a time
+			sprintf(dev_name, "%s.%d", dev_name, vlanid);
+		}
+	}
+
+	eth_dev = dev_get_by_name_rcu(&init_net, dev_name);
+	if (!eth_dev) {
+		return ret;
+	}
+	p = br_port_get_rcu(eth_dev);
+	if (!p)
+		return ret;
+	br = p->br;
+	if (!br)
+		return ret;
+	dest = eth_hdr(skb)->h_dest;
+	if (!dest)
+		return ret;
+	dst = br_fdb_find_rcu(br, dest, 0);
+	if (!dst || !dst->dst)
+		return ret;
+	if (br && dst)
+		outdev = dst->dst->dev;
+	if (outdev) {
+		if (!outdev->ieee80211_ptr) {
+			return ret;
+		}
+
+		rcu_read_lock();
+		hook_fn = rcu_dereference(g_wlan_hook_fn);
+		if (hook_fn)
+			ret = hook_fn(skb, outdev);
+		rcu_read_unlock();
+	}
 	return ret;
 }
 
@@ -5264,7 +5358,7 @@ struct net_device *sf_hnat_find_wifi_ndev_by_dmac(struct sk_buff *skb, struct ne
 	dmac = eth->h_dest;
 	dst = br_fdb_find_rcu(br, dmac, 0);
 
-	if (dst == NULL)
+	if (!dst || !dst->dst)
 		return NULL;
 
 	return dst->dst->dev;
